@@ -1,0 +1,21 @@
+# IntelliJ
+.idea/
+*.iml
+out/
+
+# Maven
+target/
+
+# Whitetail runtime files
+session.log
+fatal.log
+persistent.log
+config.ini
+tuning.ini
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Personal notes and temp debug logs
+*.txt
