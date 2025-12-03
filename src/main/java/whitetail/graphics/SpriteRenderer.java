@@ -20,7 +20,7 @@ public class SpriteRenderer {
     private static Matrix4f matBuf;
     private static int vaoID;
     private static int indexCount;
-    private static final String UNIT_QUAD_FILENAME = "test_starfield_plane.obj";
+    private static final String UNIT_QUAD_FILENAME = "unit_quad.obj";
 
     private static Camera cam;
 
