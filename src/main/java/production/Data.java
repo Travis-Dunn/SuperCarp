@@ -1,5 +1,6 @@
 package production;
 
+import production.sprite.SpriteCamera;
 import whitetail.graphics.Shader;
 import whitetail.graphics.Sprite;
 import whitetail.graphics.Texture;
@@ -12,4 +13,6 @@ public class Data {
     public static MaterialD charMaterial;
     public static Sprite charSprite;
     public static Camera cam;
+    public static SpriteCamera sCam;
+    public static byte[] fb;
 }

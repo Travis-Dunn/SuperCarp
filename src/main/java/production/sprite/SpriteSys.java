@@ -1,8 +1,7 @@
-package production;
+package production.sprite;
 
 import whitetail.utility.logging.LogLevel;
 
-import static production.SpriteAtlas.GetST;
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
 import static whitetail.utility.logging.Logger.LogSession;
 
@@ -14,9 +13,7 @@ public class SpriteSys {
 
     /* per-sprite */
     private static int xyArr[];
-    /* duplicated, computed using atlasIdx at sprite creation or when atlasIdx
-    is set */
-    private static float stArr[];
+
     /* packed: bits 0-15 atlasIdx, bits 16-23 layer, bits 24-31 flags */
     private static int bitfieldArr[];
 
@@ -26,7 +23,7 @@ public class SpriteSys {
     private static final int DEF_CAP = 0xFFFF;
     public static final int INVALID_HANDLE = -1;
 
-    /* flags occupy bits 24-31 of packedArr */
+    /* flags occupy bits 24-31 of bitfieldArr */
     public static final byte FLAG_VISIBLE =                     0b00000001;
     public static final byte FLAG_FLIPH =                       0b00000010;
     public static final byte FLAG_FLIPV =                       0b00000100;
@@ -54,7 +51,6 @@ public class SpriteSys {
 
         try {
             xyArr = new int[SpriteSys.cap * 2];
-            stArr = new float[SpriteSys.cap * 2];
             bitfieldArr = new int[SpriteSys.cap];
             freeList = new int[SpriteSys.cap];
 
@@ -86,8 +82,6 @@ public class SpriteSys {
 
         xyArr[idx] = 0;
         xyArr[idx + 1] = 0;
-        stArr[idx] = 0.0f;
-        stArr[idx + 1] = 0.0f;
         bitfieldArr[handle] = (FLAG_VISIBLE | FLAG_VALID) << FLAGS_SHIFT;
 
         activeCount++;
@@ -97,10 +91,12 @@ public class SpriteSys {
 
     public static int Create(int x, int y, byte layer, short atlasIdx) {
         assert(init);
+        /* TODO: layer currently has 8 bits, but we only want 3 to be used for
+        it. Move the other 5 to flags or mark "Unused". */
+        assert(layer < 8);
 
         int idx;
         int handle;
-        long st;
 
         if (atlasIdx < 0 || atlasIdx > 0x3FFF) {
             LogFatalAndExit(ErrStrIdxOOB(atlasIdx, "atlasIdx", 0,
@@ -112,12 +108,8 @@ public class SpriteSys {
         if (INVALID_HANDLE == handle) return INVALID_HANDLE;
         idx = handle << 1;
 
-        st = GetST(atlasIdx);
-
         xyArr[idx] = x;
         xyArr[idx + 1] = y;
-        stArr[idx] = Float.intBitsToFloat((int)(st >> 32));
-        stArr[idx + 1] = Float.intBitsToFloat((int)st);
         bitfieldArr[handle] = (atlasIdx & ATLAS_MASK)
                 | ((layer & 0xFF) << LAYER_SHIFT)
                 | ((FLAG_VISIBLE | FLAG_VALID) << FLAGS_SHIFT);
@@ -178,29 +170,25 @@ public class SpriteSys {
         assert(init);
         assert(!(handle < 0) && handle < highMark);
         assert((bitfieldArr[handle] & (FLAG_VALID << FLAGS_SHIFT)) != 0);
+        /* TODO: take care of this when you change layer! */
+        assert(layer < 8);
 
         bitfieldArr[handle] = (bitfieldArr[handle] & ~LAYER_MASK)
                 | ((layer & 0xFF) << LAYER_SHIFT);
     }
 
+    /* TODO: Do we still want this? We were setting uvs before we moved away
+    *   from using uvs. */
     public static void SetAtlasIdx(int handle, short atlasIdx) {
         assert(init);
         assert(!(handle < 0) && handle < highMark);
         assert((bitfieldArr[handle] & (FLAG_VALID << FLAGS_SHIFT)) != 0);
-
-        int idx = handle << 1;
-        long st;
 
         if (atlasIdx < 0 || atlasIdx > 0x3FFF) {
             LogFatalAndExit(ErrStrIdxOOB(atlasIdx, "atlasIdx", 0,
                     0x3FFF));
             return;
         }
-
-        st = GetST(atlasIdx);
-
-        stArr[idx] = Float.intBitsToFloat((int)(st >> 32));
-        stArr[idx + 1] = Float.intBitsToFloat((int)st);
 
         bitfieldArr[handle] = (bitfieldArr[handle] & ~ATLAS_MASK)
                 | (atlasIdx & ATLAS_MASK);
@@ -324,19 +312,45 @@ public class SpriteSys {
         bitfieldArr[handle] ^= FLAG_FLIPV << FLAGS_SHIFT;
     }
 
-    static int[] GetXYArr() { return xyArr; }
-    static float[] GetSTArr() { return stArr; }
-    static int[] GetPackedArr() { return bitfieldArr; }
-    static int GetHighMark() { return highMark; }
-    static int GetActiveCount() { return activeCount; }
-    static int GetCap() { return cap; }
-    static int GetFreeCount() { return freeCount; }
+    static int[] GetXYArr() {
+        assert(init);
+
+        return xyArr;
+    }
+
+    static int[] GetBitfieldArr() {
+        assert(init);
+
+        return bitfieldArr;
+    }
+
+    static int GetHighMark() {
+        assert(init);
+
+        return highMark;
+    }
+
+    static int GetActiveCount() {
+        assert(init);
+
+        return activeCount;
+    }
+
+    static int GetCap() {
+        assert(init);
+
+        return cap;
+    }
+    static int GetFreeCount() {
+        assert(init);
+
+        return freeCount;
+    }
 
     public static void Shutdown() {
         assert(init);
 
         xyArr = null;
-        stArr = null;
         bitfieldArr = null;
         freeList = null;
 

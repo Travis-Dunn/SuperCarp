@@ -10,7 +10,7 @@ public class EntryPoint {
             System.err.println("Engine failed to init first half");
             return;
         }
-        if (!engine.initSecondHalf("SuperCarp dev build", 800, 600,
+        if (!engine.initSecondHalf("SuperCarp dev build", 960, 720,
                 0, true, false)) {
             LogFatalAndExit("Engine failed to init second half");
             return;
