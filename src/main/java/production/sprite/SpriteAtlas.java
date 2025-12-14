@@ -13,6 +13,10 @@ public class SpriteAtlas {
     /* ARGB palette, 256 entries */
     private static int[] palette;
 
+    /* Kind of arbitrary.
+     But I want a defined upper bound that's not 0xFFFFFFFF */
+    public static final int MAX_ATLAS_IDX = 0x3FFF;
+
     private SpriteAtlas() {}
 
     public static boolean Init(int atlasWidth, int atlasHeight, int spriteSize) {

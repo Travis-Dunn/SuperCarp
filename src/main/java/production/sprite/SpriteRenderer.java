@@ -101,10 +101,14 @@ public class SpriteRenderer {
         for (i = MAX_LAYERS - 1; i >= 0; --i) {
             for (j = 0; j < layerCounts[i]; ++j) {
                 int handle = handlesByLayerArr[i][j];
+                /*
                 int idx = handle << 1;
 
                 int screenX = xyArr[idx] - camX;
                 int screenY = xyArr[idx + 1] - camY;
+                 */
+                int screenX = SpriteSys.GetX(handle);
+                int screenY = SpriteSys.GetY(handle);
 
                 short atlasIdx = SpriteSys.GetAtlasIdx(handle);
                 int atlasX = SpriteAtlas.GetSpriteX(atlasIdx);
