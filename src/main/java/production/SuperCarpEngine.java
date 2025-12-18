@@ -129,6 +129,12 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         int s5 = SpriteSys.Create(250, 50, (byte)0, (short)3);   // same, flipped V
         SpriteSys.SetFlipV(s5, true);
 
+        Data.sp = SpritePaletteFileParser.FromFile("mystic-16.png");
+        if (Data.sp == null) return false;
+        Data.sa = SpriteAtlasFileParser.FromFile("test_atlas.png",
+            16, Data.sp);
+        if (Data.sa == null) return false;
+
         return true;
     }
 
