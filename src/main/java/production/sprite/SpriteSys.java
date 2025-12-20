@@ -6,92 +6,96 @@ import static whitetail.utility.ErrorHandler.LogFatalAndExit;
 import static whitetail.utility.logging.ErrorStrings.ERR_STR_FAILED_INIT_OOM;
 import static whitetail.utility.logging.Logger.LogSession;
 
-/**
- * Maintains sprite data.
- */
-public class SpriteSys {
+public final class SpriteSys {
     private static boolean init;
     private static int cap;
     private static int activeCount;
     private static int highMark;
-
-    /* per-sprite, packed: bits 16-31 x, bits 0-15 y */
-    private static int xyArr[];
-
-    /* packed: bits 0-15 atlasIdx, bits 16-18 layer, bits 19-23 unused, bits 24-31 flags */
-    private static int bitfieldArr[];
-
+    private static long arr[];
     private static int freeCount;
     private static int freeList[];
-
     private static final int DEF_CAP = 0xFFFF;
     private static final int MAX_CAP = 0x000FFFFF;
     private static final int MIN_CAP = 1;
     public static final int INVALID_HANDLE = -1;
 
-    /* coordinate constants (16-bit signed) */
-    private static final int XY_X_SHIFT =       16;
-    private static final int XY_X_MASK =        0xFFFF0000;
-    private static final int XY_Y_MASK =        0x0000FFFF;
-    private static final int MIN_COORD =        -0x8000;
-    private static final int MAX_COORD =         0x7FFF;
-
-    /* flags occupy bits 24-31 of bitfieldArr */
-    public static final byte FLAG_VISIBLE =                     0b00000001;
-    public static final byte FLAG_FLIPH =                       0b00000010;
-    public static final byte FLAG_FLIPV =                       0b00000100;
-    private static final byte FLAG_VALID =                      0b00001000;
-
-    /* layer constants */
-    private static final int LAYER_BITS =       3;
-    private static final int MAX_LAYER =        (1 << LAYER_BITS) - 1;  /* 7 */
-    public static final int NUM_LAYERS =        1 << LAYER_BITS;        /* 8 */
-
-    /* unused bits constants (available for application use) */
-    private static final int UNUSED_BITS =      5;
-    private static final int MAX_UNUSED_VAL =   (1 << UNUSED_BITS) - 1; /* 31 */
-
-    /* bit layout constants */
-    private static final int ATLAS_MASK =       0x0000FFFF;     /* bits 0-15  */
-    private static final int LAYER_SHIFT =      16;
-    private static final int LAYER_MASK =       0x00070000;     /* bits 16-18 */
-    private static final int UNUSED_SHIFT =     19;
-    private static final int UNUSED_MASK =      0x00F80000;     /* bits 19-23 */
-    private static final int FLAGS_SHIFT =      24;
-    private static final int FLAGS_MASK =       0xFF000000;     /* bits 24-31 */
-    private static final int VALID_FLAG_BIT =   FLAG_VALID << FLAGS_SHIFT;
-
-    private SpriteSys() {}
-
     /**
-     * Initializes the sprite system with the given capacity.
-     * @param cap maximum number of sprites (clamped to valid range)
-     * @return true if initialization succeeded
+     * XXXXXXXX_XXXXXXXX_YYYYYYYY_YYYYYYYY_AAAAAAAA_AAAAAAAA_LLLPPPII_IUUUVOES
+     *
+     * (16) Signed screen space [X] position
+     * (16) Signed screen space [Y] position
+     * (16) Unsigned [A]tlas index (intra-atlas sprite index)
+     * (03) Unsigned [L]ayer
+     * (03) Unsigned [P]alette
+     * (03) Unsigned atlas [I]D (inter-atlas identifier)
+     * (03) [U]nused
+     * (01) [V]alid
+     * (01) Flipped H[O]rizontally
+     * (01) Flipped V[E]rtically
+     * (01) Vi[S]ible
      */
+
+    static final int X_SHIFT =          48;
+    static final int Y_SHIFT =          32;
+    static final int ATLAS_SHIFT =      16;
+    static final int LAYER_SHIFT =      13;
+    static final int PALETTE_SHIFT =    10;
+    static final int ATLAS_ID_SHIFT =   7;
+    static final int UNUSED_SHIFT =     4;
+    static final int VALID_SHIFT =      3;
+    static final int FLIP_H_SHIFT =     2;
+    static final int FLIP_V_SHIFT =     1;
+
+    static final long X_MASK =          0xFFFF000000000000L;
+    static final long Y_MASK =          0x0000FFFF00000000L;
+    static final long ATLAS_MASK =      0x00000000FFFF0000L;
+    static final long LAYER_MASK =      0x000000000000E000L;
+    static final long PALETTE_MASK =    0x0000000000001C00L;
+    static final long ATLAS_ID_MASK =   0x0000000000000380L;
+    static final long UNUSED_MASK =     0x0000000000000070L;
+    static final long VALID_MASK =      0x0000000000000008L;
+    static final long FLIP_H_MASK =     0x0000000000000004L;
+    static final long FLIP_V_MASK =     0x0000000000000002L;
+    static final long VISIBLE_MASK =    0x0000000000000001L;
+
+    /* pre-computed for renderer */
+    static final long VALID_VISIBLE_MASK = VALID_MASK | VISIBLE_MASK;
+
+    /* inclusive */
+    static final int MIN_POS =      -0x8000;
+    static final int MAX_POS =       0x7FFF;
+    static final int MIN_LAYER =     0x0;
+    static final int MAX_LAYER =     0x7;
+    static final int MIN_PALETTE =   0x0;
+    static final int MAX_PALETTE =   0x7;
+    static final int MIN_ATLAS =  0x0;
+    static final int MAX_ATLAS =  0x7;
+
+    private static final long LONG_16_MASK = 0xFFFFL;
+    private static final long LONG_3_MASK = 0x7L;
+
     public static boolean Init(int cap) {
         assert(!init);
+        assert(cap > 0);
 
+        /* cap might come from config file, so make invalid values non-fatal */
         if (cap >= MIN_CAP && cap <= MAX_CAP) {
             SpriteSys.cap = cap;
         } else {
             SpriteSys.cap = DEF_CAP;
-            LogSession(LogLevel.DEBUG, ErrStrCapOutOfBounds(cap, "cap",
-                    DEF_CAP));
+            LogSession(LogLevel.DEBUG, ErrStrCapOutOfBounds(cap));
         }
 
         try {
-            xyArr = new int[SpriteSys.cap];
-            bitfieldArr = new int[SpriteSys.cap];
+            arr = new long[SpriteSys.cap];
             freeList = new int[SpriteSys.cap];
-
-            freeCount = highMark = activeCount = 0;
-
-            return init = true;
         } catch (OutOfMemoryError e) {
             LogFatalAndExit(CLASS + ERR_STR_FAILED_INIT_OOM);
-
             return init = false;
         }
+
+        freeCount = highMark = activeCount = 0;
+        return init = true;
     }
 
     private static int Alloc() {
@@ -102,476 +106,430 @@ public class SpriteSys {
         return INVALID_HANDLE;
     }
 
-    /**
-     * Allocates a sprite at origin with default flags.
-     * @return handle, or INVALID_HANDLE if pool exhausted
-     */
     public static int Generate() {
         assert(init);
 
         int handle = Alloc();
         if (INVALID_HANDLE == handle) return INVALID_HANDLE;
 
-        xyArr[handle] = 0;
-        bitfieldArr[handle] = (FLAG_VISIBLE | FLAG_VALID) << FLAGS_SHIFT;
+        arr[handle] = VALID_MASK;
 
         activeCount++;
 
         return handle;
     }
 
-    /**
-     * Allocates a sprite with specified properties.
-     * @param x        x position (-0x8000 to 0x7FFF)
-     * @param y        y position (-0x8000 to 0x7FFF)
-     * @param layer    render layer (0-7)
-     * @param atlasIdx atlas index
-     * @return handle, or INVALID_HANDLE on failure
-     */
-    public static int Create(int x, int y, byte layer, short atlasIdx) {
+    public static int Create(int x, int y, int atlasId, int atlasIdx, int layer,
+                             int paletteIdx, boolean hFlip, boolean vFlip, boolean visible) {
         assert(init);
 
         int handle;
+        long val;
 
-        if (x < MIN_COORD || x > MAX_COORD) {
-            LogFatalAndExit(ErrStrValOOB(x, "x", MIN_COORD, MAX_COORD));
+        if (x < MIN_POS || x > MAX_POS) {
+            LogFatalAndExit(ErrStrValOOB(x, "x", MIN_POS, MAX_POS));
             return INVALID_HANDLE;
         }
 
-        if (y < MIN_COORD || y > MAX_COORD) {
-            LogFatalAndExit(ErrStrValOOB(y, "y", MIN_COORD, MAX_COORD));
+        if (y < MIN_POS || y > MAX_POS) {
+            LogFatalAndExit(ErrStrValOOB(y, "y", MIN_POS, MAX_POS));
             return INVALID_HANDLE;
         }
 
-        if (layer < 0 || layer > MAX_LAYER) {
-            LogFatalAndExit(ErrStrValOOB(layer, "layer", 0, MAX_LAYER));
+        if (atlasId < MIN_ATLAS || atlasId > MAX_ATLAS) {
+            LogFatalAndExit(ErrStrValOOB(atlasId, "atlasId",
+                    MIN_ATLAS, MAX_ATLAS));
             return INVALID_HANDLE;
         }
 
-        if (atlasIdx < 0 || atlasIdx > SpriteAtlas.MAX_ATLAS_IDX) {
-            LogFatalAndExit(ErrStrValOOB(atlasIdx, "atlasIdx", 0,
-                    SpriteAtlas.MAX_ATLAS_IDX));
+        if (atlasIdx < SpriteAtlas.MIN_IDX || atlasIdx > SpriteAtlas.MAX_IDX) {
+            LogFatalAndExit(ErrStrValOOB(atlasIdx, "atlasIdx",
+                    SpriteAtlas.MIN_IDX, SpriteAtlas.MAX_IDX));
+            return INVALID_HANDLE;
+        }
+
+        if (layer < MIN_LAYER || layer > MAX_LAYER) {
+            LogFatalAndExit(ErrStrValOOB(layer, "layer", MIN_LAYER,
+                    MAX_LAYER));
+            return INVALID_HANDLE;
+        }
+
+        if (paletteIdx < MIN_PALETTE || paletteIdx > MAX_PALETTE) {
+            LogFatalAndExit(ErrStrValOOB(paletteIdx, "paletteIdx",
+                    MIN_PALETTE, MAX_PALETTE));
             return INVALID_HANDLE;
         }
 
         handle = Alloc();
         if (INVALID_HANDLE == handle) return INVALID_HANDLE;
 
-        xyArr[handle] = (x << XY_X_SHIFT) | (y & XY_Y_MASK);
-        bitfieldArr[handle] = (atlasIdx & ATLAS_MASK)
-                | ((layer & MAX_LAYER) << LAYER_SHIFT)
-                | ((FLAG_VISIBLE | FLAG_VALID) << FLAGS_SHIFT);
+        val = VALID_MASK
+                | ((long)x & LONG_16_MASK) << X_SHIFT
+                | ((long)y & LONG_16_MASK) << Y_SHIFT
+                | ((long)atlasIdx & LONG_16_MASK) << ATLAS_SHIFT
+                | ((long)layer & LONG_3_MASK) << LAYER_SHIFT
+                | ((long)paletteIdx & LONG_3_MASK) << PALETTE_SHIFT
+                | ((long)atlasId & LONG_3_MASK) << ATLAS_ID_SHIFT
+                | (hFlip   ? FLIP_H_MASK   : 0)
+                | (vFlip   ? FLIP_V_MASK   : 0)
+                | (visible ? VISIBLE_MASK  : 0);
+
+        arr[handle] = val;
 
         activeCount++;
 
         return handle;
     }
 
-    /**
-     * Returns a sprite to the pool.
-     * @param handle sprite handle
-     */
+    /* Current thinking is that we trust user to use the API correctly.
+    Handles are meant to come into existence only through Generate/Create, so
+    debug-time bounds checking should be sufficient. */
     public static void Remove(int handle) {
         assert(init);
-        /* Not totally sure, but pretty sure that we don't need runtime bounds
-        checking on handle. It is intended to be immutable, and only come into
-        existence through Generate/Create */
-        assert(!(handle < 0) && handle < highMark);
-        assert((bitfieldArr[handle] & VALID_FLAG_BIT) != 0);
+        assert(IsValid(handle));
 
-        bitfieldArr[handle] &= ~VALID_FLAG_BIT;
+        arr[handle] &= ~VALID_MASK;
         freeList[freeCount++] = handle;
         activeCount--;
     }
 
-    /**
-     * Checks if a handle refers to a live sprite.
-     * @param handle sprite handle
-     * @return true if valid
-     */
     public static boolean IsValid(int handle) {
         assert(init);
-        assert(!(handle < 0) && handle < highMark);
 
-        return (bitfieldArr[handle] & VALID_FLAG_BIT) != 0;
-    }
-
-    /**
-     * Sets sprite position.
-     * @param handle sprite handle
-     * @param x      x position (-0x8000 to 0x7FFF)
-     * @param y      y position (-0x8000 to 0x7FFF)
-     */
-    public static void SetPos(int handle, int x, int y) {
-        assert(init);
-        assert(!(handle < 0) && handle < highMark);
-        assert((bitfieldArr[handle] & VALID_FLAG_BIT) != 0);
-
-        if (x < MIN_COORD || x > MAX_COORD) {
-            LogFatalAndExit(ErrStrValOOB(x, "x", MIN_COORD, MAX_COORD));
-            return;
+        if (!(handle >= 0 && handle < highMark)) {
+            LogFatalAndExit(ErrStrHandleOOB(handle));
+            return false;
         }
 
-        if (y < MIN_COORD || y > MAX_COORD) {
-            LogFatalAndExit(ErrStrValOOB(y, "y", MIN_COORD, MAX_COORD));
-            return;
-        }
-
-        xyArr[handle] = (x << XY_X_SHIFT) | (y & XY_Y_MASK);
+        return (arr[handle] & VALID_MASK) != 0;
     }
 
-    /**
-     * Sets sprite x position.
-     * @param handle sprite handle
-     * @param x      x position (-0x8000 to 0x7FFF)
-     */
-    public static void SetX(int handle, int x) {
-        assert(init);
-        assert(!(handle < 0) && handle < highMark);
-        assert((bitfieldArr[handle] & VALID_FLAG_BIT) != 0);
-
-        if (x < MIN_COORD || x > MAX_COORD) {
-            LogFatalAndExit(ErrStrValOOB(x, "x", MIN_COORD, MAX_COORD));
-            return;
-        }
-
-        xyArr[handle] = (xyArr[handle] & XY_Y_MASK) | (x << XY_X_SHIFT);
-    }
-
-    /**
-     * Sets sprite y position.
-     * @param handle sprite handle
-     * @param y      y position (-0x8000 to 0x7FFF)
-     */
-    public static void SetY(int handle, int y) {
-        assert(init);
-        assert(!(handle < 0) && handle < highMark);
-        assert((bitfieldArr[handle] & VALID_FLAG_BIT) != 0);
-
-        if (y < MIN_COORD || y > MAX_COORD) {
-            LogFatalAndExit(ErrStrValOOB(y, "y", MIN_COORD, MAX_COORD));
-            return;
-        }
-
-        xyArr[handle] = (xyArr[handle] & XY_X_MASK) | (y & XY_Y_MASK);
-    }
-
-    /**
-     * Sets sprite render layer.
-     * @param handle sprite handle
-     * @param layer  layer (0-7)
-     */
-    public static void SetLayer(int handle, byte layer) {
-        assert(init);
-        assert(!(handle < 0) && handle < highMark);
-        assert((bitfieldArr[handle] & VALID_FLAG_BIT) != 0);
-
-        if (layer < 0 || layer > MAX_LAYER) {
-            LogFatalAndExit(ErrStrValOOB(layer, "layer", 0, MAX_LAYER));
-            return;
-        }
-
-        bitfieldArr[handle] = (bitfieldArr[handle] & ~LAYER_MASK)
-                | ((layer & MAX_LAYER) << LAYER_SHIFT);
-    }
-
-    /**
-     * Sets the 5 unused bits (19-23) for application-defined use.
-     * @param handle sprite handle
-     * @param value  value to store (0-31)
-     */
-    public static void SetUnused(int handle, byte value) {
-        assert(init);
-        assert(!(handle < 0) && handle < highMark);
-        assert((bitfieldArr[handle] & VALID_FLAG_BIT) != 0);
-
-        if (value < 0 || value > MAX_UNUSED_VAL) {
-            LogFatalAndExit(ErrStrValOOB(value, "unused", 0, MAX_UNUSED_VAL));
-            return;
-        }
-
-        bitfieldArr[handle] = (bitfieldArr[handle] & ~UNUSED_MASK)
-                | ((value & MAX_UNUSED_VAL) << UNUSED_SHIFT);
-    }
-
-    /**
-     * Gets the 5 unused bits (19-23) for application-defined use.
-     * @param handle sprite handle
-     * @return value stored in unused bits (0-31)
-     */
-    public static byte GetUnused(int handle) {
-        assert(init);
-        assert(!(handle < 0) && handle < highMark);
-        assert((bitfieldArr[handle] & VALID_FLAG_BIT) != 0);
-
-        return (byte)((bitfieldArr[handle] & UNUSED_MASK) >>> UNUSED_SHIFT);
-    }
-
-    /**
-     * Sets sprite atlas index.
-     * @param handle   sprite handle
-     * @param atlasIdx atlas index
-     */
-    public static void SetAtlasIdx(int handle, short atlasIdx) {
-        assert(init);
-        assert(!(handle < 0) && handle < highMark);
-        assert((bitfieldArr[handle] & VALID_FLAG_BIT) != 0);
-
-        if (atlasIdx < 0 || atlasIdx > SpriteAtlas.MAX_ATLAS_IDX) {
-            LogFatalAndExit(ErrStrValOOB(atlasIdx, "atlasIdx", 0,
-                    SpriteAtlas.MAX_ATLAS_IDX));
-            return;
-        }
-
-        bitfieldArr[handle] = (bitfieldArr[handle] & ~ATLAS_MASK)
-                | (atlasIdx & ATLAS_MASK);
-    }
-
-    /**
-     * Sets user-visible flags (VISIBLE, FLIPH, FLIPV). FLAG_VALID is preserved.
-     * @param handle sprite handle
-     * @param flags  flag bits to set
-     */
-    public static void SetFlags(int handle, byte flags) {
-        assert(init);
-        assert(!(handle < 0) && handle < highMark);
-        assert((bitfieldArr[handle] & VALID_FLAG_BIT) != 0);
-
-        /* preserve FLAG_VALID, apply user flags */
-        bitfieldArr[handle] = (bitfieldArr[handle] & ~((FLAGS_MASK) ^ VALID_FLAG_BIT))
-                | ((flags & ~FLAG_VALID) << FLAGS_SHIFT);
-    }
-
-    /**
-     * Sets sprite visibility.
-     * @param handle  sprite handle
-     * @param visible true to show, false to hide
-     */
-    public static void SetVisible(int handle, boolean visible) {
-        assert(init);
-        assert(!(handle < 0) && handle < highMark);
-        assert((bitfieldArr[handle] & VALID_FLAG_BIT) != 0);
-
-        if (visible) bitfieldArr[handle] |= FLAG_VISIBLE << FLAGS_SHIFT;
-        else bitfieldArr[handle] &= ~(FLAG_VISIBLE << FLAGS_SHIFT);
-    }
-
-    /**
-     * Sets horizontal flip state.
-     * @param handle sprite handle
-     * @param flipH  true to flip horizontally
-     */
-    public static void SetFlipH(int handle, boolean flipH) {
-        assert(init);
-        assert(!(handle < 0) && handle < highMark);
-        assert((bitfieldArr[handle] & VALID_FLAG_BIT) != 0);
-
-        if (flipH) bitfieldArr[handle] |= FLAG_FLIPH << FLAGS_SHIFT;
-        else bitfieldArr[handle] &= ~(FLAG_FLIPH << FLAGS_SHIFT);
-    }
-
-    /**
-     * Sets vertical flip state.
-     * @param handle sprite handle
-     * @param flipV  true to flip vertically
-     */
-    public static void SetFlipV(int handle, boolean flipV) {
-        assert(init);
-        assert(!(handle < 0) && handle < highMark);
-        assert((bitfieldArr[handle] & VALID_FLAG_BIT) != 0);
-
-        if (flipV) bitfieldArr[handle] |= FLAG_FLIPV << FLAGS_SHIFT;
-        else bitfieldArr[handle] &= ~(FLAG_FLIPV << FLAGS_SHIFT);
-    }
-
-    /**
-     * Gets sprite x position.
-     * @param handle sprite handle
-     * @return x position
-     */
     public static int GetX(int handle) {
         assert(init);
-        assert(!(handle < 0) && handle < highMark);
-        assert((bitfieldArr[handle] & VALID_FLAG_BIT) != 0);
+        assert(IsValid(handle));
 
-        return xyArr[handle] >> XY_X_SHIFT;
+        return (short)((arr[handle] & X_MASK) >>> X_SHIFT);
     }
 
-    /**
-     * Gets sprite y position.
-     * @param handle sprite handle
-     * @return y position
-     */
     public static int GetY(int handle) {
         assert(init);
-        assert(!(handle < 0) && handle < highMark);
-        assert((bitfieldArr[handle] & VALID_FLAG_BIT) != 0);
+        assert(IsValid(handle));
 
-        return (short)(xyArr[handle] & XY_Y_MASK);
+        return (short)((arr[handle] & Y_MASK) >>> Y_SHIFT);
     }
 
-    /**
-     * Gets sprite render layer.
-     * @param handle sprite handle
-     * @return layer (0-7)
-     */
-    public static byte GetLayer(int handle) {
+    public static int GetAtlasId(int handle) {
         assert(init);
-        assert(!(handle < 0) && handle < highMark);
-        assert((bitfieldArr[handle] & VALID_FLAG_BIT) != 0);
+        assert(IsValid(handle));
 
-        return (byte)((bitfieldArr[handle] & LAYER_MASK) >>> LAYER_SHIFT);
+        return (int)((arr[handle] & ATLAS_ID_MASK) >>> ATLAS_ID_SHIFT);
     }
 
-    /**
-     * Gets sprite atlas index.
-     * @param handle sprite handle
-     * @return atlas index
-     */
-    public static short GetAtlasIdx(int handle) {
+    public static int GetAtlasIdx(int handle) {
         assert(init);
-        assert(!(handle < 0) && handle < highMark);
-        assert((bitfieldArr[handle] & VALID_FLAG_BIT) != 0);
+        assert(IsValid(handle));
 
-        return (short)(bitfieldArr[handle] & ATLAS_MASK);
+        return (int)((arr[handle] & ATLAS_MASK) >>> ATLAS_SHIFT);
     }
 
-    /**
-     * Gets user-visible flags (FLAG_VALID masked out).
-     * @param handle sprite handle
-     * @return flag bits
-     */
-    public static byte GetFlags(int handle) {
+    public static int GetLayer(int handle) {
         assert(init);
-        assert(!(handle < 0) && handle < highMark);
-        assert((bitfieldArr[handle] & VALID_FLAG_BIT) != 0);
+        assert(IsValid(handle));
 
-        /* return user-visible flags only, mask out FLAG_VALID */
-        return (byte)(((bitfieldArr[handle] & FLAGS_MASK) >>> FLAGS_SHIFT) & ~FLAG_VALID);
+        return (int)((arr[handle] & LAYER_MASK) >>> LAYER_SHIFT);
     }
 
-    /**
-     * Checks if sprite is visible.
-     * @param handle sprite handle
-     * @return true if visible
-     */
+    public static int GetPaletteIdx(int handle) {
+        assert(init);
+        assert(IsValid(handle));
+
+        return (int)((arr[handle] & PALETTE_MASK) >>> PALETTE_SHIFT);
+    }
+
+    public static boolean IsHFlipped(int handle) {
+        assert(init);
+        assert(IsValid(handle));
+
+        return (arr[handle] & FLIP_H_MASK) != 0;
+    }
+
+    public static boolean IsVFlipped(int handle) {
+        assert(init);
+        assert(IsValid(handle));
+
+        return (arr[handle] & FLIP_V_MASK) != 0;
+    }
+
     public static boolean IsVisible(int handle) {
         assert(init);
-        assert(!(handle < 0) && handle < highMark);
-        assert((bitfieldArr[handle] & VALID_FLAG_BIT) != 0);
+        assert(IsValid(handle));
 
-        return (bitfieldArr[handle] & (FLAG_VISIBLE << FLAGS_SHIFT)) != 0;
+        return (arr[handle] & VISIBLE_MASK) != 0;
     }
 
-    /**
-     * Checks if sprite is flipped horizontally.
-     * @param handle sprite handle
-     * @return true if flipped
-     */
-    public static boolean IsFlippedH(int handle) {
+    public static void SetX(int handle, int x) {
         assert(init);
-        assert(!(handle < 0) && handle < highMark);
-        assert((bitfieldArr[handle] & VALID_FLAG_BIT) != 0);
+        assert(IsValid(handle));
 
-        return (bitfieldArr[handle] & (FLAG_FLIPH << FLAGS_SHIFT)) != 0;
+        if (x < MIN_POS || x > MAX_POS) {
+            LogFatalAndExit(ErrStrValOOB(x, "x", MIN_POS, MAX_POS));
+            return;
+        }
+
+        arr[handle] = (arr[handle] & ~X_MASK) |
+                (((long)x & LONG_16_MASK) << X_SHIFT);
     }
 
-    /**
-     * Checks if sprite is flipped vertically.
-     * @param handle sprite handle
-     * @return true if flipped
-     */
-    public static boolean IsFlippedV(int handle) {
+    public static void SetY(int handle, int y) {
         assert(init);
-        assert(!(handle < 0) && handle < highMark);
-        assert((bitfieldArr[handle] & VALID_FLAG_BIT) != 0);
+        assert(IsValid(handle));
 
-        return (bitfieldArr[handle] & (FLAG_FLIPV << FLAGS_SHIFT)) != 0;
+        if (y < MIN_POS || y > MAX_POS) {
+            LogFatalAndExit(ErrStrValOOB(y, "y", MIN_POS, MAX_POS));
+            return;
+        }
+
+        arr[handle] = (arr[handle] & ~Y_MASK) |
+                (((long)y & LONG_16_MASK) << Y_SHIFT);
     }
 
-    /**
-     * Toggles horizontal flip state.
-     * @param handle sprite handle
-     */
-    public static void FlipH(int handle) {
+    public static void SetAtlasId(int handle, int atlasId) {
         assert(init);
-        assert(!(handle < 0) && handle < highMark);
-        assert((bitfieldArr[handle] & VALID_FLAG_BIT) != 0);
+        assert(IsValid(handle));
 
-        bitfieldArr[handle] ^= FLAG_FLIPH << FLAGS_SHIFT;
+        if (atlasId < MIN_ATLAS || atlasId > MAX_ATLAS) {
+            LogFatalAndExit(ErrStrValOOB(atlasId, "atlasId",
+                    MIN_ATLAS, MAX_ATLAS));
+            return;
+        }
+
+        arr[handle] = (arr[handle] & ~ATLAS_ID_MASK) |
+                (((long)atlasId & LONG_3_MASK) << ATLAS_ID_SHIFT);
     }
 
-    /**
-     * Toggles vertical flip state.
-     * @param handle sprite handle
-     */
-    public static void FlipV(int handle) {
+    public static void SetAtlasIdx(int handle, int atlasIdx) {
         assert(init);
-        assert(!(handle < 0) && handle < highMark);
-        assert((bitfieldArr[handle] & VALID_FLAG_BIT) != 0);
+        assert(IsValid(handle));
 
-        bitfieldArr[handle] ^= FLAG_FLIPV << FLAGS_SHIFT;
+        if (atlasIdx < SpriteAtlas.MIN_IDX || atlasIdx > SpriteAtlas.MAX_IDX) {
+            LogFatalAndExit(ErrStrValOOB(atlasIdx, "atlasIdx",
+                    SpriteAtlas.MIN_IDX, SpriteAtlas.MAX_IDX));
+            return;
+        }
+
+        arr[handle] = (arr[handle] & ~ATLAS_MASK) |
+                (((long)atlasIdx & LONG_16_MASK) << ATLAS_SHIFT);
     }
 
-    static int[] GetXYArr() {
+    public static void SetLayer(int handle, int layer) {
         assert(init);
+        assert(IsValid(handle));
 
-        return xyArr;
+        if (layer < MIN_LAYER || layer > MAX_LAYER) {
+            LogFatalAndExit(ErrStrValOOB(layer, "layer", MIN_LAYER, MAX_LAYER));
+            return;
+        }
+
+        arr[handle] = (arr[handle] & ~LAYER_MASK) |
+                (((long)layer & LONG_3_MASK) << LAYER_SHIFT);
     }
 
-    static int[] GetBitfieldArr() {
+    public static void SetPaletteIdx(int handle, int paletteIdx) {
         assert(init);
+        assert(IsValid(handle));
 
-        return bitfieldArr;
+        if (paletteIdx < MIN_PALETTE || paletteIdx > MAX_PALETTE) {
+            LogFatalAndExit(ErrStrValOOB(paletteIdx, "paletteIdx",
+                    MIN_PALETTE, MAX_PALETTE));
+            return;
+        }
+
+        arr[handle] = (arr[handle] & ~PALETTE_MASK) |
+                (((long)paletteIdx & LONG_3_MASK) << PALETTE_SHIFT);
     }
 
-    static int GetHighMark() {
+    public static void SetHFlip(int handle, boolean hFlip) {
         assert(init);
+        assert(IsValid(handle));
 
-        return highMark;
+        if (hFlip) arr[handle] |= FLIP_H_MASK;
+        else       arr[handle] &= ~FLIP_H_MASK;
     }
 
-    static int GetActiveCount() {
+    public static void SetVFlip(int handle, boolean vFlip) {
         assert(init);
+        assert(IsValid(handle));
 
-        return activeCount;
+        if (vFlip) arr[handle] |= FLIP_V_MASK;
+        else       arr[handle] &= ~FLIP_V_MASK;
     }
 
-    static int GetCap() {
+    public static void SetVisible(int handle, boolean visible) {
+        assert(init);
+        assert(IsValid(handle));
+
+        if (visible) arr[handle] |= VISIBLE_MASK;
+        else         arr[handle] &= ~VISIBLE_MASK;
+    }
+
+    public static void SetPosition(int handle, int x, int y) {
+        assert(init);
+        assert(IsValid(handle));
+
+        if (x < MIN_POS || x > MAX_POS) {
+            LogFatalAndExit(ErrStrValOOB(x, "x", MIN_POS, MAX_POS));
+            return;
+        }
+
+        if (y < MIN_POS || y > MAX_POS) {
+            LogFatalAndExit(ErrStrValOOB(y, "y", MIN_POS, MAX_POS));
+            return;
+        }
+
+        arr[handle] = (arr[handle] & ~(X_MASK | Y_MASK)) |
+                (((long)x & LONG_16_MASK) << X_SHIFT) |
+                (((long)y & LONG_16_MASK) << Y_SHIFT);
+    }
+
+    public static void SetFlip(int handle, boolean hFlip, boolean vFlip) {
+        assert(init);
+        assert(IsValid(handle));
+
+        arr[handle] &= ~(FLIP_H_MASK | FLIP_V_MASK);
+        if (hFlip) arr[handle] |= FLIP_H_MASK;
+        if (vFlip) arr[handle] |= FLIP_V_MASK;
+    }
+
+    public static void SetAtlas(int handle, int atlasId, int atlasIdx) {
+        assert(init);
+        assert(IsValid(handle));
+
+        if (atlasId < MIN_ATLAS || atlasId > MAX_ATLAS) {
+            LogFatalAndExit(ErrStrValOOB(atlasId, "atlasId",
+                    MIN_ATLAS, MAX_ATLAS));
+            return;
+        }
+
+        if (atlasIdx < SpriteAtlas.MIN_IDX || atlasIdx > SpriteAtlas.MAX_IDX) {
+            LogFatalAndExit(ErrStrValOOB(atlasIdx, "atlasIdx",
+                    SpriteAtlas.MIN_IDX, SpriteAtlas.MAX_IDX));
+            return;
+        }
+
+        arr[handle] = (arr[handle] & ~(ATLAS_ID_MASK | ATLAS_MASK)) |
+                (((long)atlasId & LONG_3_MASK) << ATLAS_ID_SHIFT) |
+                (((long)atlasIdx & LONG_16_MASK) << ATLAS_SHIFT);
+    }
+
+    public static void Translate(int handle, int dx, int dy) {
+        assert(init);
+        assert(IsValid(handle));
+
+        int newX = GetX(handle) + dx;
+        int newY = GetY(handle) + dy;
+
+        if (newX < MIN_POS || newX > MAX_POS) {
+            LogFatalAndExit(ErrStrValOOB(newX, "x (after translate)",
+                    MIN_POS, MAX_POS));
+            return;
+        }
+
+        if (newY < MIN_POS || newY > MAX_POS) {
+            LogFatalAndExit(ErrStrValOOB(newY, "y (after translate)",
+                    MIN_POS, MAX_POS));
+            return;
+        }
+
+        SetPosition(handle, newX, newY);
+    }
+
+    public static void ToggleHFlip(int handle) {
+        assert(init);
+        assert(IsValid(handle));
+
+        arr[handle] ^= FLIP_H_MASK;
+    }
+
+    public static void ToggleVFlip(int handle) {
+        assert(init);
+        assert(IsValid(handle));
+
+        arr[handle] ^= FLIP_V_MASK;
+    }
+
+    public static void ToggleVisible(int handle) {
+        assert(init);
+        assert(IsValid(handle));
+
+        arr[handle] ^= VISIBLE_MASK;
+    }
+
+    public static boolean IsInitialized() {
+        return init;
+    }
+
+    public static int GetCapacity() {
         assert(init);
 
         return cap;
     }
 
-    static int GetFreeCount() {
+    public static int GetActiveCount() {
+        assert(init);
+
+        return activeCount;
+    }
+
+    public static int GetHighMark() {
+        assert(init);
+
+        return highMark;
+    }
+
+    public static int GetFreeCount() {
         assert(init);
 
         return freeCount;
     }
 
-    /**
-     * Releases all resources. System must be re-initialized before use.
-     */
+    public static long GetRawData(int handle) {
+        assert(init);
+        assert(IsValid(handle));
+
+        return arr[handle];
+    }
+
+    static long[] GetArr() {
+        assert(init);
+
+        return arr;
+    }
+
     public static void Shutdown() {
         assert(init);
 
-        xyArr = null;
-        bitfieldArr = null;
+        arr = null;
         freeList = null;
 
         init = false;
     }
 
-    public static final String CLASS = SpriteSys.class.getSimpleName();
-    private static String ErrStrCapOutOfBounds(int c, String s, int def) {
-        return String.format("%s defaulted to [%s] capacity [%d] because an " +
-                        "invalid [%s] capacity [%d] was requested. Valid " +
-                        "range is [%d - %d] inclusive.\n", CLASS, s,
-                def, s, c, MIN_CAP, MAX_CAP);
+    private static final String CLASS = SpriteSys.class.getSimpleName();
+    private static String ErrStrCapOutOfBounds(int c) {
+        return String.format("%s defaulted to [%d] capacity because an " +
+                "invalid capacity [%d] was requested. Valid range is " +
+                "[%d - %d] inclusive.\n", CLASS, DEF_CAP, c, MIN_CAP, MAX_CAP);
     }
+
     private static String ErrStrValOOB(int val, String s, int lo, int hi) {
         return String.format("%s attempted to use an out of bounds value," +
-                        " [%d] for [%s]. Valid range is [%d - %d] inclusive.\n", CLASS, val, s,
-                lo, hi);
+                        " [%d] for [%s]. Valid range is [%d - %d] inclusive.\n", CLASS,
+                val, s, lo, hi);
+    }
+
+    private static String ErrStrHandleOOB(int handle) {
+        return String.format("%s attempted to check the validity of a clearly" +
+                " out of bounds handle [%d]. Active range is currently " +
+                "[0 - %d].\n", CLASS, handle, highMark);
     }
 }

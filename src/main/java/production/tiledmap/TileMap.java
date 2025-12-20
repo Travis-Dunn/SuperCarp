@@ -1,15 +1,15 @@
 package production.tiledmap;
 
-import production.sprite.SpriteAtlas1;
+import production.sprite.SpriteAtlas;
 
 public final class TileMap {
     public final String name;
-    public final SpriteAtlas1 atlas;
+    public final SpriteAtlas atlas;
     public final int width, height;
     private final int originOffsetX, originOffsetY;
     private final Tile tiles[][];
 
-    TileMap(String name, SpriteAtlas1 atlas, int width, int height,
+    TileMap(String name, SpriteAtlas atlas, int width, int height,
             int originOffsetX, int originOffsetY, Tile[][] tiles) {
         this.name = name;
         this.atlas = atlas;

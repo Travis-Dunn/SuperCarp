@@ -17,8 +17,12 @@ public class SpriteRenderer {
 
     private static final int BYTES_PER_PIXEL = 4;  // RGBA
 
-    /* FLAG_VALID is package-private in SpriteSys, so we duplicate it here */
+    /* FLAG_VALID is package-private in SpriteSysOld, so we duplicate it here */
     private static final int FLAG_VALID = 0x08;
+
+    /* new, public for now, won't be when refactor finished */
+    public static SpritePalette paletteArr[];
+    public static SpriteAtlas atlasArr[];
 
     private SpriteRenderer() {}
 
@@ -32,8 +36,10 @@ public class SpriteRenderer {
 
         try {
             framebuffer = new byte[fbWidth * fbHeight * BYTES_PER_PIXEL];
-            handlesByLayerArr = new short[MAX_LAYERS][SpriteSys.GetCap()];
+            handlesByLayerArr = new short[MAX_LAYERS][SpriteSysOld.GetCap()];
             layerCounts = new int[MAX_LAYERS];
+            paletteArr = new SpritePalette[SpriteSys.MAX_PALETTE + 1];
+            atlasArr = new SpriteAtlas[SpriteSys.MAX_ATLAS + 1];
         } catch (OutOfMemoryError e) {
             LogFatalAndExit(CLASS + ERR_STR_FAILED_INIT_OOM);
             return init = false;
@@ -66,8 +72,8 @@ public class SpriteRenderer {
         assert(init);
         assert(cam != null);
 
-        int[] bitfieldArr = SpriteSys.GetBitfieldArr();
-        int highMark = SpriteSys.GetHighMark();
+        int[] bitfieldArr = SpriteSysOld.GetBitfieldArr();
+        int highMark = SpriteSysOld.GetHighMark();
         int i, j;
 
         /* reset layer counts */
@@ -76,23 +82,23 @@ public class SpriteRenderer {
         }
 
         /* bucket sprites by layer, skipping invalid/invisible */
-        int validVisibleMask = (SpriteSys.FLAG_VISIBLE | FLAG_VALID) << 24;
+        int validVisibleMask = (SpriteSysOld.FLAG_VISIBLE | FLAG_VALID) << 24;
 
         for (i = 0; i < highMark; ++i) {
             int bits = bitfieldArr[i];
             if ((bits & validVisibleMask) != validVisibleMask) {
                 continue;
             }
-            byte layer = SpriteSys.GetLayer(i);
+            byte layer = SpriteSysOld.GetLayer(i);
             handlesByLayerArr[layer][layerCounts[layer]++] = (short)i;
         }
 
         /* cache frequently accessed data */
-        int[] xyArr = SpriteSys.GetXYArr();
-        byte[] atlasPixels = SpriteAtlas.GetPixels();
-        int[] palette = SpriteAtlas.GetPalette();
-        int atlasWidth = SpriteAtlas.GetAtlasWidth();
-        int spriteSize = SpriteAtlas.GetSpriteSize();
+        int[] xyArr = SpriteSysOld.GetXYArr();
+        byte[] atlasPixels = SpriteAtlasOld.GetPixels();
+        int[] palette = SpriteAtlasOld.GetPalette();
+        int atlasWidth = SpriteAtlasOld.GetAtlasWidth();
+        int spriteSize = SpriteAtlasOld.GetSpriteSize();
 
         int camX = (int)cam.GetX();
         int camY = (int)cam.GetY();
@@ -107,18 +113,70 @@ public class SpriteRenderer {
                 int screenX = xyArr[idx] - camX;
                 int screenY = xyArr[idx + 1] - camY;
                  */
-                int screenX = SpriteSys.GetX(handle);
-                int screenY = SpriteSys.GetY(handle);
+                int screenX = SpriteSysOld.GetX(handle);
+                int screenY = SpriteSysOld.GetY(handle);
 
-                short atlasIdx = SpriteSys.GetAtlasIdx(handle);
-                int atlasX = SpriteAtlas.GetSpriteX(atlasIdx);
-                int atlasY = SpriteAtlas.GetSpriteY(atlasIdx);
+                short atlasIdx = SpriteSysOld.GetAtlasIdx(handle);
+                int atlasX = SpriteAtlasOld.GetSpriteX(atlasIdx);
+                int atlasY = SpriteAtlasOld.GetSpriteY(atlasIdx);
 
-                boolean flipH = SpriteSys.IsFlippedH(handle);
-                boolean flipV = SpriteSys.IsFlippedV(handle);
+                boolean flipH = SpriteSysOld.IsFlippedH(handle);
+                boolean flipV = SpriteSysOld.IsFlippedV(handle);
 
                 blitSprite(screenX, screenY, atlasX, atlasY, spriteSize,
                         atlasPixels, atlasWidth, palette, flipH, flipV);
+            }
+        }
+    }
+
+    public static void RenderNew() {
+        assert(init);
+        assert(cam != null);
+
+        long[] arr = SpriteSys.GetArr();
+        int hm = SpriteSys.GetHighMark();
+        int i, j;
+
+        for (i = 0; i < MAX_LAYERS; ++i) {
+            layerCounts[i] = 0;
+        }
+
+        long renderMask =SpriteSys.VALID_VISIBLE_MASK;
+
+        for (i = 0; i < hm; ++i) {
+            long bits = arr[i];
+
+            if ((bits & renderMask) != renderMask) continue;
+
+            int layer = (int)((bits & SpriteSys.LAYER_MASK) >>> SpriteSys.LAYER_SHIFT);
+            handlesByLayerArr[layer][layerCounts[layer]++] = (short)i;
+        }
+
+        for (i = MAX_LAYERS - 1; i >= 0; --i) {
+            for (j = 0; j < layerCounts[i]; ++j) {
+                int handle = handlesByLayerArr[i][j];
+
+                int screenX = SpriteSys.GetX(handle);
+                int screenY = SpriteSys.GetY(handle);
+
+                int atlasIdx = SpriteSys.GetAtlasIdx(handle);
+                int atlasId = SpriteSys.GetAtlasId(handle);
+                int atlasX = atlasArr[atlasId].getSpriteX(atlasIdx);
+                int atlasY = atlasArr[atlasId].getSpriteY(atlasIdx);
+
+                boolean flipH = SpriteSys.IsHFlipped(handle);
+                boolean flipV = SpriteSys.IsVFlipped(handle);
+
+                int size = atlasArr[atlasId].spriteSize;
+
+                byte[] pixels = atlasArr[atlasId].data;
+
+                int atlasW = atlasArr[atlasId].spritesPerRow * size;
+
+                int[] palette = paletteArr[SpriteSys.GetPaletteIdx(handle)].colors;
+
+                blitSprite(screenX, screenY, atlasX, atlasY, size, pixels,
+                        atlasW, palette, flipH, flipV);
             }
         }
     }

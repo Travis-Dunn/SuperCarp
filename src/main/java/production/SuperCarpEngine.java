@@ -57,8 +57,9 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         final int FB_HEIGHT = 240;
         final int SPRITE_SIZE = 16;
         final int ATLAS_SIZE = 32;
+        SpriteSysOld.Init(1024);
         SpriteSys.Init(1024);
-        SpriteAtlas.Init(ATLAS_SIZE, ATLAS_SIZE, SPRITE_SIZE);
+        SpriteAtlasOld.Init(ATLAS_SIZE, ATLAS_SIZE, SPRITE_SIZE);
         SpriteRenderer.Init(FB_WIDTH, FB_HEIGHT);
         SpriteBackend.Init(FB_WIDTH, FB_HEIGHT);
 
@@ -74,7 +75,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         palette[2] = 0xFF00FF00;  // green
         palette[3] = 0xFF0000FF;  // blue
         palette[4] = 0xFFFFFF00;  // yellow
-        SpriteAtlas.SetPalette(palette);
+        SpriteAtlasOld.SetPalette(palette);
 
         // Create test atlas: 32x32 pixels, 4 sprites (2x2 grid)
 // Sprite 0 (top-left): red square with transparent border
@@ -105,7 +106,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
                 }
             }
         }
-        SpriteAtlas.SetPixels(atlasPixels);
+        SpriteAtlasOld.SetPixels(atlasPixels);
 
         /*
         Data.fb = new byte[320 * 240 * 4];
@@ -120,20 +121,26 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         }
          */
         // Create some test sprites
-        int s0 = SpriteSys.Create(50, 50, (byte)0, (short)0);    // red, front layer
-        int s1 = SpriteSys.Create(60, 60, (byte)1, (short)1);    // green, behind red
-        int s2 = SpriteSys.Create(100, 50, (byte)0, (short)2);   // blue
-        playerSprite = SpriteSys.Create((int)playerX, (int)playerY, (byte)0, (short)3);   // yellow diagonal
-        int s4 = SpriteSys.Create(200, 50, (byte)0, (short)3);   // same, flipped H
-        SpriteSys.SetFlipH(s4, true);
-        int s5 = SpriteSys.Create(250, 50, (byte)0, (short)3);   // same, flipped V
-        SpriteSys.SetFlipV(s5, true);
+        int s0 = SpriteSysOld.Create(50, 50, (byte)0, (short)0);    // red, front layer
+        int s1 = SpriteSysOld.Create(60, 60, (byte)1, (short)1);    // green, behind red
+        int s2 = SpriteSysOld.Create(100, 50, (byte)0, (short)2);   // blue
+        playerSprite = SpriteSysOld.Create((int)playerX, (int)playerY, (byte)0, (short)3);   // yellow diagonal
+        int s4 = SpriteSysOld.Create(200, 50, (byte)0, (short)3);   // same, flipped H
+        SpriteSysOld.SetFlipH(s4, true);
+        int s5 = SpriteSysOld.Create(250, 50, (byte)0, (short)3);   // same, flipped V
+        SpriteSysOld.SetFlipV(s5, true);
 
         Data.sp = SpritePaletteFileParser.FromFile("mystic-16.png");
         if (Data.sp == null) return false;
         Data.sa = SpriteAtlasFileParser.FromFile("test_atlas.png",
             16, Data.sp);
         if (Data.sa == null) return false;
+
+        SpriteRenderer.paletteArr[0] = Data.sp;
+        SpriteRenderer.atlasArr[0] = Data.sa;
+
+        int spriteHandle = SpriteSys.Create(60, 60, 0, 4,
+                7, 0, false, false, true);
 
         return true;
     }
@@ -151,14 +158,17 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         if (dx != 0.0f || dy != 0.0f) {
             playerX += dx * MOVE_SPEED * (float)delta;
             playerY += dy * MOVE_SPEED * (float)delta;
-            SpriteSys.SetPos(playerSprite, (int)playerX, (int)playerY);
+            SpriteSysOld.SetPos(playerSprite, (int)playerX, (int)playerY);
         }
     }
 
     @Override
     protected void onRender() {
         SpriteRenderer.Clear(0xFF202030);  // dark blue-gray background
+        /*
         SpriteRenderer.Render();
+         */
+        SpriteRenderer.RenderNew();
         SpriteBackend.Present(SpriteRenderer.GetFramebuffer());
         window.swapBuffers();
     }
@@ -167,8 +177,8 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
     protected void onShutdown() {
         SpriteBackend.Shutdown();
         SpriteRenderer.Shutdown();
-        SpriteAtlas.Shutdown();
-        SpriteSys.Shutdown();
+        SpriteAtlasOld.Shutdown();
+        SpriteSysOld.Shutdown();
         Data.sCam.Shutdown();
     }
 

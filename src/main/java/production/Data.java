@@ -1,6 +1,6 @@
 package production;
 
-import production.sprite.SpriteAtlas1;
+import production.sprite.SpriteAtlas;
 import production.sprite.SpriteCamera;
 import production.sprite.SpritePalette;
 import whitetail.graphics.Shader;
@@ -19,5 +19,5 @@ public class Data {
     public static byte[] fb;
 
     public static SpritePalette sp;
-    public static SpriteAtlas1 sa;
+    public static SpriteAtlas sa;
 }

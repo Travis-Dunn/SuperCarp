@@ -13,8 +13,8 @@ public final class SpriteAtlasFileParser {
     public static final int MAX_ATLAS_IDX = 0xFFFF;
     public static final int MAX_SIZE = 0x7FFF;
 
-    public static SpriteAtlas1 FromFile(String filename, int spriteSize,
-            SpritePalette palette) {
+    public static SpriteAtlas FromFile(String filename, int spriteSize,
+                                       SpritePalette palette) {
         assert(filename != null && !filename.isEmpty());
 
         String p = "/" + ATLASES_DIR + "/" + filename;
@@ -37,8 +37,8 @@ public final class SpriteAtlasFileParser {
         }
     }
 
-    private static SpriteAtlas1 FromStream(InputStream s, String f,
-            int spriteSize, SpritePalette palette) {
+    private static SpriteAtlas FromStream(InputStream s, String f,
+                                          int spriteSize, SpritePalette palette) {
         BufferedImage image = null;
         int w, h, spriteCount, spritesPerRow, y, x, c, idx;
         byte[] data;
@@ -115,7 +115,7 @@ public final class SpriteAtlasFileParser {
             }
         }
 
-        return new SpriteAtlas1(palette, spriteSize, data, spritesPerRow,
+        return new SpriteAtlas(palette, spriteSize, data, spritesPerRow,
                 spriteCount);
     }
 
