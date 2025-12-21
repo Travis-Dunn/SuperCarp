@@ -113,7 +113,7 @@ public final class TileMapFileParser {
                         ay = y - originY;
 
                         if (ax >= 0 && ax < width && ay >= 0 && ay < height) {
-                            tiles[ay][ax] = new Tile((short) atlasIdx);
+                            tiles[ay][ax] = new Tile((short) atlasIdx, -1);
                         } else {
                             // Optionally log warning for tiles outside defined bounds
                         }
@@ -130,7 +130,7 @@ public final class TileMapFileParser {
                 return null;
             }
 
-            return new TileMap(mapName, atlas, width, height, originX, originY, tiles);
+            return new TileMap(mapName, width, height, atlasName, originX, originY, tiles);
 
         } catch (IOException e) {
             LogFatalExcpAndExit(ErrStrFailedLoad(f), e);

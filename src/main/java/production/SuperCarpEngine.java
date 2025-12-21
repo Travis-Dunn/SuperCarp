@@ -3,6 +3,9 @@ package production;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.Vector3f;
 import production.sprite.*;
+import production.tiledmap.Tile;
+import production.tiledmap.TileMapFileParser;
+import production.tiledmap.TileMapLoader;
 import whitetail.core.GameEngine;
 import whitetail.event.Event;
 import whitetail.event.EventListener;
@@ -130,17 +133,43 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         int s5 = SpriteSysOld.Create(250, 50, (byte)0, (short)3);   // same, flipped V
         SpriteSysOld.SetFlipV(s5, true);
 
-        Data.sp = SpritePaletteFileParser.FromFile("mystic-16.png");
+        String atlasFilename = "test_atlas.png";
+        String paletteFilename = "mystic-16.png";
+
+        Data.sp = SpritePaletteFileParser.FromFile(paletteFilename);
         if (Data.sp == null) return false;
-        Data.sa = SpriteAtlasFileParser.FromFile("test_atlas.png",
-            16, Data.sp);
+        Data.sa = SpriteAtlasFileParser.FromFile(atlasFilename,
+            Data.SPRITE_SIZE, Data.sp);
         if (Data.sa == null) return false;
 
-        SpriteRenderer.paletteArr[0] = Data.sp;
-        SpriteRenderer.atlasArr[0] = Data.sa;
+        Data.atlasIdsByFilename.put(atlasFilename, Data.MAP_ATLAS);
+        Data.paletteIdsByFilename.put(paletteFilename, Data.MAP_PALETTE);
+
+        SpriteRenderer.paletteArr[Data.MAP_PALETTE] = Data.sp;
+        SpriteRenderer.atlasArr[Data.MAP_ATLAS] = Data.sa;
 
         int spriteHandle = SpriteSys.Create(60, 60, 0, 4,
                 7, 0, false, false, true);
+
+        Data.tileMap = TileMapFileParser.FromFile("test_map.map");
+        if (Data.tileMap == null) return false;
+        /*
+        int i, j, ox, oy;
+        ox = Data.tileMap.originOffsetX;
+        oy = Data.tileMap.originOffsetY;
+        for (i = 0; i < Data.tileMap.height; ++i) {
+            for (j = 0; j < Data.tileMap.width; ++j) {
+                short tx = (short)(j + ox);
+                short ty = (short)(i + oy);
+                Tile t = Data.tileMap.getTile(tx, ty);
+                if (t == null) continue;
+                spriteHandle = SpriteSys.Create(tx * 16, ty * 16, 0,
+                        t.spriteIdx, 7, 0, false, false, true);
+            }
+        }
+         */
+
+        TileMapLoader.Load(Data.tileMap, Data.atlasIdsByFilename, Data.paletteIdsByFilename);
 
         return true;
     }

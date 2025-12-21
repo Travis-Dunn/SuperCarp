@@ -1,23 +1,24 @@
 package production.tiledmap;
 
 import production.sprite.SpriteAtlas;
+import production.sprite.SpriteSys;
 
 public final class TileMap {
     public final String name;
-    public final SpriteAtlas atlas;
     public final int width, height;
-    private final int originOffsetX, originOffsetY;
+    public final int originOffsetX, originOffsetY;
     private final Tile tiles[][];
+    final String atlasFilename;
 
-    TileMap(String name, SpriteAtlas atlas, int width, int height,
+    TileMap(String name, int width, int height, String atlasFilename,
             int originOffsetX, int originOffsetY, Tile[][] tiles) {
         this.name = name;
-        this.atlas = atlas;
         this.width = width;
         this.height = height;
         this.originOffsetX = originOffsetX;
         this.originOffsetY = originOffsetY;
         this.tiles = tiles;
+        this.atlasFilename = atlasFilename;
     }
 
     public Tile getTile(short x, short y) {
