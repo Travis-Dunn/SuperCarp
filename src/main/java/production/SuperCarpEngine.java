@@ -153,21 +153,6 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
 
         Data.tileMap = TileMapFileParser.FromFile("test_map.map");
         if (Data.tileMap == null) return false;
-        /*
-        int i, j, ox, oy;
-        ox = Data.tileMap.originOffsetX;
-        oy = Data.tileMap.originOffsetY;
-        for (i = 0; i < Data.tileMap.height; ++i) {
-            for (j = 0; j < Data.tileMap.width; ++j) {
-                short tx = (short)(j + ox);
-                short ty = (short)(i + oy);
-                Tile t = Data.tileMap.getTile(tx, ty);
-                if (t == null) continue;
-                spriteHandle = SpriteSys.Create(tx * 16, ty * 16, 0,
-                        t.spriteIdx, 7, 0, false, false, true);
-            }
-        }
-         */
 
         TileMapLoader.Load(Data.tileMap, Data.atlasIdsByFilename, Data.paletteIdsByFilename);
 
