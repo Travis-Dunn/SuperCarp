@@ -100,8 +100,8 @@ public class SpriteRenderer {
         int atlasWidth = SpriteAtlasOld.GetAtlasWidth();
         int spriteSize = SpriteAtlasOld.GetSpriteSize();
 
-        int camX = (int)cam.GetX();
-        int camY = (int)cam.GetY();
+        int camX = (int)cam.getX();
+        int camY = (int)cam.getY();
 
         /* render back-to-front: layer 7 (back) to layer 0 (front) */
         for (i = MAX_LAYERS - 1; i >= 0; --i) {
@@ -156,8 +156,8 @@ public class SpriteRenderer {
             for (j = 0; j < layerCounts[i]; ++j) {
                 int handle = handlesByLayerArr[i][j];
 
-                int screenX = SpriteSys.GetX(handle);
-                int screenY = SpriteSys.GetY(handle);
+                int screenX = SpriteSys.GetX(handle) - (int)cam.getX();
+                int screenY = SpriteSys.GetY(handle) - (int)cam.getY();
 
                 int atlasIdx = SpriteSys.GetAtlasIdx(handle);
                 int atlasId = SpriteSys.GetAtlasId(handle);

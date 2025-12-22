@@ -250,8 +250,8 @@ public abstract class GameEngine {
         while (running && !window.shouldClose()) {
             FramerateManager.Update();
 
-            eventManager.processEvents();
             processInput();
+            eventManager.processEvents();
             onUpdate(FramerateManager.deltaTime);
             render();
         }
@@ -295,6 +295,13 @@ public abstract class GameEngine {
 
     protected abstract void     onProcessInput();
     protected abstract boolean  onInit();
+
+    /**
+     * For updating game state. Note that non-immediate events are processed
+     * just before onUpdate is called.
+     *
+     * @param delta
+     */
     protected abstract void     onUpdate(double delta);
     protected abstract void     onRender();
     protected abstract void     onShutdown();

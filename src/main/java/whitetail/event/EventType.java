@@ -4,5 +4,6 @@ public enum EventType {
     SYSTEM_SHUTDOWN,
     WINDOW_CLOSE,
     KEYDOWN,
+    KEYUP,
     NULL,
 }

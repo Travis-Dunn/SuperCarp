@@ -10,6 +10,7 @@ import whitetail.core.GameEngine;
 import whitetail.event.Event;
 import whitetail.event.EventListener;
 import whitetail.event.EventType;
+import whitetail.event.KeyboardEvent;
 import whitetail.graphics.Shader;
 import whitetail.graphics.Sprite;
 import whitetail.graphics.cameras.Camera;
@@ -27,11 +28,24 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
 
     @Override
     protected void onProcessInput() {
+        while (Keyboard.next()) {
+            boolean keyDown = Keyboard.getEventKeyState();
+            int keyCode = Keyboard.getEventKey();
+            char keyChar = Keyboard.getEventCharacter();
+            boolean repeat = Keyboard.isRepeatEvent();
 
+            /* only handle keydown for now */
+            EventType eventType = keyDown ? EventType.KEYDOWN : EventType.KEYUP;
+            KeyboardEvent keyEvent = new KeyboardEvent(eventType, keyCode,
+                    keyChar, repeat);
+            eventManager.fireEvent(keyEvent);
+        }
     }
 
     @Override
     protected boolean onInit() {
+
+        eventManager.addEventListener(this);
 
         Data.charTex = TextureFileParser.FromFile("character.png");
         Data.charTex.upload();
@@ -68,7 +82,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
 
         // Create camera
         Data.sCam = new SpriteCamera();
-        Data.sCam.Init(FB_WIDTH, FB_HEIGHT);
+        Data.sCam.init(FB_WIDTH, FB_HEIGHT);
         SpriteRenderer.SetCamera(Data.sCam);
 
         // Create test palette
@@ -148,9 +162,6 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         SpriteRenderer.paletteArr[Data.MAP_PALETTE] = Data.sp;
         SpriteRenderer.atlasArr[Data.MAP_ATLAS] = Data.sa;
 
-        int spriteHandle = SpriteSys.Create(60, 60, 0, 4,
-                7, 0, false, false, true);
-
         Data.tileMap = TileMapFileParser.FromFile("test_map.map");
         if (Data.tileMap == null) return false;
 
@@ -174,6 +185,8 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
             playerY += dy * MOVE_SPEED * (float)delta;
             SpriteSysOld.SetPos(playerSprite, (int)playerX, (int)playerY);
         }
+
+        Data.sCam.update((float)delta);
     }
 
     @Override
@@ -193,16 +206,39 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         SpriteRenderer.Shutdown();
         SpriteAtlasOld.Shutdown();
         SpriteSysOld.Shutdown();
-        Data.sCam.Shutdown();
+        Data.sCam.shutdown();
     }
 
     @Override
     public boolean handleEvent(Event event) {
+        if (event.getType() == EventType.KEYDOWN) {
+            KeyboardEvent keyEvent = (KeyboardEvent) event;
+
+            if (keyEvent.keyCode == Keyboard.KEY_ESCAPE) {
+                stop();
+                return true;
+            }
+
+            if (keyEvent.keyCode == Keyboard.KEY_LEFT)  Data.sCam.setTranslatingLeft(true);
+            if (keyEvent.keyCode == Keyboard.KEY_RIGHT) Data.sCam.setTranslatingRight(true);
+            if (keyEvent.keyCode == Keyboard.KEY_UP)    Data.sCam.setTranslatingUp(true);
+            if (keyEvent.keyCode == Keyboard.KEY_DOWN)  Data.sCam.setTranslatingDown(true);
+        }
+
+        if (event.getType() == EventType.KEYUP) {
+            KeyboardEvent keyEvent = (KeyboardEvent) event;
+
+            if (keyEvent.keyCode == Keyboard.KEY_LEFT)  Data.sCam.setTranslatingLeft(false);
+            if (keyEvent.keyCode == Keyboard.KEY_RIGHT) Data.sCam.setTranslatingRight(false);
+            if (keyEvent.keyCode == Keyboard.KEY_UP)    Data.sCam.setTranslatingUp(false);
+            if (keyEvent.keyCode == Keyboard.KEY_DOWN)  Data.sCam.setTranslatingDown(false);
+        }
+
         return false;
     }
 
     @Override
     public EventType[] getInterestedEventTypes() {
-        return new EventType[0];
+        return new EventType[] { EventType.KEYDOWN, EventType.KEYUP };
     }
 }
