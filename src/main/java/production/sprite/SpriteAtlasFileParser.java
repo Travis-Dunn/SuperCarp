@@ -181,4 +181,27 @@ public final class SpriteAtlasFileParser {
     }
 
     /* TODO: scrub the rest! */
+    /**
+     * many things to do.
+     *
+     * scrub the rest of the files (SpriteAtlas and SpriteAtlasFileParser done)
+     *
+     * fix mapper so that you don't have to press P to repaint the left panel
+     *
+     * add an eyedropper to mapper
+     *
+     * Make SpriteAtlasFileParser stop when it encounters a transparent pixel?
+     * What I need is to handle the blank area, how we do that depends on
+     * whether or not we adopt the "black is transparent" model.
+     *
+     * also makes sense to go ahead and make the final version of atlas 0, which
+     * is the one that we'll use for making the maps.
+     *
+     * at some point, we'll want to add to Mapper the ability to stamp down
+     * "potentially interactable" sprites, although I'm not sure if we want them
+     * to be drawn in place of the existing map sprite, or on top of.
+     *
+     * I do know that we'll want the ability to draw more than one sprite on top
+     * of each other, because there will be magical effects and stuff.
+     */
 }
