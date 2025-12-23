@@ -2,9 +2,10 @@ package production.sprite;
 
 public final class SpriteAtlas {
     private SpritePalette palette;
-    public final int spriteSize;                     /* pixels */
-    public final int spritesPerRow;                  /* unitless */
-    public final int spriteCount;                    /* unitless */
+    public final int spriteSize;
+    public final int spritesPerRow;
+    public final int spriteCount;
+    public final int size;
     public final byte data[];
 
     public static final int MIN_IDX = 0x0;
@@ -18,9 +19,10 @@ public final class SpriteAtlas {
         this.data = data;
         this.spritesPerRow = spritesPerRow;
         this.spriteCount = spriteCount;
+        this.size = this.spritesPerRow * this.spriteSize;
     }
 
-    public int getPixelOffset(int atlasIdx) {
+    public int getSpriteXY(int atlasIdx) {
         assert (atlasIdx >= 0 && atlasIdx < spriteCount);
 
         int sx = (atlasIdx % spritesPerRow) * spriteSize;

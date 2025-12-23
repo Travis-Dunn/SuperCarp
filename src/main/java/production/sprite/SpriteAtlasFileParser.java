@@ -7,14 +7,13 @@ import java.io.InputStream;
 
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
 import static whitetail.utility.ErrorHandler.LogFatalExcpAndExit;
+import static whitetail.utility.logging.ErrorStrings.ERR_STR_FAILED_BUILD_FROM_FILE_OOM;
 
 public final class SpriteAtlasFileParser {
     private static final String ATLASES_DIR = "atlases";
-    public static final int MAX_ATLAS_IDX = 0xFFFF;
-    public static final int MAX_SIZE = 0x7FFF;
 
     public static SpriteAtlas FromFile(String filename, int spriteSize,
-                                       SpritePalette palette) {
+            SpritePalette palette) {
         assert(filename != null && !filename.isEmpty());
 
         String p = "/" + ATLASES_DIR + "/" + filename;
@@ -38,7 +37,7 @@ public final class SpriteAtlasFileParser {
     }
 
     private static SpriteAtlas FromStream(InputStream s, String f,
-                                          int spriteSize, SpritePalette palette) {
+            int spriteSize, SpritePalette palette) {
         BufferedImage image = null;
         int w, h, spriteCount, spritesPerRow, y, x, c, idx;
         byte[] data;
@@ -59,12 +58,12 @@ public final class SpriteAtlasFileParser {
         h = image.getHeight();
 
         if (w == 0) {
-            LogFatalAndExit(ErrStrDimOOB(f, "width"));
+            LogFatalAndExit(ErrStrDimZero(f, "width"));
             return null;
         }
 
         if (h == 0) {
-            LogFatalAndExit(ErrStrDimOOB(f, "height"));
+            LogFatalAndExit(ErrStrDimZero(f, "height"));
             return null;
         }
 
@@ -83,7 +82,7 @@ public final class SpriteAtlasFileParser {
             return null;
         }
 
-        if (w > MAX_SIZE) {
+        if (w > SpriteAtlas.MAX_SIZE) {
             LogFatalAndExit(ErrStrImgTooLarge(f, w));
             return null;
         }
@@ -91,7 +90,7 @@ public final class SpriteAtlasFileParser {
         spritesPerRow = w / spriteSize;
         spriteCount = spritesPerRow * spritesPerRow;
 
-        if (spriteCount > MAX_ATLAS_IDX + 1) {
+        if (spriteCount > SpriteAtlas.MAX_IDX + 1) {
             LogFatalAndExit(ErrStrTooManySprites(f, spriteCount));
             return null;
         }
@@ -101,7 +100,12 @@ public final class SpriteAtlasFileParser {
             return null;
         }
 
-        data = new byte[w * h];
+        try {
+            data = new byte[w * h];
+        } catch (OutOfMemoryError e) {
+            LogFatalAndExit(CLASS + ERR_STR_FAILED_BUILD_FROM_FILE_OOM);
+            return null;
+        }
 
         for (y = 0; y < h; ++y) {
             for (x = 0; x < w; ++x) {
@@ -110,7 +114,6 @@ public final class SpriteAtlasFileParser {
                     return null;
                 }
 
-                /* i think this is broken for indices > 127 */
                 data[y * w + x] = (byte)idx;
             }
         }
@@ -136,13 +139,14 @@ public final class SpriteAtlasFileParser {
                 "valid image.\n", CLASS, filename);
     }
 
-    private static String ErrStrDimOOB(String filename, String dim) {
+    private static String ErrStrDimZero(String filename, String dim) {
         return String.format("%s rejected [%s]. Image has zero [%s].\n", CLASS,
-                filename);
+                filename, dim);
     }
 
     private static String ErrStrImgNotSquare(String filename) {
-        return String.format("%s rejected [%s]. Image must be square.\n");
+        return String.format("%s rejected [%s]. Image must be square.\n", CLASS,
+                filename);
     }
 
     private static String ErrStrImgNotPow2(String filename) {
@@ -157,12 +161,12 @@ public final class SpriteAtlasFileParser {
 
     private static String ErrStrImgTooLarge(String filename, int w) {
         return String.format("%s rejected [%s]. Image resolution [%d] exceeds" +
-                " maximum [%d].\n", CLASS, filename, w, MAX_SIZE);
+                " maximum [%d].\n", CLASS, filename, w, SpriteAtlas.MAX_SIZE);
     }
 
     private static String ErrStrTooManySprites(String filename, int c) {
         return String.format("%s rejected [%s]. Sprite count [%d] exceeds the" +
-                " maximum [%d].\n", CLASS, filename, c, MAX_ATLAS_IDX + 1);
+                " maximum [%d].\n", CLASS, filename, c, SpriteAtlas.MAX_IDX + 1);
     }
 
     private static String ErrStrPaletteNull(String filename) {
@@ -175,4 +179,6 @@ public final class SpriteAtlasFileParser {
         return String.format("%s rejected [%s]. Texel [%d, %d] is [0x%08X], " +
                 "which isn't in the palette.\n", CLASS, filename, x, y, c);
     }
+
+    /* TODO: scrub the rest! */
 }

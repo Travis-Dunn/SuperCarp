@@ -171,6 +171,7 @@ public class SpriteRenderer {
 
                 byte[] pixels = atlasArr[atlasId].data;
 
+                /* TODO: use 'size' when rewriting this */
                 int atlasW = atlasArr[atlasId].spritesPerRow * size;
 
                 int[] palette = paletteArr[SpriteSys.GetPaletteIdx(handle)].colors;
