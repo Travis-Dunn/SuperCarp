@@ -18,6 +18,7 @@ public class Data {
     public static final int SPRITE_SIZE = 16;
     public static final int MAP_ATLAS = 0;
     public static final int MAP_PALETTE = 0;
+    public static final int BLACK = 0xFF160D13;
 
     public static Texture charTex;
     public static Shader charShader;

@@ -191,7 +191,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
 
     @Override
     protected void onRender() {
-        SpriteRenderer.Clear(0xFF202030);  // dark blue-gray background
+        SpriteRenderer.Clear(Data.BLACK);
         /*
         SpriteRenderer.Render();
          */

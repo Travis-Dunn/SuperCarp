@@ -216,7 +216,7 @@ public class SpriteRenderer {
                 texelIdx = atlasPixels[atlasRowOffset + atlasX + srcX] & 0xFF;
 
                 /* alpha test: index 0 = transparent */
-                if (texelIdx == 0) continue;
+                if (texelIdx == SpritePalette.TRANSPARENT_IDX) continue;
 
                 color = palette[texelIdx];
                 fbIdx = fbRowOffset + x * BYTES_PER_PIXEL;

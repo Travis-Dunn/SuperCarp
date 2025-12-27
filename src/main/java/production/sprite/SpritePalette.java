@@ -8,6 +8,7 @@ public final class SpritePalette {
     public final Map<Integer, Integer> colorToIndex;
     public final int maxIdx;
     public final int count;
+    public static final int TRANSPARENT_IDX = 0;
 
     SpritePalette(int[] colors, Map<Integer, Integer> colorToIndex) {
         this.colors = colors;

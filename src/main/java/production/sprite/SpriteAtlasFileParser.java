@@ -7,24 +7,25 @@ import java.io.InputStream;
 
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
 import static whitetail.utility.ErrorHandler.LogFatalExcpAndExit;
-import static whitetail.utility.logging.ErrorStrings.ERR_STR_FAILED_BUILD_FROM_FILE_OOM;
+import static whitetail.utility.logging.ErrorStrings
+        .ERR_STR_FAILED_BUILD_FROM_FILE_OOM;
 
 public final class SpriteAtlasFileParser {
     private static final String ATLASES_DIR = "atlases";
 
     public static SpriteAtlas FromFile(String filename, int spriteSize,
             SpritePalette palette) {
-        assert(filename != null && !filename.isEmpty());
-
         String p = "/" + ATLASES_DIR + "/" + filename;
+
+        assert(filename != null && !filename.isEmpty());
 
         if (!filename.toLowerCase().endsWith(".png")) {
             LogFatalAndExit(ErrStrInvalidExtension(filename));
             return null;
         }
 
-        try (InputStream stream =
-                     SpriteAtlasFileParser.class.getResourceAsStream(p)) {
+        try (InputStream stream = SpriteAtlasFileParser.class
+                .getResourceAsStream(p)) {
             if (stream == null) {
                 LogFatalAndExit(ErrStrFailedLoad(filename));
                 return null;
@@ -39,7 +40,7 @@ public final class SpriteAtlasFileParser {
     private static SpriteAtlas FromStream(InputStream s, String f,
             int spriteSize, SpritePalette palette) {
         BufferedImage image = null;
-        int w, h, spriteCount, spritesPerRow, y, x, c, idx;
+        int w, h, spriteCount, spritesPerRow, y, x, c, idx, alpha;
         byte[] data;
 
         try {
@@ -109,12 +110,20 @@ public final class SpriteAtlasFileParser {
 
         for (y = 0; y < h; ++y) {
             for (x = 0; x < w; ++x) {
-                if ((idx = palette.getIndex(c = image.getRGB(x, y))) == -1) {
+                c = image.getRGB(x, y);
+                alpha = (c >> 24) & 0xFF;
+
+                if (0 == alpha) {
+                    data[y * w + x] = SpritePalette.TRANSPARENT_IDX;
+                } else if (255 != alpha) {
+                    LogFatalAndExit(ErrStrPartialAlpha(f, x, y, alpha));
+                    return null;
+                } else if ((idx = palette.getIndex(c)) == -1) {
                     LogFatalAndExit(ErrStrImgHasNonPaletteColor(f, x, y, c));
                     return null;
+                } else {
+                    data[y * w + x] = (byte)idx;
                 }
-
-                data[y * w + x] = (byte)idx;
             }
         }
 
@@ -180,6 +189,13 @@ public final class SpriteAtlasFileParser {
                 "which isn't in the palette.\n", CLASS, filename, x, y, c);
     }
 
+    private static String ErrStrPartialAlpha(String filename, int x, int y,
+            int a) {
+        return String.format("%s rejected [%s]. Texel [%d, %d] has partial " +
+                "alpha [%d]. Only fully opaque (255) or fully transparent " +
+                "(0) pixels are allowed.\n", CLASS, filename, x, y, a);
+    }
+
     /* TODO: scrub the rest! */
     /**
      * many things to do.
@@ -192,7 +208,8 @@ public final class SpriteAtlasFileParser {
      *
      * Make SpriteAtlasFileParser stop when it encounters a transparent pixel?
      * What I need is to handle the blank area, how we do that depends on
-     * whether or not we adopt the "black is transparent" model.
+     * whether or not we adopt the "black is transparent" model. May be what we
+     * want to do for this project, but is it what we want for the lib?
      *
      * also makes sense to go ahead and make the final version of atlas 0, which
      * is the one that we'll use for making the maps.
@@ -202,6 +219,5 @@ public final class SpriteAtlasFileParser {
      * to be drawn in place of the existing map sprite, or on top of.
      *
      * I do know that we'll want the ability to draw more than one sprite on top
-     * of each other, because there will be magical effects and stuff.
      */
 }
