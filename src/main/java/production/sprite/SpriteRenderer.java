@@ -3,7 +3,7 @@ package production.sprite;
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
 import static whitetail.utility.logging.ErrorStrings.ERR_STR_FAILED_INIT_OOM;
 
-public class SpriteRenderer {
+public final class SpriteRenderer {
     private static boolean init;
 
     private static SpriteCamera cam;
@@ -16,9 +16,6 @@ public class SpriteRenderer {
     private static int[] layerCounts;
 
     private static final int BYTES_PER_PIXEL = 4;  // RGBA
-
-    /* FLAG_VALID is package-private in SpriteSysOld, so we duplicate it here */
-    private static final int FLAG_VALID = 0x08;
 
     /* new, public for now, won't be when refactor finished */
     public static SpritePalette paletteArr[];
@@ -36,7 +33,7 @@ public class SpriteRenderer {
 
         try {
             framebuffer = new byte[fbWidth * fbHeight * BYTES_PER_PIXEL];
-            handlesByLayerArr = new short[MAX_LAYERS][SpriteSysOld.GetCap()];
+            handlesByLayerArr = new short[MAX_LAYERS][SpriteSys.GetCapacity()];
             layerCounts = new int[MAX_LAYERS];
             paletteArr = new SpritePalette[SpriteSys.MAX_PALETTE + 1];
             atlasArr = new SpriteAtlas[SpriteSys.MAX_ATLAS + 1];
@@ -65,67 +62,6 @@ public class SpriteRenderer {
             framebuffer[i + 1] = g;
             framebuffer[i + 2] = b;
             framebuffer[i + 3] = a;
-        }
-    }
-
-    public static void Render() {
-        assert(init);
-        assert(cam != null);
-
-        int[] bitfieldArr = SpriteSysOld.GetBitfieldArr();
-        int highMark = SpriteSysOld.GetHighMark();
-        int i, j;
-
-        /* reset layer counts */
-        for (i = 0; i < MAX_LAYERS; ++i) {
-            layerCounts[i] = 0;
-        }
-
-        /* bucket sprites by layer, skipping invalid/invisible */
-        int validVisibleMask = (SpriteSysOld.FLAG_VISIBLE | FLAG_VALID) << 24;
-
-        for (i = 0; i < highMark; ++i) {
-            int bits = bitfieldArr[i];
-            if ((bits & validVisibleMask) != validVisibleMask) {
-                continue;
-            }
-            byte layer = SpriteSysOld.GetLayer(i);
-            handlesByLayerArr[layer][layerCounts[layer]++] = (short)i;
-        }
-
-        /* cache frequently accessed data */
-        int[] xyArr = SpriteSysOld.GetXYArr();
-        byte[] atlasPixels = SpriteAtlasOld.GetPixels();
-        int[] palette = SpriteAtlasOld.GetPalette();
-        int atlasWidth = SpriteAtlasOld.GetAtlasWidth();
-        int spriteSize = SpriteAtlasOld.GetSpriteSize();
-
-        int camX = (int)cam.getX();
-        int camY = (int)cam.getY();
-
-        /* render back-to-front: layer 7 (back) to layer 0 (front) */
-        for (i = MAX_LAYERS - 1; i >= 0; --i) {
-            for (j = 0; j < layerCounts[i]; ++j) {
-                int handle = handlesByLayerArr[i][j];
-                /*
-                int idx = handle << 1;
-
-                int screenX = xyArr[idx] - camX;
-                int screenY = xyArr[idx + 1] - camY;
-                 */
-                int screenX = SpriteSysOld.GetX(handle);
-                int screenY = SpriteSysOld.GetY(handle);
-
-                short atlasIdx = SpriteSysOld.GetAtlasIdx(handle);
-                int atlasX = SpriteAtlasOld.GetSpriteX(atlasIdx);
-                int atlasY = SpriteAtlasOld.GetSpriteY(atlasIdx);
-
-                boolean flipH = SpriteSysOld.IsFlippedH(handle);
-                boolean flipV = SpriteSysOld.IsFlippedV(handle);
-
-                blitSprite(screenX, screenY, atlasX, atlasY, spriteSize,
-                        atlasPixels, atlasWidth, palette, flipH, flipV);
-            }
         }
     }
 

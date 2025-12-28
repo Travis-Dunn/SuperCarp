@@ -1,6 +1,6 @@
 package production.sprite;
 
-public class SpriteCamera {
+public final class SpriteCamera {
     private boolean init;
 
     /* viewport dimensions in pixels */

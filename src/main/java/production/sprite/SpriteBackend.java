@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
 import static whitetail.utility.logging.ErrorStrings.ERR_STR_FAILED_INIT_OOM;
 
-public class SpriteBackend {
+public final class SpriteBackend {
     private static boolean init;
 
     private static int texID;
