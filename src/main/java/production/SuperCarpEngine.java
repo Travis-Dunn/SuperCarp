@@ -48,13 +48,18 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         Data.sa = SpriteAtlasFileParser.FromFile(Data.TEST_ATLAS_FILENAME,
             Data.SPRITE_SIZE, Data.sp);
         if (Data.sa == null) return false;
+        Data.sa_player = SpriteAtlasFileParser.FromFile(
+                Data.TEST_ATLAS_PLAYER_FILENAME, Data.SPRITE_SIZE, Data.sp);
 
         Data.atlasIdsByFilename.put(Data.TEST_ATLAS_FILENAME, Data.MAP_ATLAS);
         Data.paletteIdsByFilename.put(Data.TEST_PALETTE_FILENAME,
                 Data.MAP_PALETTE);
+        Data.atlasIdsByFilename.put(Data.TEST_ATLAS_PLAYER_FILENAME,
+                Data.PLAYER_ATLAS);
 
         SpriteRenderer.paletteArr[Data.MAP_PALETTE] = Data.sp;
         SpriteRenderer.atlasArr[Data.MAP_ATLAS] = Data.sa;
+        SpriteRenderer.atlasArr[Data.PLAYER_ATLAS] = Data.sa_player;
 
         Data.tileMap = TileMapFileParser.FromFile("test_map.map");
         if (Data.tileMap == null) return false;
@@ -62,12 +67,27 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         TileMapLoader.Load(Data.tileMap, Data.atlasIdsByFilename,
                 Data.paletteIdsByFilename);
 
+        SpriteAnimSys.Init();
+
+        SpriteAnimDef playerIdle = new SpriteAnimDef(
+                new short[] { 0, 1, 2 },  // frame sequence in atlas
+                (short) 200,                  // 200ms per frame
+                true                          // loops
+        );
+
+        int playerSpriteHandle = SpriteSys.Create(0, 0, Data.PLAYER_ATLAS,
+                0, 0, Data.MAP_PALETTE, false, false,
+                true);
+        SpriteAnim playerAnimHandle = SpriteAnimSys.Create(playerSpriteHandle,
+                playerIdle);
+
         return true;
     }
 
     @Override
     protected void onUpdate(double delta) {
         Data.sCam.update((float)delta);
+        SpriteAnimSys.Update((float)delta);
     }
 
     @Override

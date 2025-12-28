@@ -68,8 +68,8 @@ public final class SpriteSys {
     static final int MAX_LAYER =     0x7;
     static final int MIN_PALETTE =   0x0;
     static final int MAX_PALETTE =   0x7;
-    static final int MIN_ATLAS =  0x0;
-    static final int MAX_ATLAS =  0x7;
+    static final int MIN_ATLAS =     0x0;
+    static final int MAX_ATLAS =     0x7;
 
     private static final long LONG_16_MASK = 0xFFFFL;
     private static final long LONG_3_MASK = 0x7L;

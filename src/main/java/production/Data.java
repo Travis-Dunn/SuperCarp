@@ -11,6 +11,7 @@ public class Data {
     /* game attribs */
     public static final int SPRITE_SIZE = 16;
     public static final int MAP_ATLAS = 0;
+    public static final int PLAYER_ATLAS = 1;
     public static final int MAP_PALETTE = 0;
     public static final int BLACK = 0xFF160D13;
     public static final int FB_W = 320;
@@ -18,6 +19,7 @@ public class Data {
     public static final int SPRITE_SYS_CAP = 1024;
     public static final String TEST_ATLAS_FILENAME = "test_atlas.png";
     public static final String TEST_PALETTE_FILENAME = "mystic-16.png";
+    public static final String TEST_ATLAS_PLAYER_FILENAME = "test_atlas_player_anim.png";
 
     public static SpriteCamera sCam;
 
@@ -26,6 +28,7 @@ public class Data {
 
     public static SpritePalette sp;
     public static SpriteAtlas sa;
+    public static SpriteAtlas sa_player;
 
     public static TileMap tileMap;
 }
