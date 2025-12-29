@@ -3,9 +3,14 @@ package production.sprite;
 public final class SpriteCamera {
     private boolean init;
 
+    private int spriteSize;
+    private float halfSpriteSize;
+
     /* viewport dimensions in pixels */
     private int viewW;
     private int viewH;
+    private float halfViewW, halfViewH;
+    private float centerOffsetW, centerOffsetH;
 
     /* camera position in world/pixel space */
     private float posX;
@@ -27,36 +32,22 @@ public final class SpriteCamera {
 
     public SpriteCamera() {}
 
-    public boolean init(int viewportWidth, int viewportHeight) {
+    public boolean init(int viewportWidth, int viewportHeight, int spriteSize) {
         assert(!init);
         assert(viewportWidth > 0);
         assert(viewportHeight > 0);
 
+        this.spriteSize = spriteSize;
+        halfSpriteSize = this.spriteSize / 2.0f;
         viewW = viewportWidth;
+        halfViewW = viewW / 2.0f;
         viewH = viewportHeight;
+        halfViewH = viewH / 2.0f;
+        centerOffsetW = halfViewW - halfSpriteSize;
+        centerOffsetH = halfViewH - halfSpriteSize;
         posX = 0.0f;
         posY = 0.0f;
         moveSpeed = DEF_MOVE_SPEED;
-        translatingLeft = false;
-        translatingRight = false;
-        translatingUp = false;
-        translatingDown = false;
-        canTranslate = true;
-
-        return init = true;
-    }
-
-    public boolean init(int viewportWidth, int viewportHeight, float moveSpeed) {
-        assert(!init);
-        assert(viewportWidth > 0);
-        assert(viewportHeight > 0);
-        assert(moveSpeed >= 0.0f);
-
-        viewW = viewportWidth;
-        viewH = viewportHeight;
-        posX = 0.0f;
-        posY = 0.0f;
-        this.moveSpeed = moveSpeed;
         translatingLeft = false;
         translatingRight = false;
         translatingUp = false;
@@ -229,6 +220,13 @@ public final class SpriteCamera {
 
     public boolean isInitialized() {
         return init;
+    }
+
+    public void slave(int screenX, int screenY) {
+        assert(init);
+
+        posX = (float)screenX - centerOffsetW;
+        posY = (float)screenY - centerOffsetH;
     }
 
     public void shutdown() {

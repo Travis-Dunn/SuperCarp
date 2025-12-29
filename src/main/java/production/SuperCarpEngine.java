@@ -40,7 +40,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         SpriteBackend.Init(Data.FB_W, Data.FB_H);
 
         Data.sCam = new SpriteCamera();
-        Data.sCam.init(Data.FB_W, Data.FB_H);
+        Data.sCam.init(Data.FB_W, Data.FB_H, Data.SPRITE_SIZE);
         SpriteRenderer.SetCamera(Data.sCam);
 
 
@@ -76,6 +76,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
                 true                          // loops
         );
 
+        Player.cam = Data.sCam;
         Player.tileX = 0;
         Player.tileY = 0;
         int playerSpriteHandle = SpriteSys.Create(
@@ -95,7 +96,10 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
 
     @Override
     protected void onUpdate(double delta) {
+        /*
         Data.sCam.update((float)delta);
+         */
+        Data.sCam.setPos((float)Player.screenX, (float)Player.screenY);
         SpriteAnimSys.Update((float)delta);
         Data.tickAccumulator += (float)delta;
 

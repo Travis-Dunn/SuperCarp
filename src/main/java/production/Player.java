@@ -1,15 +1,19 @@
 package production;
 
 import production.sprite.SpriteAnim;
+import production.sprite.SpriteCamera;
 import production.sprite.SpriteSys;
 
 public final class Player {
+    static SpriteCamera cam;
+
     static int spriteHandle;
     static SpriteAnim anim;
 
     // Logical position (tiles)
     static int tileX;
     static int tileY;
+    static int screenX, screenY;
 
     // Previous position for interpolation
     static int prevTileX;
@@ -53,6 +57,8 @@ public final class Player {
     }
 
     static void Render() {
+        assert(cam != null);
+
         float t = Data.tickAccumulator / Data.TICK_DURATION;
         t = easeOutQuad(t);
 
@@ -61,9 +67,10 @@ public final class Player {
         int currScreenX = tileX * Data.SPRITE_SIZE;
         int currScreenY = tileY * Data.SPRITE_SIZE;
 
-        int screenX = (int)(prevScreenX + (currScreenX - prevScreenX) * t);
-        int screenY = (int)(prevScreenY + (currScreenY - prevScreenY) * t);
+        screenX = (int)(prevScreenX + (currScreenX - prevScreenX) * t);
+        screenY = (int)(prevScreenY + (currScreenY - prevScreenY) * t);
 
+        cam.slave(screenX, screenY);
         SpriteSys.SetPosition(spriteHandle, screenX, screenY);
     }
 
