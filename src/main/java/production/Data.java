@@ -31,4 +31,7 @@ public class Data {
     public static SpriteAtlas sa_player;
 
     public static TileMap tileMap;
+
+    public static final float TICK_DURATION = 0.6f;  // 600ms
+    public static float tickAccumulator = 0.0f;
 }

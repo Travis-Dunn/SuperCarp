@@ -9,6 +9,7 @@ import whitetail.event.Event;
 import whitetail.event.EventListener;
 import whitetail.event.EventType;
 import whitetail.event.KeyboardEvent;
+import whitetail.utility.FramerateManager;
 
 public class SuperCarpEngine extends GameEngine implements EventListener {
 
@@ -75,11 +76,19 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
                 true                          // loops
         );
 
-        int playerSpriteHandle = SpriteSys.Create(0, 0, Data.PLAYER_ATLAS,
+        Player.tileX = 0;
+        Player.tileY = 0;
+        int playerSpriteHandle = SpriteSys.Create(
+                Player.tileX * Data.SPRITE_SIZE,
+                Player.tileY * Data.SPRITE_SIZE,
+                Data.PLAYER_ATLAS,
                 0, 0, Data.MAP_PALETTE, false, false,
                 true);
         SpriteAnim playerAnimHandle = SpriteAnimSys.Create(playerSpriteHandle,
                 playerIdle);
+
+        Player.spriteHandle = playerSpriteHandle;
+        Player.anim = playerAnimHandle;
 
         return true;
     }
@@ -88,11 +97,22 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
     protected void onUpdate(double delta) {
         Data.sCam.update((float)delta);
         SpriteAnimSys.Update((float)delta);
+        Data.tickAccumulator += (float)delta;
+
+        while (Data.tickAccumulator >= Data.TICK_DURATION) {
+            Data.tickAccumulator -= Data.TICK_DURATION;
+            onTick((float)delta);
+        }
+    }
+
+    private void onTick(float dt) {
+        Player.Update(dt);
     }
 
     @Override
     protected void onRender() {
         SpriteRenderer.Clear(Data.BLACK);
+        Player.Render();
         SpriteRenderer.RenderNew();
         SpriteBackend.Present(SpriteRenderer.GetFramebuffer());
         window.swapBuffers();
@@ -116,13 +136,25 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
             }
 
             if (keyEvent.keyCode == Keyboard.KEY_LEFT)
+                /*
                 Data.sCam.setTranslatingLeft(true);
+                 */
+                Player.moveLeft = true;
             if (keyEvent.keyCode == Keyboard.KEY_RIGHT)
+                /*
                 Data.sCam.setTranslatingRight(true);
+                 */
+                Player.moveRight = true;
             if (keyEvent.keyCode == Keyboard.KEY_UP)
+                /*
                 Data.sCam.setTranslatingUp(true);
+                 */
+                Player.moveUp = true;
             if (keyEvent.keyCode == Keyboard.KEY_DOWN)
+                /*
                 Data.sCam.setTranslatingDown(true);
+                 */
+                Player.moveDown = true;
         }
 
         if (event.getType() == EventType.KEYUP) {
