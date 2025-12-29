@@ -135,39 +135,59 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
                 return true;
             }
 
-            if (keyEvent.keyCode == Keyboard.KEY_LEFT)
+            if (keyEvent.keyCode == Keyboard.KEY_LEFT) {
                 /*
                 Data.sCam.setTranslatingLeft(true);
                  */
-                Player.moveLeft = true;
-            if (keyEvent.keyCode == Keyboard.KEY_RIGHT)
+                Player.holdingLeft = true;
+                Player.queueMove(-1, 0);
+            }
+            if (keyEvent.keyCode == Keyboard.KEY_RIGHT) {
                 /*
                 Data.sCam.setTranslatingRight(true);
                  */
-                Player.moveRight = true;
-            if (keyEvent.keyCode == Keyboard.KEY_UP)
+                Player.holdingRight = true;
+                Player.queueMove(1, 0);
+            }
+            if (keyEvent.keyCode == Keyboard.KEY_UP) {
                 /*
                 Data.sCam.setTranslatingUp(true);
                  */
-                Player.moveUp = true;
-            if (keyEvent.keyCode == Keyboard.KEY_DOWN)
+                Player.holdingUp = true;
+                Player.queueMove(0, -1);
+            }
+            if (keyEvent.keyCode == Keyboard.KEY_DOWN) {
                 /*
                 Data.sCam.setTranslatingDown(true);
                  */
-                Player.moveDown = true;
+                Player.holdingDown = true;
+                Player.queueMove(0, 1);
+            }
         }
 
         if (event.getType() == EventType.KEYUP) {
             KeyboardEvent keyEvent = (KeyboardEvent) event;
 
             if (keyEvent.keyCode == Keyboard.KEY_LEFT)
+                /*
                 Data.sCam.setTranslatingLeft(false);
+                 */
+                Player.holdingLeft = false;
             if (keyEvent.keyCode == Keyboard.KEY_RIGHT)
+                /*
                 Data.sCam.setTranslatingRight(false);
+                 */
+                Player.holdingRight = false;
             if (keyEvent.keyCode == Keyboard.KEY_UP)
+                /*
                 Data.sCam.setTranslatingUp(false);
+                 */
+                Player.holdingUp = false;
             if (keyEvent.keyCode == Keyboard.KEY_DOWN)
+                /*
                 Data.sCam.setTranslatingDown(false);
+                 */
+                Player.holdingDown = false;
         }
 
         return false;
