@@ -5,5 +5,7 @@ public enum EventType {
     WINDOW_CLOSE,
     KEYDOWN,
     KEYUP,
+    MOUSE_DOWN,
+    MOUSE_UP,
     NULL,
 }

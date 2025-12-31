@@ -1,16 +1,14 @@
 package production;
 
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 import production.save.SaveData;
 import production.save.SaveManager;
 import production.sprite.*;
 import production.tiledmap.TileMapFileParser;
 import production.tiledmap.TileMapLoader;
 import whitetail.core.GameEngine;
-import whitetail.event.Event;
-import whitetail.event.EventListener;
-import whitetail.event.EventType;
-import whitetail.event.KeyboardEvent;
+import whitetail.event.*;
 import whitetail.utility.FramerateManager;
 
 public class SuperCarpEngine extends GameEngine implements EventListener {
@@ -29,6 +27,19 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
             KeyboardEvent keyEvent = new KeyboardEvent(eventType, keyCode,
                     keyChar, repeat);
             eventManager.fireEvent(keyEvent);
+        }
+
+        while (Mouse.next()) {
+            boolean buttonDown = Mouse.getEventButtonState();
+            int button = Mouse.getEventButton();
+
+            if (button >= 0) {  // -1 means mouse move, no button
+                int x = Mouse.getEventX();
+                int y = Mouse.getEventY();
+                EventType eventType = buttonDown ? EventType.MOUSE_DOWN : EventType.MOUSE_UP;
+                MouseEvent mouseEvent = new MouseEvent(eventType, x, y, button);
+                eventManager.fireEvent(mouseEvent);
+            }
         }
     }
 
@@ -109,6 +120,10 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
             Player.prevTileY = loaded.playerTileY;
             System.out.println("Loaded save: player at " + loaded.playerTileX + ", " + loaded.playerTileY);
         }
+
+        Data.cursor = new Cursor(Data.sCam, Data.tileMap, Data.SPRITE_SIZE,
+                1280, 960, Data.FB_W, Data.FB_H);
+        eventManager.addEventListener(Data.cursor);
 
         return true;
     }
@@ -220,6 +235,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
 
     @Override
     public EventType[] getInterestedEventTypes() {
-        return new EventType[] { EventType.KEYDOWN, EventType.KEYUP };
+        return new EventType[] { EventType.KEYDOWN, EventType.KEYUP,
+                /* EventType.MOUSE_DOWN, EventType.MOUSE_UP */ };
     }
 }

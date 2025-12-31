@@ -229,6 +229,26 @@ public final class SpriteCamera {
         posY = (float)screenY - centerOffsetH;
     }
 
+    /**
+     * Convert screen X coordinate to tile X.
+     * @param screenX X in framebuffer coordinates (0 to viewW)
+     * @param tileSize size of a tile in pixels
+     */
+    public int screenToTileX(int screenX, int tileSize) {
+        assert(init);
+        return (int)Math.floor((screenX + posX) / tileSize);
+    }
+
+    /**
+     * Convert screen Y coordinate to tile Y.
+     * @param screenY Y in framebuffer coordinates (0 to viewH)
+     * @param tileSize size of a tile in pixels
+     */
+    public int screenToTileY(int screenY, int tileSize) {
+        assert(init);
+        return (int)Math.floor((screenY + posY) / tileSize);
+    }
+
     public void shutdown() {
         assert(init);
 
