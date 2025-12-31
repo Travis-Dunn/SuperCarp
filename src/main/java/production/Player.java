@@ -14,13 +14,13 @@ public final class Player {
     static SpriteAnim anim;
 
     // Logical position (tiles)
-    static int tileX;
-    static int tileY;
+    public static int tileX;
+    public static int tileY;
     static int screenX, screenY;
 
     // Previous position for interpolation
-    static int prevTileX;
-    static int prevTileY;
+    public static int prevTileX;
+    public static int prevTileY;
 
     // Held state (persists until KEYUP)
     static boolean holdingLeft = false;
@@ -51,9 +51,10 @@ public final class Player {
             int newY = tileY + queuedDY;
 
             Tile t = Data.tileMap.getTile((short)newX, (short)newY);
-            
+
             if (t == null) {
                 LogFatalAndExit(ErrStrTileNotFound(newX, newY));
+                return;
             }
 
             if (t.blocked) {

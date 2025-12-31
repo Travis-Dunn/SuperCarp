@@ -1,6 +1,8 @@
 package production;
 
 import org.lwjgl.input.Keyboard;
+import production.save.SaveData;
+import production.save.SaveManager;
 import production.sprite.*;
 import production.tiledmap.TileMapFileParser;
 import production.tiledmap.TileMapLoader;
@@ -77,8 +79,15 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         );
 
         Player.cam = Data.sCam;
+        /* If you set the tile coords only, then Player.Render will animate
+        movement from prevTileX to tileX, and since in this case prevTileX is
+        0 (default), this makes the camera animate from focusing on tile [0, 0]
+        to tileX, in this case -4. I feel like this might be handy to remember.
+        */
         Player.tileX = -4;
         Player.tileY = 3;
+        Player.prevTileX = -4;
+        Player.prevTileY = 3;
         int playerSpriteHandle = SpriteSys.Create(
                 Player.tileX * Data.SPRITE_SIZE,
                 Player.tileY * Data.SPRITE_SIZE,
@@ -90,6 +99,16 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
 
         Player.spriteHandle = playerSpriteHandle;
         Player.anim = playerAnimHandle;
+
+        if (!SaveManager.Init()) return false;
+        SaveData loaded = SaveManager.Load();
+        if (loaded != null) {
+            Player.tileX = loaded.playerTileX;
+            Player.tileY = loaded.playerTileY;
+            Player.prevTileX = loaded.playerTileX;
+            Player.prevTileY = loaded.playerTileY;
+            System.out.println("Loaded save: player at " + loaded.playerTileX + ", " + loaded.playerTileY);
+        }
 
         return true;
     }
@@ -111,6 +130,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
 
     private void onTick(float dt) {
         Player.Update(dt);
+        SaveManager.RequestSave(SaveData.Capture());
     }
 
     @Override
@@ -124,6 +144,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
 
     @Override
     protected void onShutdown() {
+        SaveManager.Shutdown();
         SpriteBackend.Shutdown();
         SpriteRenderer.Shutdown();
         Data.sCam.shutdown();
