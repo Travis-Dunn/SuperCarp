@@ -5,6 +5,8 @@ import production.sprite.SpriteCamera;
 import production.sprite.SpriteSys;
 import production.tiledmap.Tile;
 
+import static whitetail.utility.ErrorHandler.LogFatalAndExit;
+
 public final class Player {
     static SpriteCamera cam;
 
@@ -49,6 +51,10 @@ public final class Player {
             int newY = tileY + queuedDY;
 
             Tile t = Data.tileMap.getTile((short)newX, (short)newY);
+            
+            if (t == null) {
+                LogFatalAndExit(ErrStrTileNotFound(newX, newY));
+            }
 
             if (t.blocked) {
                 queuedDX = 0;
@@ -94,5 +100,11 @@ public final class Player {
 
     private static float easeOutQuad(float t) {
         return t * (2.0f - t);
+    }
+
+    public static final String CLASS = Player.class.getSimpleName();
+    private static String ErrStrTileNotFound(int x, int y) {
+        return String.format("Critical error! Tile not found [%d, %d].\n", x,
+                y);
     }
 }
