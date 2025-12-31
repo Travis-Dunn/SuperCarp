@@ -45,6 +45,7 @@ public final class TileMapFileParser {
         boolean inTiles = false, headerParsed = false;
         Tile[][] tiles = null;
         SpriteAtlas atlas = null;
+        boolean blocked = false;
 
         try {
             reader = new BufferedReader(new InputStreamReader(s));
@@ -107,13 +108,15 @@ public final class TileMapFileParser {
                         x = Integer.parseInt(parts[0].trim());
                         y = Integer.parseInt(parts[1].trim());
                         atlasIdx = Integer.parseInt(parts[2].trim());
+                        blocked = parts[3].trim().equals("1");
 
                         // Convert World Coordinates to Array Indices
                         ax = x - originX;
                         ay = y - originY;
 
                         if (ax >= 0 && ax < width && ay >= 0 && ay < height) {
-                            tiles[ay][ax] = new Tile((short) atlasIdx, -1);
+                            tiles[ay][ax] = new Tile((short) atlasIdx, -1
+                            , blocked);
                         } else {
                             // Optionally log warning for tiles outside defined bounds
                         }

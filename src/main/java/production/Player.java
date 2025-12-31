@@ -3,6 +3,7 @@ package production;
 import production.sprite.SpriteAnim;
 import production.sprite.SpriteCamera;
 import production.sprite.SpriteSys;
+import production.tiledmap.Tile;
 
 public final class Player {
     static SpriteCamera cam;
@@ -43,6 +44,23 @@ public final class Player {
 
         // Execute queued move (catches taps)
         if (queuedDX != 0 || queuedDY != 0) {
+
+            int newX = tileX + queuedDX;
+            int newY = tileY + queuedDY;
+
+            Tile t = Data.tileMap.getTile((short)newX, (short)newY);
+
+            if (t.blocked) {
+                queuedDX = 0;
+                queuedDY = 0;
+                if (holdingLeft)       queueMove(-1, 0);
+                else if (holdingRight) queueMove(1, 0);
+                else if (holdingUp)    queueMove(0, -1);
+                else if (holdingDown)  queueMove(0, 1);
+                System.out.println("blocked");
+                return;
+            }
+
             tileX += queuedDX;
             tileY += queuedDY;
             queuedDX = 0;

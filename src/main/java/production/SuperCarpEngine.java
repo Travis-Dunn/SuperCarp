@@ -77,8 +77,8 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         );
 
         Player.cam = Data.sCam;
-        Player.tileX = 0;
-        Player.tileY = 0;
+        Player.tileX = -4;
+        Player.tileY = 3;
         int playerSpriteHandle = SpriteSys.Create(
                 Player.tileX * Data.SPRITE_SIZE,
                 Player.tileY * Data.SPRITE_SIZE,
