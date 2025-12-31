@@ -4,6 +4,8 @@ import static whitetail.utility.ErrorHandler.LogFatalAndExit;
 
 public class EntryPoint {
     public static void main(String args[]) {
+        System.out.println("Platform: " + Platform.getName());
+
         SuperCarpEngine engine = new SuperCarpEngine();
 
         if (!engine.initFirstHalf()) {
