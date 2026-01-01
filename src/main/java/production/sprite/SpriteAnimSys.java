@@ -2,6 +2,9 @@ package production.sprite;
 
 import java.util.ArrayList;
 
+import static whitetail.utility.ErrorHandler.LogFatalAndExit;
+import static whitetail.utility.logging.ErrorStrings.ERR_STR_FAILED_INIT_OOM;
+
 public final class SpriteAnimSys {
     private static boolean init;
     private static ArrayList<SpriteAnim> active;
@@ -9,11 +12,15 @@ public final class SpriteAnimSys {
     private SpriteAnimSys() {}
 
     public static boolean Init() {
-        assert !init;
+        assert(!init);
 
-        active = new ArrayList<>();
-
-        return init = true;
+        try {
+            active = new ArrayList<>();
+            return init = true;
+        } catch (OutOfMemoryError e) {
+            LogFatalAndExit(CLASS + ERR_STR_FAILED_INIT_OOM);
+            return init = false;
+        }
     }
 
     public static SpriteAnim Create(int spriteHandle, SpriteAnimDef def) {
@@ -61,4 +68,6 @@ public final class SpriteAnimSys {
 
         init = false;
     }
+
+    public static final String CLASS = SpriteAnimSys.class.getSimpleName();
 }
