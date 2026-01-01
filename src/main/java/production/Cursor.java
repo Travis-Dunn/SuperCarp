@@ -8,9 +8,11 @@ import whitetail.event.EventListener;
 import whitetail.event.EventType;
 import whitetail.event.MouseEvent;
 
+import java.util.ArrayList;
+
 /**
  * Handles mouse input and converts clicks to tile interactions.
- * Currently prints tile info; will later handle movement, combat, etc.
+ * Currently handles movement; will later handle combat, objects, etc.
  */
 public final class Cursor implements EventListener {
     private SpriteCamera cam;
@@ -56,9 +58,26 @@ public final class Cursor implements EventListener {
 
         if (tile == null) {
             System.out.println("Click: no tile at [" + tileX + ", " + tileY + "]");
+            return true;
+        }
+
+        if (tile.blocked) {
+            System.out.println("Click: tile [" + tileX + ", " + tileY + "] is blocked");
+            return true;
+        }
+
+        /* compute path from player to clicked tile */
+        ArrayList<Integer> path = Pathfinder.find(map,
+                Player.tileX, Player.tileY, tileX, tileY);
+
+        if (path == null) {
+            System.out.println("Click: no path to [" + tileX + ", " + tileY + "]");
+        } else if (path.isEmpty()) {
+            System.out.println("Click: already at [" + tileX + ", " + tileY + "]");
         } else {
-            System.out.println("Click: tile [" + tileX + ", " + tileY + "] " +
-                    "spriteIdx=" + tile.spriteIdx + " blocked=" + tile.blocked);
+            System.out.println("Click: path to [" + tileX + ", " + tileY + "] " +
+                    "length=" + path.size());
+            Player.setPath(path);
         }
 
         return true;

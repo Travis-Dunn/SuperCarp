@@ -5,6 +5,8 @@ import production.sprite.SpriteCamera;
 import production.sprite.SpriteSys;
 import production.tiledmap.Tile;
 
+import java.util.ArrayList;
+
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
 
 public final class Player {
@@ -32,6 +34,10 @@ public final class Player {
     static int queuedDX = 0;
     static int queuedDY = 0;
 
+    // Path following
+    static ArrayList<Integer> path = null;
+    static int pathIndex = 0;
+
     private Player() {}
 
     // Called from KEYDOWN handler
@@ -43,6 +49,28 @@ public final class Player {
     static void Update(float dt) {
         prevTileX = tileX;
         prevTileY = tileY;
+
+        /* path following takes priority over keyboard input */
+        if (path != null && pathIndex < path.size()) {
+            int nextPacked = path.get(pathIndex);
+            int nextX = Pathfinder.unpackX(nextPacked);
+            int nextY = Pathfinder.unpackY(nextPacked);
+
+            /* verify tile is still walkable (in case world changed) */
+            Tile t = Data.tileMap.getTile((short) nextX, (short) nextY);
+            if (t == null || t.blocked) {
+                clearPath();
+            } else {
+                tileX = nextX;
+                tileY = nextY;
+                pathIndex++;
+
+                /* clear keyboard queue while pathing */
+                queuedDX = 0;
+                queuedDY = 0;
+                return;
+            }
+        }
 
         // Execute queued move (catches taps)
         if (queuedDX != 0 || queuedDY != 0) {
@@ -101,6 +129,16 @@ public final class Player {
 
     private static float easeOutQuad(float t) {
         return t * (2.0f - t);
+    }
+
+    static void setPath(ArrayList<Integer> newPath) {
+        path = newPath;
+        pathIndex = 0;
+    }
+
+    static void clearPath() {
+        path = null;
+        pathIndex = 0;
     }
 
     public static final String CLASS = Player.class.getSimpleName();
