@@ -114,7 +114,8 @@ public abstract class GameEngine {
             int fps,
             /* if true, fps must be 0, if false fps may or may not be 0 */
             boolean vSync,
-            boolean windowed) {
+            boolean windowed,
+            double tickDur) {
         assert(initFirstHalf);
         assert(!initSecondHalf);
 
@@ -141,7 +142,7 @@ public abstract class GameEngine {
                 LogFatalAndExit(ERR_STR_FAILED_INIT_RENDER_CONTEXT);
                 return initSecondHalf = false;
             }
-            if (!FramerateManager.Init(fps)) {
+            if (!FramerateManager.Init(fps, tickDur)) {
                 LogFatalAndExit(ERR_STR_FAILED_INIT_FRAMERATE_MANAGER);
                 return initSecondHalf = false;
             }
@@ -161,76 +162,6 @@ public abstract class GameEngine {
         } catch (Exception e) {
             LogFatalExcpAndExit(ERR_STR_FAILED_INIT_SECOND_HALF, e);
             return initSecondHalf = false;
-        }
-    }
-
-    public final boolean init(
-            /* null if not using config file */
-            ArrayList<ConfigEntry> cfgEntries,
-            /* null if not using tuning file */
-            ArrayList<ConfigEntry> tngEntries,
-            /* null if not used */
-            String winTitle,
-            /* must be > 0 */
-            int winWidth,
-            /* must be > 0 */
-            int winHeight,
-            /* 0 to disable framerate throttling, otherwise must be > 0 */
-            int fps) {
-        try {
-
-            if (!Logger.Init()) {
-                System.err.println(ERR_STR_FAILED_INIT_LOGGER);
-                return init = false;
-            }
-            if (!ErrorHandler.Init(this)) {
-                System.err.println(ERR_STR_FAILED_INIT_ERROR_HANDLER);
-                return init = false;
-            }
-            if (cfgEntries != null && !ConfigFileParser.Init(cfgEntries)) {
-                LogSession(LogLevel.WARNING, ERR_STR_FAILED_INIT_CFG_FILE);
-            } else LogSession(LogLevel.DEBUG, ERR_STR_CFG_FILE_OPT_OUT);
-
-            if (tngEntries != null && !TuningFileParser.Init(tngEntries)) {
-                LogSession(LogLevel.WARNING, ERR_STR_FAILED_INIT_TNG_FILE);
-            } else LogSession(LogLevel.DEBUG, ERR_STR_TNG_FILE_OPT_OUT);
-
-            if (!(winWidth > 0)) {
-                LogSession(LogLevel.WARNING, ERR_STR_WIN_WIDTH_OUT_OF_RANGE);
-                winWidth = DEFAULT_WIN_WIDTH;
-            }
-            if (!(winHeight > 0)) {
-                LogSession(LogLevel.WARNING, ERR_STR_WIN_HEIGHT_OUT_OF_RANGE);
-                winHeight = DEFAULT_WIN_HEIGHT;
-            }
-            /*
-            if (!(window = new Window()).init(winTitle, winWidth, winHeight)) {
-                LogFatalAndExit(ERR_STR_FAILED_INIT_GAME_ENGINE);
-                return init = false;
-            }
-
-             */
-            if (!RenderContext.Init(winWidth, winHeight)) {
-                LogFatalAndExit(ERR_STR_FAILED_INIT_GAME_ENGINE);
-                return init = false;
-            }
-
-            if (!FramerateManager.Init(fps)) {
-                LogFatalAndExit(ERR_STR_FAILED_INIT_GAME_ENGINE);
-                return init = false;
-            }
-
-            if (!onInit()) {
-                LogFatalAndExit(ERR_STR_FAILED_INIT_GAME);
-                return init = false;
-            }
-
-
-            return init = true;
-        } catch (Exception e) {
-            System.err.println(ERR_STR_FAILED_INIT + "\n" + e.getMessage());
-            e.printStackTrace();
-            return false;
         }
     }
 

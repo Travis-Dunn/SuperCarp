@@ -2,6 +2,7 @@ package whitetail.utility;
 
 import whitetail.utility.logging.LogLevel;
 
+import static whitetail.utility.ErrorHandler.LogFatalAndExit;
 import static whitetail.utility.logging.Logger.LogSession;
 import static whitetail.utility.logging.Logger.LogSessionNoTime;
 
@@ -24,7 +25,11 @@ public final class FramerateManager {
 
     private static long nanos;
 
-    public static boolean Init(int targetFramerate) {
+    private static boolean usingTick;
+    private static double tickAcc;
+    private static double tickDur;
+
+    public static boolean Init(int targetFramerate, double tickDur) {
         assert (!init);
 
         targetDur = targetFramerate > 0 ? (long) (1e9 / targetFramerate) : 0;
@@ -32,7 +37,34 @@ public final class FramerateManager {
         pastFirstFrame = false;
         lastPrintTime = 0;
 
+        if (tickDur > 0.0) {
+            FramerateManager.tickDur = tickDur;
+            usingTick = true;
+        } else if (tickDur == 0.0) {
+            usingTick = false;
+        } else {
+            LogFatalAndExit(ERR_STR_TICK_DUR_MUST_EXCEED_ZERO);
+            return init = false;
+        }
+
         return init = true;
+    }
+
+    public static boolean Tick() {
+        assert(init);
+        assert(usingTick);
+
+        if (tickAcc >= tickDur) {
+            tickAcc -= tickDur;
+            return true;
+        } return false;
+    }
+
+    public static double InterpolationFactor() {
+        assert(init);
+        assert(usingTick);
+
+        return tickAcc / tickDur;
     }
 
     public static long CurrentTimeNanos() { return nanos; }
@@ -41,6 +73,7 @@ public final class FramerateManager {
         assert(init);
 
         nanos = System.nanoTime();
+
 
         if (!pastFirstFrame) {
             mark = nanos;
@@ -83,5 +116,14 @@ public final class FramerateManager {
         if (now - lastPrintTime > 1_000_000_000L) {
             lastPrintTime = now;
         }
+
+
+        /* Accumulate for logical tick. If this feature isn't used, the
+        * accumulator just harmlessly accumulates endlessly. */
+        tickAcc += deltaTime;
     }
+
+    public static final String CLASS = FramerateManager.class.getSimpleName();
+    private static final String ERR_STR_TICK_DUR_MUST_EXCEED_ZERO = CLASS +
+            " must be greater than zero.\n";
 }

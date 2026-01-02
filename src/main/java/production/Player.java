@@ -4,6 +4,7 @@ import production.sprite.SpriteAnim;
 import production.sprite.SpriteCamera;
 import production.sprite.SpriteSys;
 import production.tiledmap.Tile;
+import whitetail.utility.FramerateManager;
 
 import java.util.ArrayList;
 
@@ -112,7 +113,7 @@ public final class Player {
     static void Render() {
         assert(cam != null);
 
-        float t = Data.tickAccumulator / Data.TICK_DURATION;
+        float t = (float)FramerateManager.InterpolationFactor();
         t = easeOutQuad(t);
 
         int prevScreenX = prevTileX * Data.SPRITE_SIZE;

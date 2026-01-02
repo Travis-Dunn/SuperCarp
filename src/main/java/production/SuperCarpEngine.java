@@ -133,14 +133,13 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         /*
         Data.sCam.update((float)delta);
          */
-        Data.sCam.setPos((float)Player.screenX, (float)Player.screenY);
-        SpriteAnimSys.Update((float)delta);
-        Data.tickAccumulator += (float)delta;
 
-        while (Data.tickAccumulator >= Data.TICK_DURATION) {
-            Data.tickAccumulator -= Data.TICK_DURATION;
-            onTick((float)delta);
-        }
+        float dt = (float)delta;
+
+        Data.sCam.setPos((float)Player.screenX, (float)Player.screenY);
+        SpriteAnimSys.Update(dt);
+
+        while (FramerateManager.Tick()) onTick(dt);
     }
 
     private void onTick(float dt) {
