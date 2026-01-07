@@ -209,7 +209,7 @@ public abstract class GameEngine {
 
         onShutdown();
         RenderContext.Shutdown();
-        AudioContext.Shutdown();
+        AudioContext.Shutdown1();
 
         if (window != null) window.destroy();
 

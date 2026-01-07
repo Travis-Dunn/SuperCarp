@@ -21,6 +21,19 @@ public class Data {
     public static final String TEST_PALETTE_FILENAME = "mystic-16.png";
     public static final String TEST_ATLAS_PLAYER_FILENAME = "test_atlas_player_anim.png";
 
+    public static final String STR_ATLAS_FILENAME_0 = "atlas_0.png";
+    public static final String STR_ATLAS_FILENAME_1 = "atlas_1.png";
+    public static final String STR_ATLAS_FILENAME_2 = "atlas_2.png";
+    public static final String STR_ATLAS_FILENAME_3 = "atlas_3.png";
+    public static final String STR_ATLAS_FILENAME_4 = "atlas_4.png";
+    public static final String STR_ATLAS_FILENAME_5 = "atlas_5.png";
+    public static final String STR_ATLAS_FILENAME_6 = "atlas_6.png";
+    public static final String STR_ATLAS_FILENAME_7 = "atlas_7.png";
+    public static final int IDX_ATLAS_MAP = 0;
+    public static final int IDX_ATLAS_PROP = 1;
+    public static final int IDX_ATLAS_CHAR = 2;
+    public static final int IDX_ATLAS_ = 3;
+
     public static SpriteCamera sCam;
 
     public static HashMap<String, Integer> atlasIdsByFilename = new HashMap<>();

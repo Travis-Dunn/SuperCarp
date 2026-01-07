@@ -3,6 +3,7 @@ package whitetail.audio;
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.AL10;
 import org.lwjgl.util.vector.Vector3f;
+import whitetail.utility.logging.LogLevel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,6 +12,7 @@ import java.util.Map;
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
 import static whitetail.utility.ErrorHandler.LogFatalExcpAndExit;
 import static whitetail.utility.logging.Logger.LogFatal;
+import static whitetail.utility.logging.Logger.LogSession;
 
 public class AudioContext {
     private static boolean init;
@@ -98,6 +100,7 @@ public class AudioContext {
         audio.volume = volume;
     }
 
+    /* old version */
     public static void Shutdown() {
         assert(init);
 
@@ -115,6 +118,75 @@ public class AudioContext {
         pos = null;
 
         init = false;
+    }
+
+    public static void Shutdown1() {
+        assert(init);
+
+        LogSession(LogLevel.DEBUG, CLASS + " beginning shutdown...\n");
+
+        int error = AL10.alGetError();
+        if (error != AL10.AL_NO_ERROR) {
+            LogSession(LogLevel.WARNING, CLASS +
+                    " pre-existing AL error on shutdown: 0x"
+                    + Integer.toHexString(error) + "\n");
+        }
+
+        LogSession(LogLevel.DEBUG, CLASS + " stopping and deleting ["
+                + sources.size() + "] sources...\n");
+        for (Map.Entry<String, Integer> entry : sources.entrySet()) {
+            int source = entry.getValue();
+
+            AL10.alSourceStop(source);
+            error = AL10.alGetError();
+            if (error != AL10.AL_NO_ERROR) {
+                LogSession(LogLevel.WARNING, CLASS +
+                        " failed to stop source [" + entry.getKey() + "]: 0x"
+                        + Integer.toHexString(error) + "\n");
+            }
+
+            AL10.alDeleteSources(source);
+            error = AL10.alGetError();
+            if (error != AL10.AL_NO_ERROR) {
+                LogSession(LogLevel.WARNING, CLASS +
+                        " failed to delete source [" + entry.getKey() + "]: 0x"
+                        + Integer.toHexString(error) + "\n");
+            }
+        }
+        sources.clear();
+        sources = null;
+        LogSession(LogLevel.DEBUG, CLASS + " all sources cleaned up.\n");
+
+        /* Delete buffers */
+        LogSession(LogLevel.DEBUG, CLASS + " deleting [" + buffers.size()
+                + "] buffers...\n");
+        for (AudioBuffer buffer : buffers.values()) {
+            AL10.alDeleteBuffers(buffer.id);
+            error = AL10.alGetError();
+            if (error != AL10.AL_NO_ERROR) {
+                LogSession(LogLevel.WARNING, CLASS +
+                        " failed to delete buffer [" + buffer.filename + "]: 0x"
+                        + Integer.toHexString(error) + "\n");
+            }
+        }
+        buffers.clear();
+        buffers = null;
+        LogSession(LogLevel.DEBUG, CLASS + " all buffers cleaned up.\n");
+
+        /* Destroy the context */
+        LogSession(LogLevel.DEBUG, CLASS + " destroying AL context...\n");
+        try {
+            AL.destroy();
+            LogSession(LogLevel.DEBUG, CLASS + " AL context destroyed.\n");
+        } catch (Exception e) {
+            LogSession(LogLevel.WARNING, CLASS +
+                    " exception during AL.destroy(): " + e.getMessage() + "\n");
+        }
+
+        pos = null;
+        init = false;
+
+        LogSession(LogLevel.DEBUG, CLASS + " shutdown complete.\n");
     }
 
     public static final String CLASS = AudioContext.class.getSimpleName();
