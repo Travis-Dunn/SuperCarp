@@ -4,6 +4,8 @@ import production.sprite.SpriteAtlas;
 import production.sprite.SpriteCamera;
 import production.sprite.SpritePalette;
 import production.tiledmap.TileMap;
+import whitetail.audio.Audio;
+import whitetail.audio.AudioBuffer;
 
 import java.util.HashMap;
 
@@ -46,4 +48,7 @@ public class Data {
     public static TileMap tileMap;
 
     public static Cursor cursor;
+
+    public static AudioBuffer testMusicBuf;
+    public static Audio testMusic;
 }

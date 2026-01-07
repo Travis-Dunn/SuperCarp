@@ -7,6 +7,8 @@ import production.save.SaveManager;
 import production.sprite.*;
 import production.tiledmap.TileMapFileParser;
 import production.tiledmap.TileMapLoader;
+import whitetail.audio.AudioContext;
+import whitetail.audio.AudioFileParser;
 import whitetail.core.GameEngine;
 import whitetail.event.*;
 import whitetail.utility.FramerateManager;
@@ -124,6 +126,17 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         Data.cursor = new Cursor(Data.sCam, Data.tileMap, Data.SPRITE_SIZE,
                 1280, 960, Data.FB_W, Data.FB_H);
         eventManager.addEventListener(Data.cursor);
+
+        /* audio */
+        Data.testMusicBuf = AudioFileParser.FromFile(
+                "03 - Definitely Our Town.wav", 0.5f, true);
+        /* TODO: add descriptive log messages for all of these! */
+        if (Data.testMusicBuf == null) return false;
+        AudioContext.RegisterBuffer(Data.testMusicBuf);
+        Data.testMusic = AudioContext.Make(0.5f,
+                "03 - Definitely Our Town.wav");
+        if (Data.testMusic == null) return false;
+        AudioContext.Play(Data.testMusic);
 
         return true;
     }
