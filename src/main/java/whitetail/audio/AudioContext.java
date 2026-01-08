@@ -5,19 +5,16 @@ import org.lwjgl.openal.AL10;
 import org.lwjgl.util.vector.Vector3f;
 import whitetail.utility.logging.LogLevel;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
 import static whitetail.utility.ErrorHandler.LogFatalExcpAndExit;
-import static whitetail.utility.logging.Logger.LogFatal;
 import static whitetail.utility.logging.Logger.LogSession;
 
 public class AudioContext {
     private static boolean init;
     private static Map<String, AudioBuffer> buffers;
-    private static Map<String, Integer> sources;
+    private static Set<Audio> active;
     private static float globalVolume;
     private static Vector3f pos;
 
@@ -27,9 +24,10 @@ public class AudioContext {
         assert(!init);
 
         try {
+            /* TODO: More explicit error handling */
             AL.create();
             buffers = new HashMap<String, AudioBuffer>();
-            sources = new HashMap<String, Integer>();
+            active = new HashSet<Audio>();
             globalVolume = 1.0f;
             pos = new Vector3f(0.0f, 0.0f, 0.0f);
 
@@ -54,6 +52,8 @@ public class AudioContext {
     public static Audio Make(float volume, String filename) {
         assert(init);
 
+        Audio audio;
+
         AudioBuffer buffer = buffers.get(filename);
         if (buffer == null) {
             LogFatalAndExit(ErrStrAudioBufferDoesNotExist(filename));
@@ -65,9 +65,11 @@ public class AudioContext {
                 globalVolume);
         AL10.alSourcei(id, AL10.AL_LOOPING,
                 buffer.loop ? AL10.AL_TRUE : AL10.AL_FALSE);
-        sources.put(filename, id);
 
-        return new Audio(id, volume);
+        audio = new Audio(id, volume);
+        active.add(audio);
+
+        return audio;
     }
 
     public static void RegisterBuffer(AudioBuffer audioBuffer) {
@@ -100,61 +102,73 @@ public class AudioContext {
         audio.volume = volume;
     }
 
-    /* old version */
-    public static void Shutdown() {
+    public static void Destroy(Audio audio) {
         assert(init);
 
-        for (int source : sources.values()) {
-            AL10.alDeleteSources(source);
+        if (!active.contains(audio)) {
+            LogFatalAndExit(ErrStrDestroyUntracked(audio.id));
+            return;
         }
-        for (AudioBuffer buffer : buffers.values()) {
-            AL10.alDeleteBuffers(buffer.id);
-        }
-        AL.destroy();
-        sources.clear();
-        sources = null;
-        buffers.clear();
-        buffers = null;
-        pos = null;
 
-        init = false;
+        AL10.alSourceStop(audio.id);
+        int error = AL10.alGetError();
+        if (error == AL10.AL_INVALID_NAME) {
+            LogFatalAndExit(ErrStrSourceVanished(audio.id));
+            return;
+        } else if (error != AL10.AL_NO_ERROR) {
+            LogFatalAndExit(ErrStrUnexpectedALError("alSourceStop", audio.id, error));
+            return;
+        }
+
+        AL10.alDeleteSources(audio.id);
+        error = AL10.alGetError();
+        if (error != AL10.AL_NO_ERROR) {
+            LogFatalAndExit(ErrStrUnexpectedALError("alDeleteSources", audio.id, error));
+            return;
+        }
+
+        active.remove(audio);
+        LogSession(LogLevel.DEBUG, CLASS + " destroyed Audio [" + audio.id + "]");
     }
 
-    public static void Shutdown1() {
+    public static void Shutdown() {
         assert(init);
 
         LogSession(LogLevel.DEBUG, CLASS + " beginning shutdown...\n");
 
-        int error = AL10.alGetError();
-        if (error != AL10.AL_NO_ERROR) {
+        int err = AL10.alGetError();
+        if (err != AL10.AL_NO_ERROR) {
             LogSession(LogLevel.WARNING, CLASS +
                     " pre-existing AL error on shutdown: 0x"
-                    + Integer.toHexString(error) + "\n");
+                    + Integer.toHexString(err) + "\n");
         }
 
         LogSession(LogLevel.DEBUG, CLASS + " stopping and deleting ["
-                + sources.size() + "] sources...\n");
-        for (Map.Entry<String, Integer> entry : sources.entrySet()) {
-            int source = entry.getValue();
+                + active.size() + "] sources...\n");
 
-            AL10.alSourceStop(source);
-            error = AL10.alGetError();
-            if (error != AL10.AL_NO_ERROR) {
+        for (Audio audio : active) {
+            AL10.alSourceStop(audio.id);
+            err= AL10.alGetError();
+            if (err== AL10.AL_INVALID_NAME) {
+                LogSession(LogLevel.WARNING, CLASS + " source ["
+                        + audio.id + "] already gone during shutdown");
+            } else if (err!= AL10.AL_NO_ERROR) {
                 LogSession(LogLevel.WARNING, CLASS +
-                        " failed to stop source [" + entry.getKey() + "]: 0x"
-                        + Integer.toHexString(error) + "\n");
+                        " unexpected error stopping source [" + audio.id
+                        + "]: 0x" + Integer.toHexString(err));
             }
 
-            AL10.alDeleteSources(source);
-            error = AL10.alGetError();
-            if (error != AL10.AL_NO_ERROR) {
+            AL10.alDeleteSources(audio.id);
+            err= AL10.alGetError();
+            if (err!= AL10.AL_NO_ERROR) {
                 LogSession(LogLevel.WARNING, CLASS +
-                        " failed to delete source [" + entry.getKey() + "]: 0x"
-                        + Integer.toHexString(error) + "\n");
+                        " error deleting source [" + audio.id + "]: 0x"
+                        + Integer.toHexString(err));
             }
         }
-        sources.clear();
-        sources = null;
+
+        active.clear();
+        active = null;
         LogSession(LogLevel.DEBUG, CLASS + " all sources cleaned up.\n");
 
         /* Delete buffers */
@@ -162,11 +176,11 @@ public class AudioContext {
                 + "] buffers...\n");
         for (AudioBuffer buffer : buffers.values()) {
             AL10.alDeleteBuffers(buffer.id);
-            error = AL10.alGetError();
-            if (error != AL10.AL_NO_ERROR) {
+            err = AL10.alGetError();
+            if (err != AL10.AL_NO_ERROR) {
                 LogSession(LogLevel.WARNING, CLASS +
                         " failed to delete buffer [" + buffer.filename + "]: 0x"
-                        + Integer.toHexString(error) + "\n");
+                        + Integer.toHexString(err) + "\n");
             }
         }
         buffers.clear();
@@ -202,5 +216,20 @@ public class AudioContext {
         return String.format("The [%s] attempted to create an [%s] from [%s]," +
                 " but no [%s] was ever created for that file.\n", CLASS,
                 Audio.CLASS, filename, AudioBuffer.CLASS);
+    }
+    private static String ErrStrDestroyUntracked(int id) {
+        return String.format("%s attempted to destroy an Audio [%d] that is " +
+                "not tracked. This indicates a double-destroy or use-after-free"
+                + " bug.\n", CLASS, id);
+    }
+    private static String ErrStrSourceVanished(int id) {
+        return String.format("%s found that OpenAL source [%d] no longer " +
+                "exists. This indicates the audio backend died or a severe "
+                + "internal error.\n", CLASS, id);
+    }
+    private static String ErrStrUnexpectedALError(String func, int id,
+            int error) {
+        return String.format("%s encountered unexpected OpenAL error [0x%X] " +
+                "during %s for source [%d].\n", CLASS, error, func, id);
     }
 }

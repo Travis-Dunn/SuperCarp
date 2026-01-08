@@ -1,22 +1,14 @@
 package whitetail.core;
 
-import org.lwjgl.input.Keyboard;
 import whitetail.audio.AudioContext;
-import whitetail.event.EventType;
-import whitetail.event.KeyboardEvent;
 import whitetail.graphics.RenderContext;
 import whitetail.event.EventManager;
-import whitetail.loaders.config.ConfigEntry;
-import whitetail.loaders.config.ConfigFileParser;
-import whitetail.loaders.config.TuningFileParser;
 import whitetail.platform.Window;
 import whitetail.utility.ErrorHandler;
 import whitetail.utility.FramerateManager;
 import whitetail.utility.GCPriest;
 import whitetail.utility.logging.LogLevel;
 import whitetail.utility.logging.Logger;
-
-import java.util.ArrayList;
 
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
 import static whitetail.utility.ErrorHandler.LogFatalExcpAndExit;
@@ -209,7 +201,7 @@ public abstract class GameEngine {
 
         onShutdown();
         RenderContext.Shutdown();
-        AudioContext.Shutdown1();
+        AudioContext.Shutdown();
 
         if (window != null) window.destroy();
 
