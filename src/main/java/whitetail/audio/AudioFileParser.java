@@ -7,6 +7,7 @@ import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import java.io.BufferedInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
@@ -60,6 +61,14 @@ public class AudioFileParser {
         } catch (Exception e) {
             LogFatalExcpAndExit(ErrStrFailedParseFileExcp(filename), e);
             return null;
+        } finally {
+            /* Rare case where we should ignore the exception. Stream is read-
+            only, and data is loaded into buffer, or we are crashing anyway.
+            Failure here is probably because the stream was already closed
+            when we closed the wrapping AudioInputStream earlier. And if it's
+            not, it still doesn't corrupt the program state or cause a memory
+            leak, and the problem will be resolved when the JVM exits anyway. */
+            try { stream.close(); } catch (IOException ignored) {}
         }
    }
 
