@@ -2,7 +2,7 @@ package production;
 
 import production.sprite.SpriteAnim;
 import production.sprite.SpriteCamera;
-import production.sprite.SpriteSys;
+import production.sprite.SpritePool;
 import production.tiledmap.Tile;
 import whitetail.utility.FramerateManager;
 
@@ -125,7 +125,7 @@ public final class Player {
         screenY = (int)(prevScreenY + (currScreenY - prevScreenY) * t);
 
         cam.slave(screenX, screenY);
-        SpriteSys.SetPosition(spriteHandle, screenX, screenY);
+        SpritePool.SetPosition(spriteHandle, screenX, screenY);
     }
 
     private static float easeOutQuad(float t) {

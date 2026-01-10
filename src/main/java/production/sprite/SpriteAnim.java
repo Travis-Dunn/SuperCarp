@@ -11,7 +11,7 @@ public final class SpriteAnim {
     private boolean finished;
 
     SpriteAnim(int spriteHandle, SpriteAnimDef def) {
-        assert SpriteSys.IsValid(spriteHandle);
+        assert SpritePool.IsValid(spriteHandle);
         assert def != null;
 
         this.spriteHandle = spriteHandle;
@@ -22,7 +22,7 @@ public final class SpriteAnim {
         this.finished = false;
 
         // Set initial frame immediately
-        SpriteSys.SetAtlasIdx(spriteHandle, def.frames[0]);
+        SpritePool.SetAtlasIdx(spriteHandle, def.frames[0]);
     }
 
     void update(int dtMs) {
@@ -45,7 +45,7 @@ public final class SpriteAnim {
             }
         }
 
-        SpriteSys.SetAtlasIdx(spriteHandle, def.frames[frame]);
+        SpritePool.SetAtlasIdx(spriteHandle, def.frames[frame]);
     }
 
     public void play()  { playing = true; }
@@ -55,7 +55,7 @@ public final class SpriteAnim {
         frame = 0;
         elapsedMs = 0;
         finished = false;
-        SpriteSys.SetAtlasIdx(spriteHandle, def.frames[0]);
+        SpritePool.SetAtlasIdx(spriteHandle, def.frames[0]);
     }
 
     public void setDef(SpriteAnimDef def) {
@@ -65,9 +65,9 @@ public final class SpriteAnim {
     }
 
     public void setSpriteHandle(int handle) {
-        assert SpriteSys.IsValid(handle);
+        assert SpritePool.IsValid(handle);
         this.spriteHandle = handle;
-        SpriteSys.SetAtlasIdx(spriteHandle, def.frames[frame]);
+        SpritePool.SetAtlasIdx(spriteHandle, def.frames[frame]);
     }
 
     public boolean isPlaying()  { return playing; }

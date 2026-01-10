@@ -33,10 +33,10 @@ public final class SpriteRenderer {
 
         try {
             framebuffer = new byte[fbWidth * fbHeight * BYTES_PER_PIXEL];
-            handlesByLayerArr = new short[MAX_LAYERS][SpriteSys.GetCapacity()];
+            handlesByLayerArr = new short[MAX_LAYERS][SpritePool.GetCapacity()];
             layerCounts = new int[MAX_LAYERS];
-            paletteArr = new SpritePalette[SpriteSys.MAX_PALETTE + 1];
-            atlasArr = new SpriteAtlas[SpriteSys.MAX_ATLAS + 1];
+            paletteArr = new SpritePalette[SpritePool.MAX_PALETTE + 1];
+            atlasArr = new SpriteAtlas[SpritePool.MAX_ATLAS + 1];
         } catch (OutOfMemoryError e) {
             LogFatalAndExit(CLASS + ERR_STR_FAILED_INIT_OOM);
             return init = false;
@@ -69,22 +69,22 @@ public final class SpriteRenderer {
         assert(init);
         assert(cam != null);
 
-        long[] arr = SpriteSys.GetArr();
-        int hm = SpriteSys.GetHighMark();
+        long[] arr = SpritePool.GetArr();
+        int hm = SpritePool.GetHighMark();
         int i, j;
 
         for (i = 0; i < MAX_LAYERS; ++i) {
             layerCounts[i] = 0;
         }
 
-        long renderMask =SpriteSys.VALID_VISIBLE_MASK;
+        long renderMask = SpritePool.VALID_VISIBLE_MASK;
 
         for (i = 0; i < hm; ++i) {
             long bits = arr[i];
 
             if ((bits & renderMask) != renderMask) continue;
 
-            int layer = (int)((bits & SpriteSys.LAYER_MASK) >>> SpriteSys.LAYER_SHIFT);
+            int layer = (int)((bits & SpritePool.LAYER_MASK) >>> SpritePool.LAYER_SHIFT);
             handlesByLayerArr[layer][layerCounts[layer]++] = (short)i;
         }
 
@@ -92,16 +92,16 @@ public final class SpriteRenderer {
             for (j = 0; j < layerCounts[i]; ++j) {
                 int handle = handlesByLayerArr[i][j];
 
-                int screenX = SpriteSys.GetX(handle) - (int)cam.getX();
-                int screenY = SpriteSys.GetY(handle) - (int)cam.getY();
+                int screenX = SpritePool.GetX(handle) - (int)cam.getX();
+                int screenY = SpritePool.GetY(handle) - (int)cam.getY();
 
-                int atlasIdx = SpriteSys.GetAtlasIdx(handle);
-                int atlasId = SpriteSys.GetAtlasId(handle);
+                int atlasIdx = SpritePool.GetAtlasIdx(handle);
+                int atlasId = SpritePool.GetAtlasId(handle);
                 int atlasX = atlasArr[atlasId].getSpriteX(atlasIdx);
                 int atlasY = atlasArr[atlasId].getSpriteY(atlasIdx);
 
-                boolean flipH = SpriteSys.IsHFlipped(handle);
-                boolean flipV = SpriteSys.IsVFlipped(handle);
+                boolean flipH = SpritePool.IsHFlipped(handle);
+                boolean flipV = SpritePool.IsVFlipped(handle);
 
                 int size = atlasArr[atlasId].spriteSize;
 
@@ -110,7 +110,7 @@ public final class SpriteRenderer {
                 /* TODO: use 'size' when rewriting this */
                 int atlasW = atlasArr[atlasId].spritesPerRow * size;
 
-                int[] palette = paletteArr[SpriteSys.GetPaletteIdx(handle)].colors;
+                int[] palette = paletteArr[SpritePool.GetPaletteIdx(handle)].colors;
 
                 blitSprite(screenX, screenY, atlasX, atlasY, size, pixels,
                         atlasW, palette, flipH, flipV);

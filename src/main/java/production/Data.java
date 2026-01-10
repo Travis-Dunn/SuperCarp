@@ -51,4 +51,6 @@ public class Data {
 
     public static AudioBuffer testMusicBuf;
     public static Audio testMusic;
+
+    public static SceneGame sceneGame;
 }

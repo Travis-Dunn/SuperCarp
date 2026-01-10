@@ -49,7 +49,7 @@ public class AudioContext {
         AL10.alListener3f(AL10.AL_POSITION, pos.x, pos.y, pos.z);
     }
 
-    public static Audio Make(float volume, String filename) {
+    public static Audio Make(float volume, String filename, AudioCategory cat) {
         assert(init);
 
         Audio audio;
@@ -66,10 +66,84 @@ public class AudioContext {
         AL10.alSourcei(id, AL10.AL_LOOPING,
                 buffer.loop ? AL10.AL_TRUE : AL10.AL_FALSE);
 
-        audio = new Audio(id, volume);
+        audio = new Audio(id, volume, buffer.loop, cat);
         active.add(audio);
 
         return audio;
+    }
+
+    public static void Update() {
+        assert (init);
+
+        Iterator<Audio> it = active.iterator();
+        while (it.hasNext()) {
+            Audio audio = it.next();
+
+            /* Don't auto-destroy looping sounds */
+            if (audio.loops) continue;
+
+            int state = AL10.alGetSourcei(audio.id, AL10.AL_SOURCE_STATE);
+            if (state == AL10.AL_STOPPED) {
+                AL10.alDeleteSources(audio.id);
+                int error = AL10.alGetError();
+                if (error != AL10.AL_NO_ERROR) {
+                    LogSession(LogLevel.WARNING, CLASS
+                            + " error auto-destroying source [" + audio.id
+                            + "]: 0x" + Integer.toHexString(error));
+                }
+                it.remove();
+            }
+        }
+    }
+
+    public static void StopByCategory(AudioCategory category) {
+        assert(init);
+
+        for (Audio audio : active) {
+            if (audio.cat == category) {
+                AL10.alSourceStop(audio.id);
+            }
+        }
+        LogSession(LogLevel.DEBUG, CLASS + " stopped all " + category + " audio");
+    }
+
+    public static void DestroyByCategory(AudioCategory category) {
+        assert(init);
+
+        Iterator<Audio> it = active.iterator();
+        while (it.hasNext()) {
+            Audio audio = it.next();
+            if (audio.cat == category) {
+                AL10.alSourceStop(audio.id);
+                /* TODO: put the error handling in here! */
+                AL10.alDeleteSources(audio.id);
+                it.remove();
+            }
+        }
+        LogSession(LogLevel.DEBUG, CLASS + " destroyed all " + category + " audio");
+    }
+
+    public static void PauseByCategory(AudioCategory category) {
+        assert(init);
+
+        for (Audio audio : active) {
+            if (audio.cat == category) {
+                AL10.alSourcePause(audio.id);
+            }
+        }
+    }
+
+    public static void ResumeByCategory(AudioCategory category) {
+        assert(init);
+
+        for (Audio audio : active) {
+            if (audio.cat == category) {
+                int state = AL10.alGetSourcei(audio.id, AL10.AL_SOURCE_STATE);
+                if (state == AL10.AL_PAUSED) {
+                    AL10.alSourcePlay(audio.id);
+                }
+            }
+        }
     }
 
     public static void RegisterBuffer(AudioBuffer audioBuffer) {

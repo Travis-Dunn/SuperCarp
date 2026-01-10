@@ -3,7 +3,7 @@ package production.tiledmap;
 import production.sprite.SpriteAtlas;
 import production.sprite.SpritePalette;
 import production.sprite.SpriteRenderer;
-import production.sprite.SpriteSys;
+import production.sprite.SpritePool;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,7 +38,7 @@ public final class TileMapLoader {
                 short tx = (short)(x + map.originOffsetX);
                 short ty = (short)(y + map.originOffsetY);
                 if ((t = map.getTile(tx, ty)) != null) {
-                    t.spriteHandle = SpriteSys.Create(tx * atlas.spriteSize,
+                    t.spriteHandle = SpritePool.Create(tx * atlas.spriteSize,
                             ty * atlas.spriteSize, atlasId, t.spriteIdx,
                             7, paletteId, false, false, true);
                 }

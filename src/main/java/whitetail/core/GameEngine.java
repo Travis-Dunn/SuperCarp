@@ -172,6 +172,7 @@ public abstract class GameEngine {
 
         while (running && !window.shouldClose()) {
             FramerateManager.Update();
+            AudioContext.Update();
 
             processInput();
             eventManager.processEvents();

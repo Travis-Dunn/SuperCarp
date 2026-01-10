@@ -1,8 +1,5 @@
 package production.tiledmap;
 
-import production.sprite.SpriteAtlas;
-import production.sprite.SpriteSys;
-
 public final class TileMap {
     public final String name;
     public final int width, height;

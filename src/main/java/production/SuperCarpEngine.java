@@ -7,10 +7,13 @@ import production.save.SaveManager;
 import production.sprite.*;
 import production.tiledmap.TileMapFileParser;
 import production.tiledmap.TileMapLoader;
+import whitetail.audio.AudioCategory;
 import whitetail.audio.AudioContext;
 import whitetail.audio.AudioFileParser;
 import whitetail.core.GameEngine;
 import whitetail.event.*;
+import whitetail.scene.SceneManager;
+import whitetail.scene.SceneType;
 import whitetail.utility.FramerateManager;
 
 public class SuperCarpEngine extends GameEngine implements EventListener {
@@ -18,46 +21,17 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
     public SuperCarpEngine() { super(); }
 
     @Override
-    protected void onProcessInput() {
-        while (Keyboard.next()) {
-            boolean keyDown = Keyboard.getEventKeyState();
-            int keyCode = Keyboard.getEventKey();
-            char keyChar = Keyboard.getEventCharacter();
-            boolean repeat = Keyboard.isRepeatEvent();
-
-            EventType eventType = keyDown ? EventType.KEYDOWN : EventType.KEYUP;
-            KeyboardEvent keyEvent = new KeyboardEvent(eventType, keyCode,
-                    keyChar, repeat);
-            eventManager.fireEvent(keyEvent);
-        }
-
-        while (Mouse.next()) {
-            boolean buttonDown = Mouse.getEventButtonState();
-            int button = Mouse.getEventButton();
-
-            if (button >= 0) {  // -1 means mouse move, no button
-                int x = Mouse.getEventX();
-                int y = Mouse.getEventY();
-                EventType eventType = buttonDown ? EventType.MOUSE_DOWN : EventType.MOUSE_UP;
-                MouseEvent mouseEvent = new MouseEvent(eventType, x, y, button);
-                eventManager.fireEvent(mouseEvent);
-            }
-        }
-    }
-
-    @Override
     protected boolean onInit() {
-
         eventManager.addEventListener(this);
 
-        SpriteSys.Init(Data.SPRITE_SYS_CAP);
-        SpriteRenderer.Init(Data.FB_W, Data.FB_H);
-        SpriteBackend.Init(Data.FB_W, Data.FB_H);
+        if (!SpriteSys.Init(Data.SPRITE_SYS_CAP, Data.FB_W, Data.FB_H)) {
+            System.err.println("failed init sprite sys");
+            return false;
+        }
 
         Data.sCam = new SpriteCamera();
         Data.sCam.init(Data.FB_W, Data.FB_H, Data.SPRITE_SIZE);
         SpriteRenderer.SetCamera(Data.sCam);
-
 
         Data.sp = SpritePaletteFileParser.FromFile(Data.TEST_PALETTE_FILENAME);
         if (Data.sp == null) return false;
@@ -101,7 +75,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         Player.tileY = 3;
         Player.prevTileX = -4;
         Player.prevTileY = 3;
-        int playerSpriteHandle = SpriteSys.Create(
+        int playerSpriteHandle = SpritePool.Create(
                 Player.tileX * Data.SPRITE_SIZE,
                 Player.tileY * Data.SPRITE_SIZE,
                 Data.PLAYER_ATLAS,
@@ -134,20 +108,55 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         if (Data.testMusicBuf == null) return false;
         AudioContext.RegisterBuffer(Data.testMusicBuf);
         Data.testMusic = AudioContext.Make(0.5f,
-                "03 - Definitely Our Town.wav");
+                "03 - Definitely Our Town.wav", AudioCategory.MUSIC);
         if (Data.testMusic == null) return false;
         AudioContext.Play(Data.testMusic);
+
+        Data.sceneGame = new SceneGame();
+        SceneManager.Init();
+        SceneManager.RegisterScene(SceneType.GAME, Data.sceneGame);
+        SceneManager.TransitionTo(SceneType.GAME);
 
         return true;
     }
 
     @Override
+    protected void onProcessInput() {
+        SceneManager.OnInput();
+        while (Keyboard.next()) {
+            boolean keyDown = Keyboard.getEventKeyState();
+            int keyCode = Keyboard.getEventKey();
+            char keyChar = Keyboard.getEventCharacter();
+            boolean repeat = Keyboard.isRepeatEvent();
+
+            EventType eventType = keyDown ? EventType.KEYDOWN : EventType.KEYUP;
+            KeyboardEvent keyEvent = new KeyboardEvent(eventType, keyCode,
+                    keyChar, repeat);
+            eventManager.fireEvent(keyEvent);
+        }
+
+        while (Mouse.next()) {
+            boolean buttonDown = Mouse.getEventButtonState();
+            int button = Mouse.getEventButton();
+
+            if (button >= 0) {  // -1 means mouse move, no button
+                int x = Mouse.getEventX();
+                int y = Mouse.getEventY();
+                EventType eventType = buttonDown ? EventType.MOUSE_DOWN : EventType.MOUSE_UP;
+                MouseEvent mouseEvent = new MouseEvent(eventType, x, y, button);
+                eventManager.fireEvent(mouseEvent);
+            }
+        }
+    }
+
+    @Override
     protected void onUpdate(double delta) {
+        float dt = (float)delta;
+        SceneManager.Update(dt);
         /*
         Data.sCam.update((float)delta);
          */
 
-        float dt = (float)delta;
 
         Data.sCam.setPos((float)Player.screenX, (float)Player.screenY);
         SpriteAnimSys.Update(dt);
@@ -162,6 +171,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
 
     @Override
     protected void onRender() {
+        SceneManager.Render();
         SpriteRenderer.Clear(Data.BLACK);
         Player.Render();
         SpriteRenderer.RenderNew();
@@ -171,6 +181,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
 
     @Override
     protected void onShutdown() {
+        SceneManager.Shutdown();
         SaveManager.Shutdown();
         SpriteBackend.Shutdown();
         SpriteRenderer.Shutdown();
