@@ -4,6 +4,7 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import production.save.SaveData;
 import production.save.SaveManager;
+import production.scenes.SceneGame;
 import production.sprite.*;
 import production.tiledmap.TileMapFileParser;
 import production.tiledmap.TileMapLoader;
@@ -99,7 +100,6 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
 
         Data.cursor = new Cursor(Data.sCam, Data.tileMap, Data.SPRITE_SIZE,
                 1280, 960, Data.FB_W, Data.FB_H);
-        eventManager.addEventListener(Data.cursor);
 
         /* audio */
         Data.testMusicBuf = AudioFileParser.FromFile(
@@ -190,75 +190,27 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
 
     @Override
     public boolean handleEvent(Event event) {
-        if (event.getType() == EventType.KEYDOWN) {
-            KeyboardEvent keyEvent = (KeyboardEvent) event;
+        KeyboardEvent keyEvent;
 
-            if (keyEvent.keyCode == Keyboard.KEY_ESCAPE) {
-                stop();
-                return true;
-            }
+        if (SceneManager.HandleEvent(event)) {
+            return true;
+        } else {
+            if (event.getType() == EventType.KEYDOWN) {
+                keyEvent = (KeyboardEvent) event;
 
-            if (keyEvent.keyCode == Keyboard.KEY_LEFT) {
-                /*
-                Data.sCam.setTranslatingLeft(true);
-                 */
-                Player.holdingLeft = true;
-                Player.queueMove(-1, 0);
-            }
-            if (keyEvent.keyCode == Keyboard.KEY_RIGHT) {
-                /*
-                Data.sCam.setTranslatingRight(true);
-                 */
-                Player.holdingRight = true;
-                Player.queueMove(1, 0);
-            }
-            if (keyEvent.keyCode == Keyboard.KEY_UP) {
-                /*
-                Data.sCam.setTranslatingUp(true);
-                 */
-                Player.holdingUp = true;
-                Player.queueMove(0, -1);
-            }
-            if (keyEvent.keyCode == Keyboard.KEY_DOWN) {
-                /*
-                Data.sCam.setTranslatingDown(true);
-                 */
-                Player.holdingDown = true;
-                Player.queueMove(0, 1);
+                if (keyEvent.keyCode == Keyboard.KEY_ESCAPE) {
+                    stop();
+                    return true;
+                }
             }
         }
-
-        if (event.getType() == EventType.KEYUP) {
-            KeyboardEvent keyEvent = (KeyboardEvent) event;
-
-            if (keyEvent.keyCode == Keyboard.KEY_LEFT)
-                /*
-                Data.sCam.setTranslatingLeft(false);
-                 */
-                Player.holdingLeft = false;
-            if (keyEvent.keyCode == Keyboard.KEY_RIGHT)
-                /*
-                Data.sCam.setTranslatingRight(false);
-                 */
-                Player.holdingRight = false;
-            if (keyEvent.keyCode == Keyboard.KEY_UP)
-                /*
-                Data.sCam.setTranslatingUp(false);
-                 */
-                Player.holdingUp = false;
-            if (keyEvent.keyCode == Keyboard.KEY_DOWN)
-                /*
-                Data.sCam.setTranslatingDown(false);
-                 */
-                Player.holdingDown = false;
-        }
-
         return false;
     }
 
     @Override
+    /* all events! */
     public EventType[] getInterestedEventTypes() {
         return new EventType[] { EventType.KEYDOWN, EventType.KEYUP,
-                /* EventType.MOUSE_DOWN, EventType.MOUSE_UP */ };
+                EventType.MOUSE_DOWN, EventType.MOUSE_UP };
     }
 }

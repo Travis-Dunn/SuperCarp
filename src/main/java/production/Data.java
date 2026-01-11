@@ -1,5 +1,6 @@
 package production;
 
+import production.scenes.SceneGame;
 import production.sprite.SpriteAtlas;
 import production.sprite.SpriteCamera;
 import production.sprite.SpritePalette;

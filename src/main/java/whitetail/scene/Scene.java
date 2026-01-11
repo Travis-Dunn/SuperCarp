@@ -1,5 +1,7 @@
 package whitetail.scene;
 
+import whitetail.event.Event;
+
 public abstract class Scene {
     protected boolean init = false;
 
@@ -23,4 +25,7 @@ public abstract class Scene {
 
     /* Call if the scene will not be needed again */
     public abstract void onDestroy();
+
+    /* Call if the scene will not be needed again */
+    public abstract boolean handleEvent(Event e);
 }

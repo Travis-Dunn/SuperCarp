@@ -1,5 +1,8 @@
 package whitetail.scene;
 
+import whitetail.core.GameEngine;
+import whitetail.event.Event;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -66,6 +69,14 @@ public final class SceneManager {
 
         if(currentScene != null)
             currentScene.onRender();
+    }
+
+    public static boolean HandleEvent(Event e) {
+        assert(init);
+
+        if (currentScene != null)
+             return currentScene.handleEvent(e);
+        return false;
     }
 
     public static void Shutdown() {
