@@ -15,9 +15,9 @@ public final class TileMapLoader {
     public static Map<String, SpritePalette> palettes = new HashMap<>();
 
     public static void Load(TileMap map, HashMap<String, Integer> atlasIds,
-                            HashMap<String, Integer> paletteIds) {
+                            HashMap<String, Integer> paletteIds, String paletteFileName) {
         int atlasId = atlasIds.get(map.atlasFilename);
-        int paletteId = paletteIds.get("mystic-16.png");
+        int paletteId = paletteIds.get(paletteFileName);
         SpriteAtlas atlas = SpriteRenderer.atlasArr[atlasId];
         /* TODO: fix this! */
         SpritePalette palette = SpriteRenderer.paletteArr[paletteId];

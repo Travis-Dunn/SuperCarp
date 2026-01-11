@@ -7,6 +7,7 @@ public final class TileMap {
     private final Tile tiles[][];
     final String atlasFilename;
 
+    /* TODO: needs to know what palette it uses! */
     TileMap(String name, int width, int height, String atlasFilename,
             int originOffsetX, int originOffsetY, Tile[][] tiles) {
         this.name = name;

@@ -56,7 +56,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         if (Data.tileMap == null) return false;
 
         TileMapLoader.Load(Data.tileMap, Data.atlasIdsByFilename,
-                Data.paletteIdsByFilename);
+                Data.paletteIdsByFilename,Data.TEST_PALETTE_FILENAME);
 
         SpriteAnimSys.Init();
 

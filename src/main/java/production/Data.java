@@ -21,7 +21,7 @@ public class Data {
     public static final int FB_H = 240;
     public static final int SPRITE_SYS_CAP = 1024;
     public static final String TEST_ATLAS_FILENAME = "test_atlas.png";
-    public static final String TEST_PALETTE_FILENAME = "mystic-16.png";
+    public static final String TEST_PALETTE_FILENAME = "mystic-16-mod-17.png";
     public static final String TEST_ATLAS_PLAYER_FILENAME = "test_atlas_player_anim.png";
 
     public static final String STR_ATLAS_FILENAME_0 = "atlas_0.png";
