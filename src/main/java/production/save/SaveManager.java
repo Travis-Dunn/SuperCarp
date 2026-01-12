@@ -32,7 +32,7 @@ public final class SaveManager {
 
     private static final int MAX_CONSECUTIVE_SKIPS = 10;
     private static final int MAGIC = 0x53435250;  // "SCRP"
-    private static final short VERSION = 1;
+    private static final short VERSION = 2;
     private static final String SAVE_DIR_NAME = ".supercarp";
     private static final String SAVE_FILE_NAME = "save.dat";
     private static final String TEMP_FILE_NAME = "save.dat.tmp";
@@ -197,7 +197,18 @@ public final class SaveManager {
             }
 
             short version = dis.readShort();
+            /*
             if (version != VERSION) {
+                LogFatalAndExit(ErrStrInvalidVersion(version));
+                return null;
+            }
+             */
+            if (version < VERSION) {
+                // Outdated save from previous build, ignore it
+                return null;
+            }
+            if (version > VERSION) {
+                // Save from future version, that's actually a problem
                 LogFatalAndExit(ErrStrInvalidVersion(version));
                 return null;
             }
