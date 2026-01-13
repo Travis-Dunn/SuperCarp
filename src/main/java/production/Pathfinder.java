@@ -1,7 +1,7 @@
 package production;
 
-import production.tiledmap.Tile;
-import production.tiledmap.TileMap;
+import production.tilemap.Tile;
+import production.tilemap.TileMap;
 
 import java.util.ArrayList;
 import java.util.HashMap;

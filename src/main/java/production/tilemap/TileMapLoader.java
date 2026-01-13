@@ -1,4 +1,4 @@
-package production.tiledmap;
+package production.tilemap;
 
 import production.sprite.SpriteAtlas;
 import production.sprite.SpritePalette;

@@ -4,7 +4,7 @@ import production.scenes.SceneGame;
 import production.sprite.SpriteAtlas;
 import production.sprite.SpriteCamera;
 import production.sprite.SpritePalette;
-import production.tiledmap.TileMap;
+import production.tilemap.TileMap;
 import whitetail.audio.Audio;
 import whitetail.audio.AudioBuffer;
 

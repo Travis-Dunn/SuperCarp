@@ -1,4 +1,4 @@
-package production.tiledmap;
+package production.tilemap;
 
 public final class TileMap {
     public final String name;

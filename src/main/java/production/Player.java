@@ -3,7 +3,7 @@ package production;
 import production.sprite.SpriteAnim;
 import production.sprite.SpriteCamera;
 import production.sprite.SpritePool;
-import production.tiledmap.Tile;
+import production.tilemap.Tile;
 import whitetail.utility.FramerateManager;
 
 import java.util.ArrayList;

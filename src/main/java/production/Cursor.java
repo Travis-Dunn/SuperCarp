@@ -1,8 +1,8 @@
 package production;
 
 import production.sprite.SpriteCamera;
-import production.tiledmap.Tile;
-import production.tiledmap.TileMap;
+import production.tilemap.Tile;
+import production.tilemap.TileMap;
 
 import java.util.ArrayList;
 
@@ -50,7 +50,17 @@ public final class Cursor {
 
         if (tile.blocked) {
             System.out.println("Click: tile [" + tileX + ", " + tileY + "] is blocked");
+
+            if (tile.getExamine() != null) {
+                System.out.println(tile.getExamine());
+            }
+
             return;
+        }
+
+
+        if (tile.getExamine() != null) {
+            System.out.println(tile.getExamine());
         }
 
         /* compute path from player to clicked tile */
