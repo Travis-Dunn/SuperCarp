@@ -110,6 +110,9 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         Data.testMusic = AudioContext.Make(0.5f,
                 "03 - Definitely Our Town.wav", AudioCategory.MUSIC);
         if (Data.testMusic == null) return false;
+
+        AudioContext.SetVolume(Data.testMusic, CFGData.globalVolume / 100.0f);
+
         AudioContext.Play(Data.testMusic);
 
         Data.sceneGame = new SceneGame();

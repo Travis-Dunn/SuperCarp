@@ -7,7 +7,9 @@ import production.sprite.SpritePalette;
 import production.tilemap.TileMap;
 import whitetail.audio.Audio;
 import whitetail.audio.AudioBuffer;
+import whitetail.loaders.config.ConfigEntry;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Data {
@@ -54,4 +56,6 @@ public class Data {
     public static Audio testMusic;
 
     public static SceneGame sceneGame;
+
+    public static ArrayList<ConfigEntry> cfgEntries;
 }

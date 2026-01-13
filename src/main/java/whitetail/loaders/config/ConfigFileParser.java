@@ -247,4 +247,6 @@ public final class ConfigFileParser {
         assert(e.type == STR);
         return (String)e.getVal();
     }
+
+    public static final String CLASS = ConfigFileParser.class.getSimpleName();
 }
