@@ -23,12 +23,12 @@ public final class MonsterDefs {
         return d;
     }
 
-    public static final MonsterDef GOBLIN = register(new MonsterDef(
-            new short[] { 0, 1, 2 },
+    public static final MonsterDef BAT = register(new MonsterDef(
+            new short[] { 39, 40, 41 },
             (short) 200,
             true,
-            "Goblin",
-            "Goblin",
+            "Bat",
+            "Bat",
             8
     ));
 }

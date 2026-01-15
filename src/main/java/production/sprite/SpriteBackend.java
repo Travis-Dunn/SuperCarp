@@ -14,31 +14,42 @@ public final class SpriteBackend {
     private static boolean init;
 
     private static int texID;
-    private static int fbWidth;
-    private static int fbHeight;
     private static ByteBuffer uploadBuffer;
 
     private static final int BYTES_PER_PIXEL = 4;  // RGBA
 
     private SpriteBackend() {}
 
-    public static boolean Init(int framebufferWidth, int framebufferHeight) {
+    static boolean Init() {
         assert(!init);
-        assert(framebufferWidth > 0);
-        assert(framebufferHeight > 0);
 
-        fbWidth = framebufferWidth;
-        fbHeight = framebufferHeight;
+        int glErr;
+
+        LogSession(LogLevel.DEBUG, CLASS + " initializing...\n");
 
         try {
             uploadBuffer = BufferUtils.createByteBuffer(
-                    fbWidth * fbHeight * BYTES_PER_PIXEL);
+                    SpriteSys.fbWidth * SpriteSys.fbHeight * BYTES_PER_PIXEL);
         } catch (OutOfMemoryError e) {
             LogFatalAndExit(CLASS + ERR_STR_FAILED_INIT_OOM);
             return init = false;
         }
 
+        if ((glErr = GL11.glGetError()) != GL11.GL_NO_ERROR) {
+            LogFatalAndExit(ErrStrPreExistingGlErr(glErr));
+            return init = false;
+        }
+
         texID = GL11.glGenTextures();
+
+        if (texID == 0) {
+            LogFatalAndExit(ERR_STR_FAILED_INIT_GEN_TEX);
+            return init = false;
+        }
+        if (!CheckGlErrorInit("glGenTextures")) return init = false;
+
+        /* TODO: pick up with error checking here */
+
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, texID);
 
         /* nearest-neighbor filtering for crisp pixels */
@@ -55,13 +66,13 @@ public final class SpriteBackend {
 
         /* allocate texture storage */
         GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA,
-                fbWidth, fbHeight, 0,
+                SpriteSys.fbWidth, SpriteSys.fbHeight, 0,
                 GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer) null);
 
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
 
         LogSession(LogLevel.DEBUG, CLASS + " initialized with ["
-                + SpriteBackend.fbWidth + "] width, [" + fbHeight
+                + SpriteSys.fbWidth + "] width, [" + SpriteSys.fbHeight
                 + "] height.\n");
 
         return init = true;
@@ -75,7 +86,7 @@ public final class SpriteBackend {
     public static void Present(byte[] framebuffer) {
         assert(init);
         assert(framebuffer != null);
-        assert(framebuffer.length == fbWidth * fbHeight * BYTES_PER_PIXEL);
+        assert(framebuffer.length == SpriteSys.fbWidth * SpriteSys.fbHeight * BYTES_PER_PIXEL);
 
         uploadBuffer.clear();
         uploadBuffer.put(framebuffer);
@@ -92,12 +103,12 @@ public final class SpriteBackend {
     public static void Present(ByteBuffer framebuffer) {
         assert(init);
         assert(framebuffer != null);
-        assert(framebuffer.remaining() >= fbWidth * fbHeight * BYTES_PER_PIXEL);
+        assert(framebuffer.remaining() >= SpriteSys.fbWidth * SpriteSys.fbHeight * BYTES_PER_PIXEL);
 
         /* upload texture data */
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, texID);
         GL11.glTexSubImage2D(GL11.GL_TEXTURE_2D, 0, 0, 0,
-                fbWidth, fbHeight,
+                SpriteSys.fbWidth, SpriteSys.fbHeight,
                 GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, framebuffer);
 
         /* setup state for fullscreen quad */
@@ -132,16 +143,6 @@ public final class SpriteBackend {
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
     }
 
-    public static int GetWidth() {
-        assert(init);
-        return fbWidth;
-    }
-
-    public static int GetHeight() {
-        assert(init);
-        return fbHeight;
-    }
-
     public static void Shutdown() {
         assert(init);
 
@@ -152,5 +153,51 @@ public final class SpriteBackend {
         init = false;
     }
 
+    private static boolean CheckGlErrorInit(String operation) {
+        assert(!init);
+
+        int error = GL11.glGetError();
+        if (error != GL11.GL_NO_ERROR) {
+            LogFatalAndExit(CLASS + " failed to initialize because an OpenGL error was detected after ["
+                    + operation + "] " + GlErrorString(error));
+            return false;
+        }
+        return true;
+    }
+
+    private static boolean CheckGlErrorRun(String ctx, String operation) {
+        assert(init);
+
+        int error = GL11.glGetError();
+        if (error != GL11.GL_NO_ERROR) {
+            LogFatalAndExit(CLASS + " failed to " + ctx +
+                    " because an OpenGL error was detected after ["
+                    + operation + "] " + GlErrorString(error));
+            return false;
+        }
+        return true;
+    }
+
+    private static String GlErrorString(int error) {
+        assert(init);
+
+        switch (error) {
+            case GL11.GL_INVALID_ENUM:      return "[GL_INVALID_ENUM]\n";
+            case GL11.GL_INVALID_VALUE:     return "[GL_INVALID_VALUE]\n";
+            case GL11.GL_INVALID_OPERATION: return "[GL_INVALID_OPERATION]\n";
+            case GL11.GL_STACK_OVERFLOW:    return "[GL_STACK_OVERFLOW]\n";
+            case GL11.GL_STACK_UNDERFLOW:   return "[GL_STACK_UNDERFLOW]\n";
+            case GL11.GL_OUT_OF_MEMORY:     return "[GL_OUT_OF_MEMORY]\n";
+            default: return "Unknown error [" + error + "]\n";
+        }
+    }
+
     public static final String CLASS = SpriteBackend.class.getSimpleName();
+    private static String ErrStrPreExistingGlErr(int glErr) {
+        return String.format("%s encountered a pre-existing OpenGL error " +
+                "during initialization: %s", CLASS, GlErrorString(glErr));
+    }
+    private static final String ERR_STR_FAILED_INIT_GEN_TEX = CLASS +
+            " failed to initialize because OpenGL failed to generate a " +
+            "texture.\n";
 }

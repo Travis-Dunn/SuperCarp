@@ -8,15 +8,12 @@ import static whitetail.utility.logging.Logger.LogSession;
 
 public final class SpritePool {
     private static boolean init;
-    private static int cap;
     private static int activeCount;
     private static int highMark;
     private static long arr[];
     private static int freeCount;
     private static int freeList[];
     static final int DEF_CAP = 0xFFFF;
-    static final int MAX_CAP = 0x000FFFFF;
-    static final int MIN_CAP = 1;
     public static final int INVALID_HANDLE = -1;
 
     /**
@@ -78,13 +75,11 @@ public final class SpritePool {
         assert(!init);
         assert(cap > 0);
 
-        SpritePool.cap = cap;
-
         LogSession(LogLevel.DEBUG, CLASS + " initializing...\n");
 
         try {
-            arr = new long[SpritePool.cap];
-            freeList = new int[SpritePool.cap];
+            arr = new long[SpriteSys.cap];
+            freeList = new int[SpriteSys.cap];
         } catch (OutOfMemoryError e) {
             LogFatalAndExit(CLASS + ERR_STR_FAILED_INIT_OOM);
             return init = false;
@@ -93,7 +88,7 @@ public final class SpritePool {
         freeCount = highMark = activeCount = 0;
 
         LogSession(LogLevel.DEBUG, CLASS + " initialized with ["
-                + SpritePool.cap + "] capacity.\n");
+                + SpriteSys.cap + "] capacity.\n");
 
         return init = true;
     }
@@ -102,7 +97,7 @@ public final class SpritePool {
         assert(init);
 
         if (freeCount > 0) return freeList[--freeCount];
-        else if (highMark < cap) return highMark++;
+        else if (highMark < SpriteSys.cap) return highMark++;
         return INVALID_HANDLE;
     }
 
@@ -468,12 +463,6 @@ public final class SpritePool {
         return init;
     }
 
-    public static int GetCapacity() {
-        assert(init);
-
-        return cap;
-    }
-
     public static int GetActiveCount() {
         assert(init);
 
@@ -514,7 +503,7 @@ public final class SpritePool {
         init = false;
     }
 
-    private static final String CLASS = SpritePool.class.getSimpleName();
+    public static final String CLASS = SpritePool.class.getSimpleName();
 
     private static String ErrStrValOOB(int val, String s, int lo, int hi) {
         return String.format("%s attempted to use an out of bounds value," +

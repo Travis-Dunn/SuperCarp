@@ -33,7 +33,7 @@ public final class SpriteRenderer {
 
         try {
             framebuffer = new byte[fbWidth * fbHeight * BYTES_PER_PIXEL];
-            handlesByLayerArr = new short[MAX_LAYERS][SpritePool.GetCapacity()];
+            handlesByLayerArr = new short[MAX_LAYERS][SpriteSys.cap];
             layerCounts = new int[MAX_LAYERS];
             paletteArr = new SpritePalette[SpritePool.MAX_PALETTE + 1];
             atlasArr = new SpriteAtlas[SpritePool.MAX_ATLAS + 1];

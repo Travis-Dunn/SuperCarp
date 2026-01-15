@@ -44,12 +44,12 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
             Data.SPRITE_SIZE, Data.sp);
         if (Data.sa == null) return false;
         Data.sa_player = SpriteAtlasFileParser.FromFile(
-                Data.TEST_ATLAS_PLAYER_FILENAME, Data.SPRITE_SIZE, Data.sp);
+                Data.TEST_ATLAS_ANIM_FILENAME, Data.SPRITE_SIZE, Data.sp);
 
         Data.atlasIdsByFilename.put(Data.TEST_ATLAS_FILENAME, Data.MAP_ATLAS);
         Data.paletteIdsByFilename.put(Data.TEST_PALETTE_FILENAME,
                 Data.MAP_PALETTE);
-        Data.atlasIdsByFilename.put(Data.TEST_ATLAS_PLAYER_FILENAME,
+        Data.atlasIdsByFilename.put(Data.TEST_ATLAS_ANIM_FILENAME,
                 Data.PLAYER_ATLAS);
 
         SpriteRenderer.paletteArr[Data.MAP_PALETTE] = Data.sp;
@@ -124,7 +124,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         SceneManager.RegisterScene(SceneType.GAME, Data.sceneGame);
         SceneManager.TransitionTo(SceneType.GAME);
 
-        Data.testSpawn = new MonsterSpawn(3, -5, MonsterDefs.GOBLIN, 16);
+        Data.testSpawn = new MonsterSpawn(3, -5, MonsterDefs.BAT, 16);
 
         return true;
     }
