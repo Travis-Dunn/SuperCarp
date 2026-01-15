@@ -80,6 +80,8 @@ public final class SpritePool {
 
         SpritePool.cap = cap;
 
+        LogSession(LogLevel.DEBUG, CLASS + " initializing...\n");
+
         try {
             arr = new long[SpritePool.cap];
             freeList = new int[SpritePool.cap];
@@ -89,6 +91,10 @@ public final class SpritePool {
         }
 
         freeCount = highMark = activeCount = 0;
+
+        LogSession(LogLevel.DEBUG, CLASS + " initialized with ["
+                + SpritePool.cap + "] capacity.\n");
+
         return init = true;
     }
 

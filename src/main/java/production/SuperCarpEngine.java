@@ -2,6 +2,8 @@ package production;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
+import production.monster.MonsterDefs;
+import production.monster.MonsterSpawn;
 import production.save.SaveData;
 import production.save.SaveManager;
 import production.scenes.SceneGame;
@@ -17,6 +19,8 @@ import whitetail.scene.SceneManager;
 import whitetail.scene.SceneType;
 import whitetail.utility.FramerateManager;
 
+import static whitetail.utility.ErrorHandler.LogFatalAndExit;
+
 public class SuperCarpEngine extends GameEngine implements EventListener {
 
     public SuperCarpEngine() { super(); }
@@ -26,7 +30,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         eventManager.addEventListener(this);
 
         if (!SpriteSys.Init(Data.SPRITE_SYS_CAP, Data.FB_W, Data.FB_H)) {
-            System.err.println("failed init sprite sys");
+            LogFatalAndExit(ERR_STR_FAILED_INIT_SPRITE_SYS);
             return false;
         }
 
@@ -74,8 +78,8 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         */
         Player.tileX = -3;
         Player.tileY = 1;
-        Player.prevTileX = -4;
-        Player.prevTileY = 3;
+        Player.prevTileX = -3;
+        Player.prevTileY = 1;
         int playerSpriteHandle = SpritePool.Create(
                 Player.tileX * Data.SPRITE_SIZE,
                 Player.tileY * Data.SPRITE_SIZE,
@@ -99,7 +103,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         }
 
         Data.cursor = new Cursor(Data.sCam, Data.tileMap, Data.SPRITE_SIZE,
-                1280, 960, Data.FB_W, Data.FB_H);
+                Data.WINDOW_W, Data.WINDOW_H, Data.FB_W, Data.FB_H);
 
         /* audio */
         Data.testMusicBuf = AudioFileParser.FromFile(
@@ -119,6 +123,8 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         SceneManager.Init();
         SceneManager.RegisterScene(SceneType.GAME, Data.sceneGame);
         SceneManager.TransitionTo(SceneType.GAME);
+
+        Data.testSpawn = new MonsterSpawn(3, -5, MonsterDefs.GOBLIN, 16);
 
         return true;
     }
@@ -168,6 +174,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
     }
 
     private void onTick(float dt) {
+        Data.testSpawn.update();
         Player.Update(dt);
         SaveManager.RequestSave(SaveData.Capture());
     }
@@ -216,4 +223,8 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         return new EventType[] { EventType.KEYDOWN, EventType.KEYUP,
                 EventType.MOUSE_DOWN, EventType.MOUSE_UP };
     }
+
+    public static final String CLASS = SuperCarpEngine.class.getSimpleName();
+    private static final String ERR_STR_FAILED_INIT_SPRITE_SYS = " failed to " +
+            "initialize because the sprite system failed to initialize.\n";
 }

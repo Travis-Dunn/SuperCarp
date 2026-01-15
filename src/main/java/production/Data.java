@@ -1,5 +1,6 @@
 package production;
 
+import production.monster.MonsterSpawn;
 import production.scenes.SceneGame;
 import production.sprite.SpriteAtlas;
 import production.sprite.SpriteCamera;
@@ -12,7 +13,7 @@ import whitetail.loaders.config.ConfigEntry;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class Data {
+public final class Data {
     /* game attribs */
     public static final int SPRITE_SIZE = 16;
     public static final int MAP_ATLAS = 0;
@@ -21,6 +22,9 @@ public class Data {
     public static final int BLACK = 0xFF160D13;
     public static final int FB_W = 320;
     public static final int FB_H = 240;
+    public static final int PIXEL_SCALE = 4;
+    public static final int WINDOW_W = PIXEL_SCALE * FB_W;
+    public static final int WINDOW_H = PIXEL_SCALE * FB_H;
     public static final int SPRITE_SYS_CAP = 1024;
     public static final String TEST_ATLAS_FILENAME = "test_atlas.png";
     public static final String TEST_PALETTE_FILENAME = "mystic-16-mod-17.png";
@@ -58,4 +62,6 @@ public class Data {
     public static SceneGame sceneGame;
 
     public static ArrayList<ConfigEntry> cfgEntries;
+
+    public static MonsterSpawn testSpawn;
 }

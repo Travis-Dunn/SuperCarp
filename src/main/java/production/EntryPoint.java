@@ -30,7 +30,7 @@ public class EntryPoint {
                     ERR_STR_FAILED_POPULATE_FROM_CFG);
         }
 
-        if (!engine.initSecondHalf("SuperCarp dev build", 1280, 960,
+        if (!engine.initSecondHalf("SuperCarp dev build", Data.WINDOW_W, Data.WINDOW_H,
                 0, true, false, 0.6)) {
             LogFatalAndExit("Engine failed to init second half");
             return;

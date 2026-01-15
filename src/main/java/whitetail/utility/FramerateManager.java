@@ -28,6 +28,7 @@ public final class FramerateManager {
     private static boolean usingTick;
     private static double tickAcc;
     private static double tickDur;
+    private static long tickCounter;
 
     public static boolean Init(int targetFramerate, double tickDur) {
         assert (!init);
@@ -40,6 +41,7 @@ public final class FramerateManager {
         if (tickDur > 0.0) {
             FramerateManager.tickDur = tickDur;
             usingTick = true;
+            tickCounter = 0;
         } else if (tickDur == 0.0) {
             usingTick = false;
         } else {
@@ -56,8 +58,15 @@ public final class FramerateManager {
 
         if (tickAcc >= tickDur) {
             tickAcc -= tickDur;
+            tickCounter++;
             return true;
         } return false;
+    }
+
+    public static long GetTickCount() {
+        assert(init);
+
+        return tickCounter;
     }
 
     public static double InterpolationFactor() {

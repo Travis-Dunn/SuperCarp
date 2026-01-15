@@ -2,11 +2,13 @@ package production.sprite;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
+import whitetail.utility.logging.LogLevel;
 
 import java.nio.ByteBuffer;
 
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
 import static whitetail.utility.logging.ErrorStrings.ERR_STR_FAILED_INIT_OOM;
+import static whitetail.utility.logging.Logger.LogSession;
 
 public final class SpriteBackend {
     private static boolean init;
@@ -57,6 +59,10 @@ public final class SpriteBackend {
                 GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer) null);
 
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+
+        LogSession(LogLevel.DEBUG, CLASS + " initialized with ["
+                + SpriteBackend.fbWidth + "] width, [" + fbHeight
+                + "] height.\n");
 
         return init = true;
     }

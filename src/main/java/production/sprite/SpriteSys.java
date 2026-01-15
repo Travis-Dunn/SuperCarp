@@ -12,6 +12,8 @@ public final class SpriteSys {
 
         int actualCap;
 
+        LogSession(LogLevel.DEBUG, CLASS + " initializing...\n");
+
         if (cap >= SpritePool.MIN_CAP && cap <= SpritePool.MAX_CAP) {
             actualCap = cap;
         } else {
@@ -22,6 +24,9 @@ public final class SpriteSys {
         SpritePool.Init(actualCap);
         SpriteBackend.Init(fbWidth, fbHeight);
         SpriteRenderer.Init(fbWidth, fbHeight);
+
+        LogSession(LogLevel.DEBUG, CLASS + " initialized.\n");
+
         return init = true;
     }
 
