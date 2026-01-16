@@ -145,3 +145,5 @@ tileset:test_atlas.png
 -1	-2	An empty, dusty bookshelf.
 0	-2	A dusty bookshelf.
 1	-2	Something seems off about this bookshelf...
+--- spawns
+-2	-5	Bat	5

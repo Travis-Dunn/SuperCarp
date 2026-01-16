@@ -174,7 +174,10 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
     }
 
     private void onTick(float dt) {
+        /*
         Data.testSpawn.update();
+         */
+        Data.tileMap.update();
         Player.Update(dt);
         SaveManager.RequestSave(SaveData.Capture());
     }

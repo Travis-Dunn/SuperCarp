@@ -1,9 +1,14 @@
 package production.tilemap;
 
+import production.monster.MonsterSpawn;
+import production.monster.MonsterSpawnFileParser;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
 import static whitetail.utility.ErrorHandler.LogFatalExcpAndExit;
@@ -37,6 +42,7 @@ public final class TileMapFileParser {
     private static TileMap FromStream(InputStream s, String f) {
         BufferedReader reader;
         String line;
+        List<MonsterSpawn> spawns = new ArrayList<MonsterSpawn>();
 
         // Header data
         String mapName = "Untitled", atlasName = null;
@@ -97,6 +103,13 @@ public final class TileMapFileParser {
                 } else if (currentSection.equals("examine")) {
                     parseExamineLine(line, tiles, width, height, originX, originY);
 
+                } else if (currentSection.equals("spawns")) {
+                    MonsterSpawn spawn = MonsterSpawnFileParser.FromLine(line);
+                    if (spawn == null) {
+                        LogFatalAndExit(ERR_STR_FAILED_PARSE_SPAWN);
+                        return null;
+                    }
+                    spawns.add(spawn);
                 }
                 // Unknown sections are silently skipped (forward compatibility)
             }
@@ -106,7 +119,8 @@ public final class TileMapFileParser {
                 return null;
             }
 
-            return new TileMap(mapName, width, height, atlasName, originX, originY, tiles);
+            return new TileMap(mapName, width, height, atlasName, originX,
+                    originY, tiles, spawns);
 
         } catch (IOException e) {
             LogFatalExcpAndExit(ErrStrFailedLoad(f), e);
@@ -276,4 +290,7 @@ public final class TileMapFileParser {
         return String.format("%s failed parsing [%s]. Corrupt tile data: " +
                 "[%s].\n", CLASS, filename, line);
     }
+
+    private static final String ERR_STR_FAILED_PARSE_SPAWN = CLASS + "failed " +
+            "to parse a spawn.\n";
 }
