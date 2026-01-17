@@ -2,6 +2,7 @@ package production.sprite;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 import whitetail.utility.logging.LogLevel;
 
 import java.nio.ByteBuffer;
@@ -13,7 +14,6 @@ import static whitetail.utility.logging.Logger.LogSession;
 public final class SpriteBackend {
     private static boolean init;
 
-    private static int texID;
     private static ByteBuffer uploadBuffer;
 
     private static final int BYTES_PER_PIXEL = 4;  // RGBA
@@ -40,36 +40,62 @@ public final class SpriteBackend {
             return init = false;
         }
 
-        texID = GL11.glGenTextures();
+        SpriteSys.texID = GL11.glGenTextures();
 
-        if (texID == 0) {
+        if (SpriteSys.texID == 0) {
             LogFatalAndExit(ERR_STR_FAILED_INIT_GEN_TEX);
             return init = false;
         }
-        if (!CheckGlErrorInit("glGenTextures")) return init = false;
+        if (!CheckGlErrorInit("glGenTextures()"))
+            return init = false;
 
-        /* TODO: pick up with error checking here */
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, SpriteSys.texID);
 
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, texID);
+        if (!CheckGlErrorInit("glBindTexture(GL_TEXTURE_2D, " +
+                "<id from glGenTextures>)"))
+            return init = false;
 
-        /* nearest-neighbor filtering for crisp pixels */
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D,
                 GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
+
+        if (!CheckGlErrorInit("glTexParameteri(GL_TEXTURE_2D, " +
+                "GL_TEXTURE_MIN_FILTER, GL_NEAREST)"))
+            return init = false;
+
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D,
                 GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
 
-        /* clamp to edge to avoid bleeding */
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D,
-                GL11.GL_TEXTURE_WRAP_S, GL11.GL_CLAMP);
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D,
-                GL11.GL_TEXTURE_WRAP_T, GL11.GL_CLAMP);
+        if (!CheckGlErrorInit("glTexParameteri(GL_TEXTURE_2D, " +
+                "GL_TEXTURE_MAG_FILTER, GL_NEAREST)"))
+            return init = false;
 
-        /* allocate texture storage */
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D,
+                GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
+
+        if (!CheckGlErrorInit("glTexParameteri(GL_TEXTURE_2D, " +
+                "GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)"))
+            return init = false;
+
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D,
+                GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
+
+        if (!CheckGlErrorInit("glTexParameteri(GL_TEXTURE_2D, " +
+                "GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)"))
+            return init = false;
+
         GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA,
                 SpriteSys.fbWidth, SpriteSys.fbHeight, 0,
                 GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer) null);
 
+        if (!CheckGlErrorInit("glTexImage2D(GL_TEXTURE_2D, 0, " +
+                "GL_RGBA, [" + SpriteSys.fbWidth + "], [" + SpriteSys.fbHeight
+                + "], 0, GL_RGBA, GL_UNSIGNED_BYTE, (ByteBuffer) null)"))
+            return init = false;
+
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+
+        if (!CheckGlErrorInit("glBindTexture(GL_TEXTURE_2D, 0)"))
+            return init = false;
 
         LogSession(LogLevel.DEBUG, CLASS + " initialized with ["
                 + SpriteSys.fbWidth + "] width, [" + SpriteSys.fbHeight
@@ -106,7 +132,7 @@ public final class SpriteBackend {
         assert(framebuffer.remaining() >= SpriteSys.fbWidth * SpriteSys.fbHeight * BYTES_PER_PIXEL);
 
         /* upload texture data */
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, texID);
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, SpriteSys.texID);
         GL11.glTexSubImage2D(GL11.GL_TEXTURE_2D, 0, 0, 0,
                 SpriteSys.fbWidth, SpriteSys.fbHeight,
                 GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, framebuffer);
@@ -146,8 +172,8 @@ public final class SpriteBackend {
     public static void Shutdown() {
         assert(init);
 
-        GL11.glDeleteTextures(texID);
-        texID = 0;
+        GL11.glDeleteTextures(SpriteSys.texID);
+        SpriteSys.texID = 0;
         uploadBuffer = null;
 
         init = false;

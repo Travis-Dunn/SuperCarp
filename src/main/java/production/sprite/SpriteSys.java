@@ -13,6 +13,7 @@ public final class SpriteSys {
     static int fbHeight;
     public static final int MAX_CAP = 0x000FFFFF;
     public static final int MIN_CAP = 1;
+    static int texID;
 
     public static boolean Init(int cap, int fbWidth, int fbHeight) {
         assert(!init);
@@ -54,6 +55,12 @@ public final class SpriteSys {
         LogSession(LogLevel.DEBUG, CLASS + " initialized.\n");
 
         return init = true;
+    }
+
+    public static void Shutdown() {
+        assert(init);
+
+        init = false;
     }
 
     public static int GetCapacity() {
