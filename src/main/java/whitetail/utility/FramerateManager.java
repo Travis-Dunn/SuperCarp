@@ -17,7 +17,9 @@ public final class FramerateManager {
     public static boolean init = false;
     public static boolean pastFirstFrame;
 
+    /*
     public static long beforeSwap, afterSwap;
+     */
 
     public static long lastPrintTime;
 
@@ -107,8 +109,10 @@ public final class FramerateManager {
         // Seconds per frame
         deltaTime = (float)(dur / 1e9);
         framerate = (int)(1.0f / deltaTime);
+        /*
         LogSessionNoTime("totalMs," + String.valueOf((float)(dur / 1e6)));
         LogSessionNoTime("swapMs," + String.valueOf((float)((afterSwap - beforeSwap) / 1e6)));
+         */
 
         // Actual frame time in ms (including sleep)
         realFrameTime = dur / 1_000_000.0f;

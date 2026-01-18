@@ -77,9 +77,9 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         to tileX, in this case -4. I feel like this might be handy to remember.
         */
         Player.tileX = -3;
-        Player.tileY = 1;
+        Player.tileY = -2;
         Player.prevTileX = -3;
-        Player.prevTileY = 1;
+        Player.prevTileY = -2;
         int playerSpriteHandle = SpritePool.Create(
                 Player.tileX * Data.SPRITE_SIZE,
                 Player.tileY * Data.SPRITE_SIZE,
@@ -176,6 +176,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
     private void onTick(float dt) {
         /*
         Data.testSpawn.update();
+        spawns are now managed by the map
          */
         Data.tileMap.update();
         Player.Update(dt);

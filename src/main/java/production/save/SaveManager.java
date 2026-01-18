@@ -32,7 +32,7 @@ public final class SaveManager {
 
     private static final int MAX_CONSECUTIVE_SKIPS = 10;
     private static final int MAGIC = 0x53435250;  // "SCRP"
-    private static final short VERSION = 2;
+    private static final short VERSION = 3;
     private static final String SAVE_DIR_NAME = ".supercarp";
     private static final String SAVE_FILE_NAME = "save.dat";
     private static final String TEMP_FILE_NAME = "save.dat.tmp";
