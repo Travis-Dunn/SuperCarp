@@ -11,11 +11,12 @@ public final class TileMap {
     private final Tile tiles[][];
     private final List<MonsterSpawn> spawns;
     final String atlasFilename;
+    public final int clearColor;
 
     /* TODO: needs to know what palette it uses! */
     TileMap(String name, int width, int height, String atlasFilename,
             int originOffsetX, int originOffsetY, Tile[][] tiles,
-            List<MonsterSpawn> spawns) {
+            List<MonsterSpawn> spawns, int clearColor) {
         this.name = name;
         this.width = width;
         this.height = height;
@@ -24,6 +25,7 @@ public final class TileMap {
         this.tiles = tiles;
         this.spawns = spawns;
         this.atlasFilename = atlasFilename;
+        this.clearColor = clearColor;
     }
 
     public Tile getTile(short x, short y) {

@@ -8,13 +8,143 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
 import static whitetail.utility.ErrorHandler.LogFatalExcpAndExit;
 
 public final class TileMapFileParser {
     private static final String MAPS_DIR = "maps";
+
+    // =========================================================================
+    // Extension Interfaces
+    // =========================================================================
+
+    /** Parses a single header field (key:value pair). */
+    public interface HeaderFieldParser {
+        void parse(String value, TileMapBuilder builder);
+    }
+
+    /** Parses lines within a named section. */
+    public interface SectionParser {
+        /**
+         * Parse a single line within this section.
+         * @return false if a fatal error occurred, true otherwise
+         */
+        boolean parseLine(String line, TileMapBuilder builder, String filename);
+    }
+
+    // =========================================================================
+    // Parser Registries
+    // =========================================================================
+
+    private static final Map<String, HeaderFieldParser> headerParsers =
+            new HashMap<String, HeaderFieldParser>();
+
+    private static final Map<String, SectionParser> sectionParsers =
+            new HashMap<String, SectionParser>();
+
+    static {
+        // Register built-in header field parsers
+        registerHeaderParser("name", new HeaderFieldParser() {
+            public void parse(String value, TileMapBuilder b) {
+                b.mapName = value;
+            }
+        });
+
+        registerHeaderParser("width", new HeaderFieldParser() {
+            public void parse(String value, TileMapBuilder b) {
+                b.width = Integer.parseInt(value);
+            }
+        });
+
+        registerHeaderParser("height", new HeaderFieldParser() {
+            public void parse(String value, TileMapBuilder b) {
+                b.height = Integer.parseInt(value);
+            }
+        });
+
+        registerHeaderParser("tileset", new HeaderFieldParser() {
+            public void parse(String value, TileMapBuilder b) {
+                b.atlasFilename = value;
+            }
+        });
+
+        registerHeaderParser("origin", new HeaderFieldParser() {
+            public void parse(String value, TileMapBuilder b) {
+                String[] parts = value.split(",");
+                if (parts.length == 2) {
+                    b.originX = Integer.parseInt(parts[0].trim());
+                    b.originY = Integer.parseInt(parts[1].trim());
+                }
+            }
+        });
+
+        registerHeaderParser("clear_color", new HeaderFieldParser() {
+            public void parse(String value, TileMapBuilder b) {
+                String hex = value.startsWith("#") ? value.substring(1) : value;
+                if (hex.length() == 6) {
+                    // RGB format - add full alpha
+                    b.clearColor = (int) Long.parseLong("FF" + hex, 16);
+                } else if (hex.length() == 8) {
+                    // ARGB format
+                    b.clearColor = (int) Long.parseLong(hex, 16);
+                }
+            }
+        });
+
+        // Register built-in section parsers
+        registerSectionParser("tiles", new TilesSectionParser());
+        registerSectionParser("examine", new ExamineSectionParser());
+        registerSectionParser("spawns", new SpawnsSectionParser());
+    }
+
+    /** Register a custom header field parser. */
+    public static void registerHeaderParser(String fieldName, HeaderFieldParser parser) {
+        headerParsers.put(fieldName, parser);
+    }
+
+    /** Register a custom section parser. */
+    public static void registerSectionParser(String sectionName, SectionParser parser) {
+        sectionParsers.put(sectionName, parser);
+    }
+
+    // =========================================================================
+    // Builder - Accumulates Parsed Data
+    // =========================================================================
+
+    public static final class TileMapBuilder {
+        // Core fields
+        public String mapName = "Untitled";
+        public String atlasFilename = null;
+        public int width = 0;
+        public int height = 0;
+        public int originX = 0;
+        public int originY = 0;
+        public Tile[][] tiles = null;
+        public List<MonsterSpawn> spawns = new ArrayList<MonsterSpawn>();
+
+        // Extended fields - add new fields here as needed
+        public int clearColor = 0xFF000000;
+
+        /** Called after header is complete, before tile parsing begins. */
+        public void initTiles() {
+            if (width > 0 && height > 0) {
+                tiles = new Tile[height][width];
+            }
+        }
+
+        public TileMap build() {
+            return new TileMap(mapName, width, height, atlasFilename,
+                    originX, originY, tiles, spawns, clearColor);
+        }
+    }
+
+    // =========================================================================
+    // Main Parsing Logic
+    // =========================================================================
 
     public static TileMap FromFile(String filename) {
         assert(filename != null && !filename.isEmpty());
@@ -26,31 +156,30 @@ public final class TileMapFileParser {
             return null;
         }
 
-        try (InputStream stream =
-                     TileMapFileParser.class.getResourceAsStream(p)) {
+        try {
+            InputStream stream = TileMapFileParser.class.getResourceAsStream(p);
             if (stream == null) {
                 LogFatalAndExit(ErrStrFailedLoad(filename));
                 return null;
             }
-            return FromStream(stream, filename);
+            try {
+                return FromStream(stream, filename);
+            } finally {
+                stream.close();
+            }
         } catch (IOException e) {
             LogFatalExcpAndExit(ErrStrFailedLoad(filename), e);
             return null;
         }
     }
 
-    private static TileMap FromStream(InputStream s, String f) {
+    private static TileMap FromStream(InputStream s, String filename) {
         BufferedReader reader;
         String line;
-        List<MonsterSpawn> spawns = new ArrayList<MonsterSpawn>();
-
-        // Header data
-        String mapName = "Untitled", atlasName = null;
-        int width = 0, height = 0, originX = 0, originY = 0;
+        TileMapBuilder builder = new TileMapBuilder();
 
         // Parsing state
-        String currentSection = null; // null = header, "tiles", "examine", etc.
-        Tile[][] tiles = null;
+        String currentSection = null; // null = header
 
         try {
             reader = new BufferedReader(new InputStreamReader(s));
@@ -58,6 +187,7 @@ public final class TileMapFileParser {
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
 
+                // Skip empty lines and comments
                 if (line.isEmpty() || line.startsWith("#")) {
                     continue;
                 }
@@ -65,12 +195,12 @@ public final class TileMapFileParser {
                 // Check for section delimiter
                 if (line.startsWith("---")) {
                     if (currentSection == null) {
-                        // End of header, start of tiles
-                        if (width <= 0 || height <= 0) {
-                            LogFatalAndExit(ErrStrInvalidHeader(f));
+                        // End of header - validate and init tiles
+                        if (builder.width <= 0 || builder.height <= 0) {
+                            LogFatalAndExit(ErrStrInvalidHeader(filename));
                             return null;
                         }
-                        tiles = new Tile[height][width];
+                        builder.initTiles();
                         currentSection = "tiles";
                     } else {
                         // Named section (e.g., "--- examine")
@@ -80,183 +210,128 @@ public final class TileMapFileParser {
                     continue;
                 }
 
-                // Dispatch based on current section
+                // Dispatch to appropriate parser
                 if (currentSection == null) {
-                    int[] headerResult = parseHeaderLine(line, mapName, width, height,
-                            atlasName, originX, originY);
-                    if (headerResult != null) {
-                        width = headerResult[0];
-                        height = headerResult[1];
-                        originX = headerResult[2];
-                        originY = headerResult[3];
+                    // Header parsing
+                    if (!parseHeaderLine(line, builder)) {
+                        // Non-fatal: unknown header fields are ignored
                     }
-                    // Update string values via re-parsing (not elegant but simple)
-                    String[] stringResult = parseHeaderLineStrings(line, mapName, atlasName);
-                    mapName = stringResult[0];
-                    atlasName = stringResult[1];
-
-                } else if (currentSection.equals("tiles")) {
-                    if (!parseTileLine(line, tiles, width, height, originX, originY, f)) {
-                        return null; // Fatal error already logged
+                } else {
+                    // Section parsing
+                    SectionParser parser = sectionParsers.get(currentSection);
+                    if (parser != null) {
+                        if (!parser.parseLine(line, builder, filename)) {
+                            return null; // Fatal error already logged
+                        }
                     }
-
-                } else if (currentSection.equals("examine")) {
-                    parseExamineLine(line, tiles, width, height, originX, originY);
-
-                } else if (currentSection.equals("spawns")) {
-                    MonsterSpawn spawn = MonsterSpawnFileParser.FromLine(line);
-                    if (spawn == null) {
-                        LogFatalAndExit(ERR_STR_FAILED_PARSE_SPAWN);
-                        return null;
-                    }
-                    spawns.add(spawn);
+                    // Unknown sections are silently skipped (forward compatibility)
                 }
-                // Unknown sections are silently skipped (forward compatibility)
             }
 
-            if (tiles == null) {
-                LogFatalAndExit(ErrStrMissingSeparator(f));
+            if (builder.tiles == null) {
+                LogFatalAndExit(ErrStrMissingSeparator(filename));
                 return null;
             }
 
-            return new TileMap(mapName, width, height, atlasName, originX,
-                    originY, tiles, spawns);
+            return builder.build();
 
         } catch (IOException e) {
-            LogFatalExcpAndExit(ErrStrFailedLoad(f), e);
+            LogFatalExcpAndExit(ErrStrFailedLoad(filename), e);
             return null;
         }
     }
 
-    // =========================================================================
-    // Header Parsing
-    // =========================================================================
-
-    /**
-     * Parse numeric header values. Returns [width, height, originX, originY].
-     */
-    private static int[] parseHeaderLine(String line, String mapName,
-                                         int width, int height, String atlasName, int originX, int originY) {
-
+    /** Parse a header line using registered parsers. Returns false if field unknown. */
+    private static boolean parseHeaderLine(String line, TileMapBuilder builder) {
         String[] parts = line.split(":", 2);
-        if (parts.length != 2) return new int[]{width, height, originX, originY};
-
-        String key = parts[0].trim();
-        String value = parts[1].trim();
-
-        switch (key) {
-            case "width":
-                width = Integer.parseInt(value);
-                break;
-            case "height":
-                height = Integer.parseInt(value);
-                break;
-            case "origin":
-                String[] originParts = value.split(",");
-                if (originParts.length == 2) {
-                    originX = Integer.parseInt(originParts[0].trim());
-                    originY = Integer.parseInt(originParts[1].trim());
-                }
-                break;
-        }
-
-        return new int[]{width, height, originX, originY};
-    }
-
-    /**
-     * Parse string header values. Returns [mapName, atlasName].
-     */
-    private static String[] parseHeaderLineStrings(String line,
-                                                   String mapName, String atlasName) {
-
-        String[] parts = line.split(":", 2);
-        if (parts.length != 2) return new String[]{mapName, atlasName};
-
-        String key = parts[0].trim();
-        String value = parts[1].trim();
-
-        switch (key) {
-            case "name":
-                mapName = value;
-                break;
-            case "tileset":
-                atlasName = value;
-                break;
-        }
-
-        return new String[]{mapName, atlasName};
-    }
-
-    // =========================================================================
-    // Tile Parsing
-    // =========================================================================
-
-    /**
-     * Parse a tile line and add to tiles array.
-     * Format: x\ty\tsprite\tblocked
-     * Returns false on fatal error.
-     */
-    private static boolean parseTileLine(String line, Tile[][] tiles,
-                                         int width, int height, int originX, int originY, String filename) {
-
-        String[] parts = line.split("\t");
-        if (parts.length < 4) return true; // Skip malformed lines
-
-        try {
-            int x = Integer.parseInt(parts[0].trim());
-            int y = Integer.parseInt(parts[1].trim());
-            int atlasIdx = Integer.parseInt(parts[2].trim());
-            boolean blocked = parts[3].trim().equals("1");
-
-            // Convert world coordinates to array indices
-            int ax = x - originX;
-            int ay = y - originY;
-
-            if (ax >= 0 && ax < width && ay >= 0 && ay < height) {
-                tiles[ay][ax] = new Tile((short) atlasIdx, -1, blocked);
-            }
-            // Out of bounds tiles are silently ignored
-
-        } catch (NumberFormatException nfe) {
-            LogFatalExcpAndExit(ErrStrCorruptData(filename, line), nfe);
+        if (parts.length != 2) {
             return false;
         }
 
-        return true;
+        String key = parts[0].trim();
+        String value = parts[1].trim();
+
+        HeaderFieldParser parser = headerParsers.get(key);
+        if (parser != null) {
+            parser.parse(value, builder);
+            return true;
+        }
+
+        return false;
     }
 
     // =========================================================================
-    // Examine Section Parsing
+    // Built-in Section Parsers
     // =========================================================================
 
-    /**
-     * Parse an examine line and apply to existing tile.
-     * Format: x\ty\texamine_text
-     */
-    private static void parseExamineLine(String line, Tile[][] tiles,
-                                         int width, int height, int originX, int originY) {
-
-        String[] parts = line.split("\t", 3);
-        if (parts.length < 3) return;
-
-        try {
-            int x = Integer.parseInt(parts[0].trim());
-            int y = Integer.parseInt(parts[1].trim());
-            String examineText = parts[2]; // Don't trim - preserve intentional whitespace
-
-            // Convert world coordinates to array indices
-            int ax = x - originX;
-            int ay = y - originY;
-
-            if (ax >= 0 && ax < width && ay >= 0 && ay < height) {
-                Tile tile = tiles[ay][ax];
-                if (tile != null) {
-                    tile.setExamine(examineText);
-                }
+    private static final class TilesSectionParser implements SectionParser {
+        public boolean parseLine(String line, TileMapBuilder b, String filename) {
+            String[] parts = line.split("\t");
+            if (parts.length < 4) {
+                return true; // Skip malformed lines
             }
 
-        } catch (NumberFormatException ignored) {
-            // Skip malformed examine lines
+            try {
+                int x = Integer.parseInt(parts[0].trim());
+                int y = Integer.parseInt(parts[1].trim());
+                int atlasIdx = Integer.parseInt(parts[2].trim());
+                boolean blocked = parts[3].trim().equals("1");
+
+                int ax = x - b.originX;
+                int ay = y - b.originY;
+
+                if (ax >= 0 && ax < b.width && ay >= 0 && ay < b.height) {
+                    b.tiles[ay][ax] = new Tile((short) atlasIdx, -1, blocked);
+                }
+
+            } catch (NumberFormatException nfe) {
+                LogFatalExcpAndExit(ErrStrCorruptData(filename, line), nfe);
+                return false;
+            }
+
+            return true;
+        }
+    }
+
+    private static final class ExamineSectionParser implements SectionParser {
+        public boolean parseLine(String line, TileMapBuilder b, String filename) {
+            String[] parts = line.split("\t", 3);
+            if (parts.length < 3) {
+                return true;
+            }
+
+            try {
+                int x = Integer.parseInt(parts[0].trim());
+                int y = Integer.parseInt(parts[1].trim());
+                String examineText = parts[2]; // Preserve intentional whitespace
+
+                int ax = x - b.originX;
+                int ay = y - b.originY;
+
+                if (ax >= 0 && ax < b.width && ay >= 0 && ay < b.height) {
+                    Tile tile = b.tiles[ay][ax];
+                    if (tile != null) {
+                        tile.setExamine(examineText);
+                    }
+                }
+
+            } catch (NumberFormatException ignored) {
+                // Skip malformed examine lines
+            }
+
+            return true;
+        }
+    }
+
+    private static final class SpawnsSectionParser implements SectionParser {
+        public boolean parseLine(String line, TileMapBuilder b, String filename) {
+            MonsterSpawn spawn = MonsterSpawnFileParser.FromLine(line);
+            if (spawn == null) {
+                LogFatalAndExit(ERR_STR_FAILED_PARSE_SPAWN);
+                return false;
+            }
+            b.spawns.add(spawn);
+            return true;
         }
     }
 
@@ -291,6 +366,6 @@ public final class TileMapFileParser {
                 "[%s].\n", CLASS, filename, line);
     }
 
-    private static final String ERR_STR_FAILED_PARSE_SPAWN = CLASS + "failed " +
+    private static final String ERR_STR_FAILED_PARSE_SPAWN = CLASS + " failed " +
             "to parse a spawn.\n";
 }

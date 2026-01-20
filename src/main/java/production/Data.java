@@ -25,7 +25,7 @@ public final class Data {
     public static final int PIXEL_SCALE = 4;
     public static final int WINDOW_W = PIXEL_SCALE * FB_W;
     public static final int WINDOW_H = PIXEL_SCALE * FB_H;
-    public static final int SPRITE_SYS_CAP = 1024;
+    public static final int SPRITE_SYS_CAP = 2048;
     public static final String TEST_ATLAS_FILENAME = "test_atlas.png";
     public static final String TEST_PALETTE_FILENAME = "mystic-16-mod-17.png";
     public static final String TEST_ATLAS_ANIM_FILENAME = "test_atlas_anims.png";
@@ -64,4 +64,6 @@ public final class Data {
     public static ArrayList<ConfigEntry> cfgEntries;
 
     public static MonsterSpawn testSpawn;
+
+    public static int clearColor = BLACK;
 }

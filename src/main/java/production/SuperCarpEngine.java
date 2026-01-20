@@ -62,6 +62,8 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         TileMapLoader.Load(Data.tileMap, Data.atlasIdsByFilename,
                 Data.paletteIdsByFilename,Data.TEST_PALETTE_FILENAME);
 
+        Data.clearColor = Data.tileMap.clearColor;
+
         SpriteAnimSys.Init();
 
         SpriteAnimDef playerIdle = new SpriteAnimDef(
@@ -186,7 +188,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
     @Override
     protected void onRender() {
         SceneManager.Render();
-        SpriteRenderer.Clear(Data.BLACK);
+        SpriteRenderer.Clear(Data.clearColor);
         Player.Render();
         SpriteRenderer.RenderNew();
         SpriteBackend.Present(SpriteRenderer.GetFramebuffer());
