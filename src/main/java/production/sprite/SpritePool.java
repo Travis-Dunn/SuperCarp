@@ -71,9 +71,8 @@ public final class SpritePool {
     private static final long LONG_16_MASK = 0xFFFFL;
     private static final long LONG_3_MASK = 0x7L;
 
-    public static boolean Init(int cap) {
+    public static boolean Init() {
         assert(!init);
-        assert(cap > 0);
 
         LogSession(LogLevel.DEBUG, CLASS + " initializing...\n");
 

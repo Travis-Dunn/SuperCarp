@@ -1,14 +1,15 @@
 package production.sprite;
 
+import whitetail.utility.logging.LogLevel;
+
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
 import static whitetail.utility.logging.ErrorStrings.ERR_STR_FAILED_INIT_OOM;
+import static whitetail.utility.logging.Logger.LogSession;
 
 public final class SpriteRenderer {
     private static boolean init;
 
     private static SpriteCamera cam;
-    private static int fbWidth;
-    private static int fbHeight;
     private static byte[] framebuffer;
 
     private static final int MAX_LAYERS = 8;
@@ -23,16 +24,14 @@ public final class SpriteRenderer {
 
     private SpriteRenderer() {}
 
-    public static boolean Init(int framebufferWidth, int framebufferHeight) {
+    public static boolean Init() {
         assert(!init);
-        assert(framebufferWidth > 0);
-        assert(framebufferHeight > 0);
 
-        fbWidth = framebufferWidth;
-        fbHeight = framebufferHeight;
+        LogSession(LogLevel.DEBUG, CLASS + " initializing...\n");
 
         try {
-            framebuffer = new byte[fbWidth * fbHeight * BYTES_PER_PIXEL];
+            framebuffer = new byte[
+                    SpriteSys.fbWidth * SpriteSys.fbHeight * BYTES_PER_PIXEL];
             handlesByLayerArr = new short[MAX_LAYERS][SpriteSys.cap];
             layerCounts = new int[MAX_LAYERS];
             paletteArr = new SpritePalette[SpritePool.MAX_PALETTE + 1];
@@ -41,6 +40,9 @@ public final class SpriteRenderer {
             LogFatalAndExit(CLASS + ERR_STR_FAILED_INIT_OOM);
             return init = false;
         }
+
+        LogSession(LogLevel.DEBUG, CLASS + " initialized with [" +
+                MAX_LAYERS + "] layers.\n");
 
         return init = true;
     }
@@ -124,22 +126,22 @@ public final class SpriteRenderer {
                                    int[] palette,
                                    boolean flipH, boolean flipV) {
         /* early rejection: entirely off-screen */
-        if (screenX + size <= 0 || screenX >= fbWidth ||
-                screenY + size <= 0 || screenY >= fbHeight) {
+        if (screenX + size <= 0 || screenX >= SpriteSys.fbWidth ||
+                screenY + size <= 0 || screenY >= SpriteSys.fbHeight) {
             return;
         }
 
         /* clip to screen bounds */
         int x0 = Math.max(screenX, 0);
         int y0 = Math.max(screenY, 0);
-        int x1 = Math.min(screenX + size, fbWidth);
-        int y1 = Math.min(screenY + size, fbHeight);
+        int x1 = Math.min(screenX + size, SpriteSys.fbWidth);
+        int y1 = Math.min(screenY + size, SpriteSys.fbHeight);
 
         int srcX, srcY, texelIdx, color, fbIdx;
         int fbRowOffset, atlasRowOffset;
 
         for (int y = y0; y < y1; ++y) {
-            fbRowOffset = y * fbWidth * BYTES_PER_PIXEL;
+            fbRowOffset = y * SpriteSys.fbWidth * BYTES_PER_PIXEL;
 
             srcY = y - screenY;
             if (flipV) srcY = (size - 1) - srcY;
@@ -169,18 +171,6 @@ public final class SpriteRenderer {
         assert(init);
 
         return framebuffer;
-    }
-
-    public static int GetWidth() {
-        assert(init);
-
-        return fbWidth;
-    }
-
-    public static int GetHeight() {
-        assert(init);
-
-        return fbHeight;
     }
 
     public static void SetCamera(SpriteCamera camera) {

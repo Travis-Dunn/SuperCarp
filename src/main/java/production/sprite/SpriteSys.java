@@ -41,22 +41,25 @@ public final class SpriteSys {
             return false;
         }
 
-        if (!SpritePool.Init(SpriteSys.cap)) {
+        if (!SpritePool.Init()) {
             LogFatalAndExit(ERR_STR_FAILED_INIT_POOL);
             return init = false;
         }
-        /* TODO: wrap these, add messages, hoist appropriately, add debug messages */
         if (!SpriteBackend.Init()) {
             LogFatalAndExit(ERR_STR_FAILED_INIT_BACKEND);
             return init = false;
         }
-        SpriteRenderer.Init(SpriteSys.fbWidth, SpriteSys.fbHeight);
+        if (!SpriteRenderer.Init()) {
+            LogFatalAndExit(ERR_STR_FAILED_INIT_RENDERER);
+            return init = false;
+        }
 
         LogSession(LogLevel.DEBUG, CLASS + " initialized.\n");
 
         return init = true;
     }
 
+    /* TODO: pickup here */
     public static void Shutdown() {
         assert(init);
 
