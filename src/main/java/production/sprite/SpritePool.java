@@ -191,7 +191,9 @@ public final class SpritePool {
         assert(init);
 
         if (!(handle >= 0 && handle < highMark)) {
+            /*
             LogFatalAndExit(ErrStrHandleOOB(handle));
+             */
             return false;
         }
 

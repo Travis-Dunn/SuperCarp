@@ -1,10 +1,8 @@
-package production.scenes;
+package production.scene;
 
-import org.lwjgl.input.Keyboard;
 import production.Data;
 import whitetail.event.Event;
 import whitetail.event.EventType;
-import whitetail.event.KeyboardEvent;
 import whitetail.event.MouseEvent;
 import whitetail.scene.Scene;
 

@@ -1,7 +1,7 @@
 package production;
 
 import production.monster.MonsterSpawn;
-import production.scenes.SceneGame;
+import production.scene.SceneGame;
 import production.sprite.SpriteAtlas;
 import production.sprite.SpriteCamera;
 import production.sprite.SpritePalette;

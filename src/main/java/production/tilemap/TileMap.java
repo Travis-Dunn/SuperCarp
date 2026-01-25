@@ -1,5 +1,6 @@
 package production.tilemap;
 
+import production.character.Char;
 import production.monster.MonsterSpawn;
 
 import java.util.List;
@@ -10,13 +11,14 @@ public final class TileMap {
     public final int originOffsetX, originOffsetY;
     private final Tile tiles[][];
     private final List<MonsterSpawn> spawns;
+    public List<Char> chars;
     final String atlasFilename;
     public final int clearColor;
 
     /* TODO: needs to know what palette it uses! */
     TileMap(String name, int width, int height, String atlasFilename,
             int originOffsetX, int originOffsetY, Tile[][] tiles,
-            List<MonsterSpawn> spawns, int clearColor) {
+            List<MonsterSpawn> spawns, int clearColor, List<Char> chars) {
         this.name = name;
         this.width = width;
         this.height = height;
@@ -26,6 +28,7 @@ public final class TileMap {
         this.spawns = spawns;
         this.atlasFilename = atlasFilename;
         this.clearColor = clearColor;
+        this.chars = chars;
     }
 
     public Tile getTile(short x, short y) {

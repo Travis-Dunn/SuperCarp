@@ -1,5 +1,6 @@
 package production.tilemap;
 
+import production.character.Char;
 import production.monster.MonsterSpawn;
 import production.monster.MonsterSpawnFileParser;
 
@@ -138,7 +139,7 @@ public final class TileMapFileParser {
 
         public TileMap build() {
             return new TileMap(mapName, width, height, atlasFilename,
-                    originX, originY, tiles, spawns, clearColor);
+                    originX, originY, tiles, spawns, clearColor, new ArrayList<Char>());
         }
     }
 

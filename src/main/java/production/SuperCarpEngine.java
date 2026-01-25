@@ -2,11 +2,12 @@ package production;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
-import production.monster.MonsterDefs;
+import production.character.CharRegistry;
+import production.monster.MonsterRegistry;
 import production.monster.MonsterSpawn;
 import production.save.SaveData;
 import production.save.SaveManager;
-import production.scenes.SceneGame;
+import production.scene.SceneGame;
 import production.sprite.*;
 import production.tilemap.TileMapFileParser;
 import production.tilemap.TileMapLoader;
@@ -126,7 +127,27 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         SceneManager.RegisterScene(SceneType.GAME, Data.sceneGame);
         SceneManager.TransitionTo(SceneType.GAME);
 
-        Data.testSpawn = new MonsterSpawn(3, -5, MonsterDefs.BAT, 16);
+        Data.testSpawn = new MonsterSpawn(3, -5, MonsterRegistry.BAT, 16);
+
+        /* file parse time */
+        CharRegistry.BILBO.tileX = 10;
+        CharRegistry.BILBO.tileY = -1;
+        Data.tileMap.chars.add(CharRegistry.BILBO);
+        /* load time */
+        /* the sprite handle is of type int, and is only created when the
+        * map in which the character resides is loaded, I.E., when the player
+        * enters that area. I distinguish between load time (player enters area)
+        * and init time. Init time only ever happens once per session. */
+        CharRegistry.BILBO.setSpriteHandle(SpritePool.Create(
+                CharRegistry.BILBO.tileX * Data.SPRITE_SIZE,
+                CharRegistry.BILBO.tileY * Data.SPRITE_SIZE,
+                Data.PLAYER_ATLAS,
+                0,
+                1,
+                Data.MAP_PALETTE,
+                false,
+                false,
+                true));
 
         return true;
     }

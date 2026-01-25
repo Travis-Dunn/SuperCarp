@@ -5,7 +5,7 @@ import java.util.Map;
 
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
 
-public final class MonsterDefs {
+public final class MonsterRegistry {
     private static final Map<String, MonsterDef> defs =
             new HashMap<String,MonsterDef>();
 

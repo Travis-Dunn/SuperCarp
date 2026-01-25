@@ -1,7 +1,5 @@
 package production.monster;
 
-import java.util.List;
-
 public final class MonsterSpawnFileParser {
     public static MonsterSpawn FromLine(String line) {
         String[] parts = line.split("\t");
@@ -16,7 +14,7 @@ public final class MonsterSpawnFileParser {
             String name = parts[2];
             int respawnTicks = Integer.parseInt(parts[3]);
 
-            MonsterDef def = MonsterDefs.get(name);
+            MonsterDef def = MonsterRegistry.get(name);
             if (def == null) {
                 System.err.println("Unknown monster: " + name);
                 return null;

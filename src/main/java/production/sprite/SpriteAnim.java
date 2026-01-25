@@ -11,9 +11,6 @@ public final class SpriteAnim {
     private boolean finished;
 
     SpriteAnim(int spriteHandle, SpriteAnimDef def) {
-        assert SpritePool.IsValid(spriteHandle);
-        assert def != null;
-
         this.spriteHandle = spriteHandle;
         this.def = def;
         this.frame = 0;
@@ -21,8 +18,9 @@ public final class SpriteAnim {
         this.playing = true;
         this.finished = false;
 
-        // Set initial frame immediately
+        /* I don't think we need to do this, but I'm not sure.
         SpritePool.SetAtlasIdx(spriteHandle, def.frames[0]);
+         */
     }
 
     void update(int dtMs) {
@@ -55,19 +53,20 @@ public final class SpriteAnim {
         frame = 0;
         elapsedMs = 0;
         finished = false;
-        SpritePool.SetAtlasIdx(spriteHandle, def.frames[0]);
+
+        if (spriteHandle != SpritePool.INVALID_HANDLE)
+            SpritePool.SetAtlasIdx(spriteHandle, def.frames[0]);
     }
 
     public void setDef(SpriteAnimDef def) {
-        assert def != null;
         this.def = def;
         reset();
     }
 
-    public void setSpriteHandle(int handle) {
-        assert SpritePool.IsValid(handle);
+    void setSpriteHandle(int handle) {
         this.spriteHandle = handle;
-        SpritePool.SetAtlasIdx(spriteHandle, def.frames[frame]);
+        if (spriteHandle != SpritePool.INVALID_HANDLE)
+            SpritePool.SetAtlasIdx(spriteHandle, def.frames[frame]);
     }
 
     public boolean isPlaying()  { return playing; }
@@ -75,4 +74,6 @@ public final class SpriteAnim {
     public int getFrame()       { return frame; }
     public int getSpriteHandle() { return spriteHandle; }
     public SpriteAnimDef getDef() { return def; }
+
+    public static final String CLASS = SpriteAnim.class.getSimpleName();
 }
