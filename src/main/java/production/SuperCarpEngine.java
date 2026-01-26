@@ -79,10 +79,10 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         0 (default), this makes the camera animate from focusing on tile [0, 0]
         to tileX, in this case -4. I feel like this might be handy to remember.
         */
-        Player.tileX = -3;
-        Player.tileY = -2;
-        Player.prevTileX = -3;
-        Player.prevTileY = -2;
+        Player.tileX = 0;
+        Player.tileY = -1;
+        Player.prevTileX = 0;
+        Player.prevTileY = -1;
         int playerSpriteHandle = SpritePool.Create(
                 Player.tileX * Data.SPRITE_SIZE,
                 Player.tileY * Data.SPRITE_SIZE,
@@ -220,8 +220,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
     protected void onShutdown() {
         SceneManager.Shutdown();
         SaveManager.Shutdown();
-        SpriteBackend.Shutdown();
-        SpriteRenderer.Shutdown();
+        SpriteSys.Shutdown();
         Data.sCam.shutdown();
     }
 

@@ -59,13 +59,23 @@ public final class SpriteSys {
         return init = true;
     }
 
-    /* TODO: pickup here */
     public static void Shutdown() {
         assert(init);
 
+        LogSession(LogLevel.DEBUG, CLASS + " shutting down...\n");
+
+        SpritePool.Shutdown();
+        SpriteBackend.Shutdown();
+        SpriteRenderer.Shutdown();
+
         init = false;
+
+        LogSession(LogLevel.DEBUG, CLASS + " shutdown complete.\n");
     }
 
+    /* TODO: pickup here */
+    /* It's not just that everything here needs to be good, but we need to go
+    through the other classes, and route any public methods through this */
     public static int GetCapacity() {
         assert(init);
 

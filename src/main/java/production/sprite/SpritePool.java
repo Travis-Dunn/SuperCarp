@@ -71,7 +71,7 @@ public final class SpritePool {
     private static final long LONG_16_MASK = 0xFFFFL;
     private static final long LONG_3_MASK = 0x7L;
 
-    public static boolean Init() {
+    static boolean Init() {
         assert(!init);
 
         LogSession(LogLevel.DEBUG, CLASS + " initializing...\n");
@@ -495,13 +495,17 @@ public final class SpritePool {
         return arr;
     }
 
-    public static void Shutdown() {
+    static void Shutdown() {
         assert(init);
+
+        LogSession(LogLevel.DEBUG, CLASS + " shutting down...\n");
 
         arr = null;
         freeList = null;
 
         init = false;
+
+        LogSession(LogLevel.DEBUG, CLASS + " shutdown complete.\n");
     }
 
     public static final String CLASS = SpritePool.class.getSimpleName();

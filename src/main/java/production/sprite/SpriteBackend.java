@@ -169,14 +169,37 @@ public final class SpriteBackend {
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
     }
 
-    public static void Shutdown() {
+    static void Shutdown() {
         assert(init);
 
-        GL11.glDeleteTextures(SpriteSys.texID);
-        SpriteSys.texID = 0;
+        int glErr;
+
+        LogSession(LogLevel.DEBUG, CLASS + " shutting down...\n");
+
+        if ((glErr = GL11.glGetError()) != GL11.GL_NO_ERROR) {
+            LogSession(LogLevel.WARNING, ErrStrPreExistingGlErrShutdown(glErr));
+        }
+
+        /* glDeleteTextures silently ignores 0 and invalid names, but we
+         * check anyway in case Init partially failed or something went
+         * very wrong */
+        if (SpriteSys.texID != 0) {
+            GL11.glDeleteTextures(SpriteSys.texID);
+
+            if ((glErr = GL11.glGetError()) != GL11.GL_NO_ERROR) {
+                LogSession(LogLevel.WARNING, ErrStrDeleteTextures(glErr));
+            }
+
+            SpriteSys.texID = 0;
+        } else {
+            LogSession(LogLevel.WARNING, ERR_STR_TEX_ID_ZERO);
+        }
+
         uploadBuffer = null;
 
         init = false;
+
+        LogSession(LogLevel.DEBUG, CLASS + " shutdown complete.\n");
     }
 
     private static boolean CheckGlErrorInit(String operation) {
@@ -205,8 +228,6 @@ public final class SpriteBackend {
     }
 
     private static String GlErrorString(int error) {
-        assert(init);
-
         switch (error) {
             case GL11.GL_INVALID_ENUM:      return "[GL_INVALID_ENUM]\n";
             case GL11.GL_INVALID_VALUE:     return "[GL_INVALID_VALUE]\n";
@@ -223,7 +244,19 @@ public final class SpriteBackend {
         return String.format("%s encountered a pre-existing OpenGL error " +
                 "during initialization: %s", CLASS, GlErrorString(glErr));
     }
+    private static String ErrStrPreExistingGlErrShutdown(int glErr) {
+        return String.format("%s encountered a pre-existing OpenGL error " +
+                "during shutdown: %s", CLASS, GlErrorString(glErr));
+    }
+    private static String ErrStrDeleteTextures(int glErr) {
+        return String.format("%s encountered an OpenGL error after " +
+                        "glDeleteTextures([%d]): %s", CLASS, SpriteSys.texID,
+                GlErrorString(glErr));
+    }
     private static final String ERR_STR_FAILED_INIT_GEN_TEX = CLASS +
             " failed to initialize because OpenGL failed to generate a " +
             "texture.\n";
+    private static final String ERR_STR_TEX_ID_ZERO = CLASS +
+            " shutdown called but texID was already 0. This may indicate " +
+            "Init() failed or Shutdown() was called twice.\n";
 }

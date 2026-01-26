@@ -24,7 +24,7 @@ public final class SpriteRenderer {
 
     private SpriteRenderer() {}
 
-    public static boolean Init() {
+    static boolean Init() {
         assert(!init);
 
         LogSession(LogLevel.DEBUG, CLASS + " initializing...\n");
@@ -179,15 +179,21 @@ public final class SpriteRenderer {
         cam = camera;
     }
 
-    public static void Shutdown() {
+    static void Shutdown() {
         assert(init);
+
+        LogSession(LogLevel.DEBUG, CLASS + " shutting down...\n");
 
         framebuffer = null;
         handlesByLayerArr = null;
         layerCounts = null;
         cam = null;
+        paletteArr = null;
+        atlasArr = null;
 
         init = false;
+
+        LogSession(LogLevel.DEBUG, CLASS + " shutdown complete.\n");
     }
 
     public static final String CLASS = SpriteRenderer.class.getSimpleName();
