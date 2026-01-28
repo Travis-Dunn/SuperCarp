@@ -11,6 +11,9 @@ import production.scene.SceneGame;
 import production.sprite.*;
 import production.tilemap.TileMapFileParser;
 import production.tilemap.TileMapLoader;
+import production.ui.ChatBox;
+import production.ui.FontAtlasFileParser;
+import production.ui.TextRenderer;
 import whitetail.audio.AudioCategory;
 import whitetail.audio.AudioContext;
 import whitetail.audio.AudioFileParser;
@@ -149,6 +152,12 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
                 false,
                 true));
 
+        Data.fontAtlas = FontAtlasFileParser.FromFile(
+                "16_rs_mono_freetype.fnt", Data.sp, 11);
+
+        ChatBox.Init(Data.fontAtlas);
+        ChatBox.AddMsg("Welcome to SuperCarp.");
+
         return true;
     }
 
@@ -212,6 +221,18 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         SpriteRenderer.Clear(Data.clearColor);
         Player.Render();
         SpriteRenderer.RenderNew();
+
+        ChatBox.Draw();
+
+        TextRenderer.draw(
+                SpriteRenderer.GetFramebuffer(),
+                Data.FB_W, Data.FB_H,
+                Data.fontAtlas,
+                "Hello, Gielinor!",
+                10, 10,
+                0xFFFFFFFF  // white
+        );
+
         SpriteBackend.Present(SpriteRenderer.GetFramebuffer());
         window.swapBuffers();
     }

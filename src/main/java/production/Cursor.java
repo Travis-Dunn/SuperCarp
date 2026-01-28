@@ -3,6 +3,7 @@ package production;
 import production.sprite.SpriteCamera;
 import production.tilemap.Tile;
 import production.tilemap.TileMap;
+import production.ui.ChatBox;
 
 import java.util.ArrayList;
 
@@ -44,15 +45,15 @@ public final class Cursor {
         Tile tile = map.getTile((short) tileX, (short) tileY);
 
         if (tile == null) {
-            System.out.println("Click: no tile at [" + tileX + ", " + tileY + "]");
+            ChatBox.AddMsg("Click: no tile at [" + tileX + ", " + tileY + "]");
             return;
         }
 
         if (tile.blocked) {
-            System.out.println("Click: tile [" + tileX + ", " + tileY + "] is blocked");
+            ChatBox.AddMsg("Click: tile [" + tileX + ", " + tileY + "] is blocked");
 
             if (tile.getExamine() != null) {
-                System.out.println(tile.getExamine());
+                ChatBox.AddMsg(tile.getExamine());
             }
 
             return;
@@ -60,7 +61,7 @@ public final class Cursor {
 
 
         if (tile.getExamine() != null) {
-            System.out.println(tile.getExamine());
+            ChatBox.AddMsg(tile.getExamine());
         }
 
         /* compute path from player to clicked tile */
@@ -68,11 +69,11 @@ public final class Cursor {
                 Player.tileX, Player.tileY, tileX, tileY);
 
         if (path == null) {
-            System.out.println("Click: no path to [" + tileX + ", " + tileY + "]");
+            ChatBox.AddMsg("Click: no path to [" + tileX + ", " + tileY + "]");
         } else if (path.isEmpty()) {
-            System.out.println("Click: already at [" + tileX + ", " + tileY + "]");
+            ChatBox.AddMsg("Click: already at [" + tileX + ", " + tileY + "]");
         } else {
-            System.out.println("Click: path to [" + tileX + ", " + tileY + "] " +
+            ChatBox.AddMsg("Click: path to [" + tileX + ", " + tileY + "] " +
                     "length=" + path.size());
             Player.setPath(path);
         }

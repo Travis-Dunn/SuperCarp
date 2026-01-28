@@ -6,6 +6,7 @@ import production.sprite.SpriteAtlas;
 import production.sprite.SpriteCamera;
 import production.sprite.SpritePalette;
 import production.tilemap.TileMap;
+import production.ui.FontAtlas;
 import whitetail.audio.Audio;
 import whitetail.audio.AudioBuffer;
 import whitetail.loaders.config.ConfigEntry;
@@ -66,4 +67,6 @@ public final class Data {
     public static MonsterSpawn testSpawn;
 
     public static int clearColor = BLACK;
+
+    public static FontAtlas fontAtlas;
 }
