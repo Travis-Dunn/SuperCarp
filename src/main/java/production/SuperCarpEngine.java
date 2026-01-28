@@ -224,15 +224,6 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
 
         ChatBox.Draw();
 
-        TextRenderer.draw(
-                SpriteRenderer.GetFramebuffer(),
-                Data.FB_W, Data.FB_H,
-                Data.fontAtlas,
-                "Hello, Gielinor!",
-                10, 10,
-                0xFFFFFFFF  // white
-        );
-
         SpriteBackend.Present(SpriteRenderer.GetFramebuffer());
         window.swapBuffers();
     }
