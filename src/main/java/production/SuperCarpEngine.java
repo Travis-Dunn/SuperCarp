@@ -8,6 +8,7 @@ import production.monster.MonsterSpawn;
 import production.save.SaveData;
 import production.save.SaveManager;
 import production.scene.SceneGame;
+import production.script.Scripts;
 import production.sprite.*;
 import production.tilemap.TileMapFileParser;
 import production.tilemap.TileMapLoader;
@@ -210,6 +211,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         Data.testSpawn.update();
         spawns are now managed by the map
          */
+
         Data.tileMap.update();
         Player.Update(dt);
         SaveManager.RequestSave(SaveData.Capture());

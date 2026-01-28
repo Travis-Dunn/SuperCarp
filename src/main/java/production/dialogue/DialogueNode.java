@@ -8,7 +8,7 @@ public final class DialogueNode {
     public final String speaker;      // "Hans", "Player", null for narration
     public final String text;
     public final DialogueOption[] options;  // null = click to continue/end
-    public final DialogueNode next;   // used when options is null
+    private DialogueNode next;   // used when options is null
 
     public DialogueNode(String speaker, String text, DialogueOption[] options,
                         DialogueNode next) {
@@ -25,4 +25,8 @@ public final class DialogueNode {
     public boolean isTerminal() {
         return options == null && next == null;
     }
+
+    public void setNext(DialogueNode next) { this.next = next; }
+
+    DialogueNode getNext() { return next; }
 }

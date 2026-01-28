@@ -137,7 +137,7 @@ public final class Player {
         pathIndex = 0;
     }
 
-    static void clearPath() {
+    public static void clearPath() {
         path = null;
         pathIndex = 0;
     }
