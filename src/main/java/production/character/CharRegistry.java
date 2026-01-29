@@ -33,4 +33,5 @@ public final class CharRegistry {
             new boolean[] { true }
     ));
 
+    public static final String CLASS = CharRegistry.class.getSimpleName();
 }

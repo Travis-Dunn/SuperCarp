@@ -136,7 +136,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         /* file parse time */
         CharRegistry.BILBO.tileX = 10;
         CharRegistry.BILBO.tileY = -1;
-        Data.tileMap.chars.add(CharRegistry.BILBO);
+        Data.tileMap.addChar(CharRegistry.BILBO);
         /* load time */
         /* the sprite handle is of type int, and is only created when the
         * map in which the character resides is loaded, I.E., when the player

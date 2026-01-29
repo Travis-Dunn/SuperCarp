@@ -1,6 +1,8 @@
 package production.tilemap;
 
+import production.Pathfinder;
 import production.character.Char;
+import production.character.CharFileParser;
 import production.monster.MonsterSpawn;
 import production.monster.MonsterSpawnFileParser;
 
@@ -100,6 +102,7 @@ public final class TileMapFileParser {
         registerSectionParser("tiles", new TilesSectionParser());
         registerSectionParser("examine", new ExamineSectionParser());
         registerSectionParser("spawns", new SpawnsSectionParser());
+        registerSectionParser("characters", new CharSectionParser());
     }
 
     /** Register a custom header field parser. */
@@ -126,6 +129,7 @@ public final class TileMapFileParser {
         public int originY = 0;
         public Tile[][] tiles = null;
         public List<MonsterSpawn> spawns = new ArrayList<MonsterSpawn>();
+        static Map<Integer, Char> chars = new HashMap<Integer, Char>();
 
         // Extended fields - add new fields here as needed
         public int clearColor = 0xFF000000;
@@ -139,7 +143,8 @@ public final class TileMapFileParser {
 
         public TileMap build() {
             return new TileMap(mapName, width, height, atlasFilename,
-                    originX, originY, tiles, spawns, clearColor, new ArrayList<Char>());
+                    originX, originY, tiles, spawns, clearColor,
+                    chars);
         }
     }
 
@@ -336,6 +341,18 @@ public final class TileMapFileParser {
         }
     }
 
+    private static final class CharSectionParser implements SectionParser {
+        public boolean parseLine(String line, TileMapBuilder b, String filename) {
+            Char c = CharFileParser.FromLine(line);
+            if (c == null) {
+                LogFatalAndExit(ERR_STR_FAILED_PARSE_CHAR);
+                return false;
+            }
+            TileMapBuilder.chars.put(Pathfinder.pack(c.tileX, c.tileY), c);
+            return true;
+        }
+    }
+
     // =========================================================================
     // Error Messages
     // =========================================================================
@@ -368,5 +385,7 @@ public final class TileMapFileParser {
     }
 
     private static final String ERR_STR_FAILED_PARSE_SPAWN = CLASS + " failed " +
-            "to parse a spawn.\n";
+            "to parse a spawn line.\n";
+    private static final String ERR_STR_FAILED_PARSE_CHAR = CLASS + " failed " +
+            "to parse a character line.\n";
 }
