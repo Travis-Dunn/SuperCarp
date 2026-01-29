@@ -62,6 +62,22 @@ public final class TileMapLoader {
                     false,
                     false,
                     true));
+
+            t = map.getTile((short)c.tileX, (short)c.tileY);
+            if (t == null) {
+                LogFatalAndExit(ErrStrFailedUpdateCharPosTileNull(c.tileX,
+                        c.tileY, c.name, map.name));
+            } else {
+                t.setBlocked(true);
+            }
         }
+    }
+
+    public static final String CLASS = TileMapLoader.class.getSimpleName();
+    private static String ErrStrFailedUpdateCharPosTileNull(int x, int y,
+            String name, String mapName) {
+        return String.format("%s failed to update Char [%s] position to [%d, " +
+                "%d] because the map [%s] did not have a tile with those " +
+                "coordinates.\n", CLASS, name, x, y, mapName);
     }
 }

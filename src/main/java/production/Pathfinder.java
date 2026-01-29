@@ -50,7 +50,7 @@ public final class Pathfinder {
 
         /* check destination is valid and walkable */
         Tile destTile = map.getTile((short) destX, (short) destY);
-        if (destTile == null || destTile.blocked) {
+        if (destTile == null || destTile.isBlocked()) {
             return null;
         }
 
@@ -84,7 +84,7 @@ public final class Pathfinder {
 
                 /* valid tile? */
                 Tile neighborTile = map.getTile((short) nx, (short) ny);
-                if (neighborTile == null || neighborTile.blocked) continue;
+                if (neighborTile == null || neighborTile.isBlocked()) continue;
 
                 cameFrom.put(neighborPacked, current);
 
@@ -133,7 +133,7 @@ public final class Pathfinder {
             int adjX = targetX + dx[i];
             int adjY = targetY + dy[i];
             Tile adjTile = map.getTile((short) adjX, (short) adjY);
-            if (adjTile != null && !adjTile.blocked) {
+            if (adjTile != null && !adjTile.isBlocked()) {
                 destinations.add(pack(adjX, adjY));
             }
         }
@@ -163,7 +163,7 @@ public final class Pathfinder {
                 if (cameFrom.containsKey(neighborPacked)) continue;
 
                 Tile neighborTile = map.getTile((short) nx, (short) ny);
-                if (neighborTile == null || neighborTile.blocked) continue;
+                if (neighborTile == null || neighborTile.isBlocked()) continue;
 
                 cameFrom.put(neighborPacked, current);
 

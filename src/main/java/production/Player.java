@@ -59,7 +59,7 @@ public final class Player {
 
             /* verify tile is still walkable (in case world changed) */
             Tile t = Data.tileMap.getTile((short) nextX, (short) nextY);
-            if (t == null || t.blocked) {
+            if (t == null || t.isBlocked()) {
                 clearPath();
             } else {
                 tileX = nextX;
@@ -86,7 +86,7 @@ public final class Player {
                 return;
             }
 
-            if (t.blocked) {
+            if (t.isBlocked()) {
                 queuedDX = 0;
                 queuedDY = 0;
                 if (holdingLeft)       queueMove(-1, 0);

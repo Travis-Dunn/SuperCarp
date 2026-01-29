@@ -106,7 +106,7 @@ public final class Cursor {
 
         ArrayList<Integer> path;
 
-        if (tile.blocked) {
+        if (tile.isBlocked()) {
             if (DevLoggingEnabled()) {
                 ChatBox.AddMsg("Click: blocked [" + tileX + ", " + tileY + "]");
             }

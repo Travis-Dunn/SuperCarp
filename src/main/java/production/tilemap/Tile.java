@@ -4,7 +4,7 @@ public final class Tile {
     public final short spriteIdx;
     /* TODO: fix this also */
     public int spriteHandle;
-    public final boolean blocked;
+    private boolean blocked;
     private String examine;
 
     Tile(short spriteIdx, int handle, boolean blocked) {
@@ -22,4 +22,7 @@ public final class Tile {
     void setExamine(String examine) {
         this.examine = examine;
     }
+
+    public void setBlocked(boolean b) { blocked = b; }
+    public boolean isBlocked() { return blocked; }
 }
