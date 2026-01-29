@@ -104,15 +104,35 @@ public final class Cursor {
             ChatBox.AddMsg(tile.getExamine());
         }
 
+        ArrayList<Integer> path;
+
         if (tile.blocked) {
             if (DevLoggingEnabled()) {
                 ChatBox.AddMsg("Click: blocked [" + tileX + ", " + tileY + "]");
             }
+
+            path = Pathfinder.findAdjacent(map,
+                    Player.tileX, Player.tileY, tileX, tileY);
+
+            if (path == null) {
+                if (DevLoggingEnabled()) {
+                    ChatBox.AddMsg("Unable to find path to adjacent tile.");
+                }
+            } else if (path.isEmpty()) {
+                if (DevLoggingEnabled()) {
+                    ChatBox.AddMsg("Click: already at [" + tileX + ", " + tileY + "]");
+                }
+            } else {
+                if (DevLoggingEnabled()) {
+                    ChatBox.AddMsg("Found path to adjacent tile: path length=" + path.size());
+                }
+                Player.setPath(path);
+            }
+
             return;
         }
 
-        ArrayList<Integer> path = Pathfinder.find(map,
-                Player.tileX, Player.tileY, tileX, tileY);
+        path = Pathfinder.find(map, Player.tileX, Player.tileY, tileX, tileY);
 
         if (path == null) {
             if (DevLoggingEnabled()) {
