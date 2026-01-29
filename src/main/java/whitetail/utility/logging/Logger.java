@@ -5,6 +5,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public final class Logger {
+    private static boolean devLogging;
+
     private static final String PERSISTENT_FILENAME = "persistent.log";
     private static final String FATAL_FILENAME      = "fatal.log";
     private static final String SESSION_FILENAME    = "session.log";
@@ -81,4 +83,7 @@ public final class Logger {
 
         writer.flush();
     }
+
+    public static void EnableDevLogging() { devLogging = true; }
+    public static boolean DevLoggingEnabled() { return devLogging; }
 }

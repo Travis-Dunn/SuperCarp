@@ -3,10 +3,7 @@ package production;
 import production.tilemap.Tile;
 import production.tilemap.TileMap;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.*;
 
 /**
  * BFS pathfinding on the tile map.
@@ -101,6 +98,83 @@ public final class Pathfinder {
         }
 
         /* no path found */
+        return null;
+    }
+
+    /**
+     * Find a path from start to any walkable tile adjacent to the target.
+     * Useful for walking up to NPCs, objects, etc.
+     *
+     * @param map the tile map
+     * @param startX starting tile X
+     * @param startY starting tile Y
+     * @param targetX target tile X (the tile we want to be adjacent to)
+     * @param targetY target tile Y
+     * @return path as ArrayList of packed coordinates (start excluded, dest included),
+     *         empty list if already adjacent, or null if no path exists
+     */
+    public static ArrayList<Integer> findAdjacent(TileMap map,
+                                                  int startX, int startY,
+                                                  int targetX, int targetY) {
+        /* direction offsets: right, left, down, up */
+        int[] dx = { 1, -1, 0, 0 };
+        int[] dy = { 0, 0, 1, -1 };
+
+        /* check if already adjacent */
+        for (int i = 0; i < 4; i++) {
+            if (startX == targetX + dx[i] && startY == targetY + dy[i]) {
+                return new ArrayList<Integer>();
+            }
+        }
+
+        /* build set of valid adjacent destinations */
+        HashSet<Integer> destinations = new HashSet<Integer>();
+        for (int i = 0; i < 4; i++) {
+            int adjX = targetX + dx[i];
+            int adjY = targetY + dy[i];
+            Tile adjTile = map.getTile((short) adjX, (short) adjY);
+            if (adjTile != null && !adjTile.blocked) {
+                destinations.add(pack(adjX, adjY));
+            }
+        }
+
+        if (destinations.isEmpty()) {
+            return null;
+        }
+
+        int startPacked = pack(startX, startY);
+
+        Queue<Integer> frontier = new LinkedList<Integer>();
+        frontier.add(startPacked);
+
+        HashMap<Integer, Integer> cameFrom = new HashMap<Integer, Integer>();
+        cameFrom.put(startPacked, null);
+
+        while (!frontier.isEmpty()) {
+            int current = frontier.poll();
+            int cx = unpackX(current);
+            int cy = unpackY(current);
+
+            for (int i = 0; i < 4; i++) {
+                int nx = cx + dx[i];
+                int ny = cy + dy[i];
+                int neighborPacked = pack(nx, ny);
+
+                if (cameFrom.containsKey(neighborPacked)) continue;
+
+                Tile neighborTile = map.getTile((short) nx, (short) ny);
+                if (neighborTile == null || neighborTile.blocked) continue;
+
+                cameFrom.put(neighborPacked, current);
+
+                if (destinations.contains(neighborPacked)) {
+                    return reconstructPath(cameFrom, neighborPacked);
+                }
+
+                frontier.add(neighborPacked);
+            }
+        }
+
         return null;
     }
 

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
 import static whitetail.utility.logging.ErrorStrings.ERR_STR_FAILED_INIT_OOM;
 import static whitetail.utility.logging.Logger.LogSession;
+import static whitetail.utility.logging.Logger.EnableDevLogging;
 
 public class EntryPoint {
     public static void main(String args[]) {
@@ -21,6 +22,8 @@ public class EntryPoint {
             System.err.println("Engine failed to init first half");
             return;
         }
+
+        EnableDevLogging();
 
         if (!setupConfig()) {
             LogSession(LogLevel.WARNING, CLASS + ERR_STR_FAILED_SETUP_CFG);
