@@ -61,6 +61,8 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         SpriteRenderer.atlasArr[Data.MAP_ATLAS] = Data.sa;
         SpriteRenderer.atlasArr[Data.PLAYER_ATLAS] = Data.sa_player;
 
+        SpriteAnimSys.Init();
+
         Data.tileMap = TileMapFileParser.FromFile("test_map.map");
         if (Data.tileMap == null) return false;
 
@@ -69,7 +71,6 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
 
         Data.clearColor = Data.tileMap.clearColor;
 
-        SpriteAnimSys.Init();
 
         SpriteAnimDef playerIdle = new SpriteAnimDef(
                 new short[] { 0, 1, 2 },  // frame sequence in atlas
@@ -133,25 +134,11 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
 
         Data.testSpawn = new MonsterSpawn(3, -5, MonsterRegistry.BAT, 16);
 
-        /* file parse time */
-        CharRegistry.BILBO.tileX = 10;
-        CharRegistry.BILBO.tileY = -1;
-        Data.tileMap.addChar(CharRegistry.BILBO);
         /* load time */
         /* the sprite handle is of type int, and is only created when the
         * map in which the character resides is loaded, I.E., when the player
         * enters that area. I distinguish between load time (player enters area)
         * and init time. Init time only ever happens once per session. */
-        CharRegistry.BILBO.setSpriteHandle(SpritePool.Create(
-                CharRegistry.BILBO.tileX * Data.SPRITE_SIZE,
-                CharRegistry.BILBO.tileY * Data.SPRITE_SIZE,
-                Data.PLAYER_ATLAS,
-                0,
-                1,
-                Data.MAP_PALETTE,
-                false,
-                false,
-                true));
 
         Data.fontAtlas = FontAtlasFileParser.FromFile(
                 "16_rs_mono_freetype.fnt", Data.sp, 11);

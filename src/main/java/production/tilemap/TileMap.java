@@ -17,7 +17,7 @@ public final class TileMap {
     public final int originOffsetX, originOffsetY;
     private final Tile tiles[][];
     private final List<MonsterSpawn> spawns;
-    private Map<Integer, Char> charsByPos;
+    Map<Integer, Char> charsByPos;
     final String atlasFilename;
     public final int clearColor;
 

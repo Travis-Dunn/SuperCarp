@@ -1,5 +1,8 @@
 package production.tilemap;
 
+import production.Data;
+import production.character.Char;
+import production.character.CharRegistry;
 import production.sprite.SpriteAtlas;
 import production.sprite.SpritePalette;
 import production.sprite.SpriteRenderer;
@@ -43,6 +46,22 @@ public final class TileMapLoader {
                             7, paletteId, false, false, true);
                 }
             }
+        }
+
+        /* TODO: The char should know what atlas/palette it uses! */
+        /* TODO: The other thing we really need to do here is check the GameCtx
+        to see if there are any relevant persistent state changes to apply */
+        for (Char c : map.charsByPos.values()) {
+            c.setSpriteHandle(SpritePool.Create(
+                    c.tileX * Data.SPRITE_SIZE,
+                    c.tileY * Data.SPRITE_SIZE,
+                    Data.PLAYER_ATLAS,
+                    0,
+                    1,
+                    Data.MAP_PALETTE,
+                    false,
+                    false,
+                    true));
         }
     }
 }
