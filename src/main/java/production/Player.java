@@ -1,5 +1,7 @@
 package production;
 
+import production.character.Char;
+import production.dialogue.DialogueManager;
 import production.sprite.SpriteAnim;
 import production.sprite.SpriteCamera;
 import production.sprite.SpritePool;
@@ -70,6 +72,16 @@ public final class Player {
                 queuedDX = 0;
                 queuedDY = 0;
                 return;
+            }
+        }
+
+        /* check if we arrived at a pending talk target */
+        if (path != null && pathIndex >= path.size()) {
+            clearPath();
+
+            if (DialogueManager.hasPendingTarget()) {
+                Char target = DialogueManager.getPendingTarget();
+                DialogueManager.start(target, target.dialogueRoot);
             }
         }
 

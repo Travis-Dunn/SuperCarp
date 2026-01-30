@@ -1,5 +1,6 @@
 package production.character;
 
+import production.dialogue.DialogueNode;
 import production.sprite.SpriteAnim;
 import production.sprite.SpriteAnimDef;
 import production.sprite.SpriteAnimSys;
@@ -18,6 +19,8 @@ public final class Char {
     public final short frameDurMs[];
     public final boolean loops[];
     public final int animCount;
+
+    public DialogueNode dialogueRoot;
 
     Char(String name, String displayName, short atlasIndices[][]
             , short frameDurMs[], boolean loops[]) {

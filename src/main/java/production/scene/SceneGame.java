@@ -1,6 +1,7 @@
 package production.scene;
 
 import production.Data;
+import production.dialogue.DialogueManager;
 import whitetail.event.Event;
 import whitetail.event.EventType;
 import whitetail.event.MouseEvent;
@@ -51,6 +52,12 @@ public class SceneGame extends Scene {
             mouseEvent = (MouseEvent) e;
 
             if (mouseEvent.button != 0) return false;
+
+            int fbX = (mouseEvent.x * Data.FB_W) / Data.WINDOW_W;
+            int fbY = ((Data.WINDOW_H - mouseEvent.y) * Data.FB_H) / Data.WINDOW_H;
+            if (DialogueManager.handleClick(fbX, fbY)) {
+                return true;
+            }
 
             Data.cursor.handleMouseClick(mouseEvent.x, mouseEvent.y);
             return true;

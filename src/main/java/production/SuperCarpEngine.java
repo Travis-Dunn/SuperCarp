@@ -3,6 +3,8 @@ package production;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import production.character.CharRegistry;
+import production.dialogue.DialogueManager;
+import production.dialogue.warehouse.BilboDialogue;
 import production.monster.MonsterRegistry;
 import production.monster.MonsterSpawn;
 import production.save.SaveData;
@@ -24,6 +26,7 @@ import whitetail.scene.SceneManager;
 import whitetail.scene.SceneType;
 import whitetail.utility.FramerateManager;
 
+import static production.ui.UIRenderer.DrawRectWithBorder;
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
 
 public class SuperCarpEngine extends GameEngine implements EventListener {
@@ -146,6 +149,9 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         ChatBox.Init(Data.fontAtlas);
         ChatBox.AddMsg("Welcome to SuperCarp.");
 
+        DialogueManager.Init(Data.fontAtlas, Data.sp);
+        CharRegistry.BILBO.dialogueRoot = BilboDialogue.GREETING;
+
         return true;
     }
 
@@ -171,6 +177,11 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
             if (button >= 0) {  // -1 means mouse move, no button
                 int x = Mouse.getEventX();
                 int y = Mouse.getEventY();
+
+                /* Lord forgive me for this nonsense */
+                Data.screenMouseX = x;
+                Data.screenMouseY = y;
+
                 EventType eventType = buttonDown ? EventType.MOUSE_DOWN : EventType.MOUSE_UP;
                 MouseEvent mouseEvent = new MouseEvent(eventType, x, y, button);
                 eventManager.fireEvent(mouseEvent);
@@ -211,7 +222,17 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         Player.Render();
         SpriteRenderer.RenderNew();
 
-        ChatBox.Draw();
+        if (DialogueManager.isActive()) {
+            // need mouse position in FB coords for hover effects
+
+            int fbX = (Data.screenMouseX * Data.FB_W) / Data.WINDOW_W;
+            int fbY = ((Data.WINDOW_H - Data.screenMouseY) * Data.FB_H) / Data.WINDOW_H;
+            DialogueManager.draw(SpriteRenderer.GetFramebuffer(),
+                    Data.FB_W, Data.FB_H, fbX, fbY);
+        } else {
+            ChatBox.Draw();
+        }
+
 
         SpriteBackend.Present(SpriteRenderer.GetFramebuffer());
         window.swapBuffers();

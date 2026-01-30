@@ -69,4 +69,7 @@ public final class Data {
     public static int clearColor = BLACK;
 
     public static FontAtlas fontAtlas;
+
+    public static int screenMouseX;
+    public static int screenMouseY;
 }

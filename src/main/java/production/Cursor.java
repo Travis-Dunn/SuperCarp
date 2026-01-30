@@ -1,6 +1,7 @@
 package production;
 
 import production.character.Char;
+import production.dialogue.DialogueManager;
 import production.sprite.SpriteCamera;
 import production.tilemap.Tile;
 import production.tilemap.TileMap;
@@ -83,10 +84,12 @@ public final class Cursor {
                 ChatBox.AddMsg("Already next to " + c.displayName);
             }
             /* TODO: initiate dialogue */
+            DialogueManager.start(c, c.dialogueRoot);
             return;
         }
 
         Player.setPath(path);
+        DialogueManager.setPendingTarget(c);
         /* TODO: store talk target for dialogue on arrival */
     }
 
