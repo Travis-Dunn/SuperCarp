@@ -21,8 +21,19 @@ public final class Data {
     public static final int PLAYER_ATLAS = 1;
     public static final int MAP_PALETTE = 0;
     public static final int BLACK = 0xFF160D13;
-    public static final int FB_W = 320;
-    public static final int FB_H = 240;
+    /**
+     * This combo of framebuffer size and pixel scale yields a 1920x1080 window.
+     * TODO: make a module that reads monitor settings and sets framebuffer,
+     * pixel scale, and window resolution appropriately. This will need to take
+     * setting such as 'fullscreen' into account. These will be read from the
+     * config file, which will be editable via in game menus in the future.
+     *
+     * We also want to render the game viewport to a subsection of the window,
+     * since there is no need to draw it underneath all the ui. This means the
+     * introduction of a few new variables.
+     */
+    public static final int FB_W = 480;
+    public static final int FB_H = 270;
     public static final int PIXEL_SCALE = 4;
     public static final int WINDOW_W = PIXEL_SCALE * FB_W;
     public static final int WINDOW_H = PIXEL_SCALE * FB_H;

@@ -34,7 +34,7 @@ public class EntryPoint {
         }
 
         if (!engine.initSecondHalf("SuperCarp dev build", Data.WINDOW_W, Data.WINDOW_H,
-                0, true, false, 0.6)) {
+                0, true, true, 0.6)) {
             LogFatalAndExit("Engine failed to init second half");
             return;
         }
