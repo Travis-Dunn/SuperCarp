@@ -94,6 +94,12 @@ public final class SpriteSys {
         return fbHeight;
     }
 
+    public static byte[] GetFramebuffer() {
+        assert(init);
+
+        return SpriteRenderer.framebuffer;
+    }
+
     public static final String CLASS = SpriteSys.class.getSimpleName();
     private static String ErrStrCapOutOfBounds(int c) {
         return String.format("%s defaulted to [%d] capacity because an " +

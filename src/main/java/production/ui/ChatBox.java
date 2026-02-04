@@ -3,6 +3,7 @@ package production.ui;
 import production.Data;
 import production.DisplayConfig;
 import production.sprite.SpriteRenderer;
+import production.sprite.SpriteSys;
 
 /**
  * Simple chat box that displays the last N messages.
@@ -65,7 +66,7 @@ public final class ChatBox {
     public static void Draw() {
         if (font == null) return;
 
-        byte[] fb = SpriteRenderer.GetFramebuffer();
+        byte[] fb = SpriteSys.GetFramebuffer();
         int fbW = DisplayConfig.GetEmulatedW();
         int fbH = DisplayConfig.GetEmulatedH();
 

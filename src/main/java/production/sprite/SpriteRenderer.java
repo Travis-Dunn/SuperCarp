@@ -11,7 +11,7 @@ public final class SpriteRenderer {
     private static boolean init;
 
     private static SpriteCamera cam;
-    private static byte[] framebuffer;
+    static byte[] framebuffer;
 
     private static final int MAX_LAYERS = 8;
     private static short[][] handlesByLayerArr;
@@ -218,12 +218,6 @@ public final class SpriteRenderer {
                 framebuffer[fbIdx + 3] = (byte)0xFF;                    /* A */
             }
         }
-    }
-
-    public static byte[] GetFramebuffer() {
-        assert(init);
-
-        return framebuffer;
     }
 
     public static void SetCamera(SpriteCamera camera) {

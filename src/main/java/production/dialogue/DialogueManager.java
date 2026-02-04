@@ -219,7 +219,7 @@ public final class DialogueManager {
 
             /* draw highlight if hovered */
             if (hovered) {
-                UIRenderer.DrawRect(fb, fbW, fbH,
+                UIRenderer.DrawRect(fbW, fbH,
                         boxX + 1, y, boxW - 2, OPTION_HEIGHT,
                         OPTION_HOVER_COLOR, palette);
             }

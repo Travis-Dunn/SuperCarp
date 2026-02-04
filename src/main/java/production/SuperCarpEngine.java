@@ -156,7 +156,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         DialogueManager.Init(Data.fontAtlas, Data.sp);
         CharRegistry.BILBO.dialogueRoot = BilboDialogue.GREETING;
 
-        UIRenderer.Init(Data.BPP);
+        UIRenderer.Init(Data.BPP, SpriteSys.GetFramebuffer());
 
         return true;
     }
@@ -235,7 +235,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
                     / DisplayConfig.GetWindowW();
             int fbY = ((DisplayConfig.GetWindowH() - Data.screenMouseY)
                     * DisplayConfig.GetEmulatedH()) / DisplayConfig.GetWindowH();
-            DialogueManager.draw(SpriteRenderer.GetFramebuffer(),
+            DialogueManager.draw(SpriteSys.GetFramebuffer(),
                     DisplayConfig.GetEmulatedW(), DisplayConfig.GetEmulatedH(),
                     fbX, fbY);
         } else {
@@ -243,7 +243,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         }
 
 
-        SpriteBackend.Present(SpriteRenderer.GetFramebuffer());
+        SpriteBackend.Present(SpriteSys.GetFramebuffer());
         window.swapBuffers();
     }
 

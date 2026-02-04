@@ -14,10 +14,11 @@ public final class UIRenderer {
     private static boolean init;
 
     private static int bpp;
+    private static byte buf[];
 
     private UIRenderer() {}
 
-    public static boolean Init(int bpp) {
+    public static boolean Init(int bpp, byte buf[]) {
         assert(!init);
 
         LogSession(LogLevel.DEBUG, CLASS + " initializing...\n");
@@ -29,6 +30,13 @@ public final class UIRenderer {
             UIRenderer.bpp = bpp;
         }
 
+        if (buf == null) {
+            LogFatalAndExit(ErrStrFailedInitBufNull());
+            return init = false;
+        } else {
+            UIRenderer.buf = buf;
+        }
+
         LogSession(LogLevel.DEBUG, ErrStrInit());
 
         return init = true;
@@ -37,7 +45,6 @@ public final class UIRenderer {
     /**
      * Draw a filled rectangle.
      *
-     * @param fb framebuffer (RGBA byte array)
      * @param fbW framebuffer width
      * @param fbH framebuffer height
      * @param x left edge
@@ -47,20 +54,20 @@ public final class UIRenderer {
      * @param paletteIndex color index (0-15)
      * @param palette the palette to use
      */
-    public static void DrawRect(byte[] fb, int fbW, int fbH,
+    public static void DrawRect(int fbW, int fbH,
                                 int x, int y, int w, int h,
                                 int paletteIndex, SpritePalette palette) {
         /* bounds check palette index */
         if (paletteIndex < 0 || paletteIndex > palette.maxIdx) return;
 
         int color = palette.colors[paletteIndex];
-        _DrawRect(fb, fbW, fbH, x, y, w, h, color);
+        _DrawRect(fbW, fbH, x, y, w, h, color);
     }
 
     /**
      * Draw a filled rectangle with raw ARGB color.
      */
-    private static void _DrawRect(byte[] fb, int fbW, int fbH,
+    private static void _DrawRect(int fbW, int fbH,
                                   int x, int y, int w, int h,
                                   int argbColor) {
         /* early rejection */
@@ -83,10 +90,10 @@ public final class UIRenderer {
             int rowOffset = py * fbW * bpp;
             for (int px = x0; px < x1; px++) {
                 int idx = rowOffset + px * bpp;
-                fb[idx]     = r;
-                fb[idx + 1] = g;
-                fb[idx + 2] = b;
-                fb[idx + 3] = a;
+                buf[idx]     = r;
+                buf[idx + 1] = g;
+                buf[idx + 2] = b;
+                buf[idx + 3] = a;
             }
         }
     }
@@ -112,13 +119,13 @@ public final class UIRenderer {
         if (w <= 0 || h <= 0) return;
 
         /* top edge */
-        _DrawRect(fb, fbW, fbH, x, y, w, 1, argbColor);
+        _DrawRect(fbW, fbH, x, y, w, 1, argbColor);
         /* bottom edge */
-        _DrawRect(fb, fbW, fbH, x, y + h - 1, w, 1, argbColor);
+        _DrawRect(fbW, fbH, x, y + h - 1, w, 1, argbColor);
         /* left edge */
-        _DrawRect(fb, fbW, fbH, x, y + 1, 1, h - 2, argbColor);
+        _DrawRect(fbW, fbH, x, y + 1, 1, h - 2, argbColor);
         /* right edge */
-        _DrawRect(fb, fbW, fbH, x + w - 1, y + 1, 1, h - 2, argbColor);
+        _DrawRect(fbW, fbH, x + w - 1, y + 1, 1, h - 2, argbColor);
     }
 
     /**
@@ -128,7 +135,7 @@ public final class UIRenderer {
                                           int x, int y, int w, int h,
                                           int fillIndex, int borderIndex,
                                           SpritePalette palette) {
-        DrawRect(fb, fbW, fbH, x, y, w, h, fillIndex, palette);
+        DrawRect(fbW, fbH, x, y, w, h, fillIndex, palette);
         DrawRectOutline(fb, fbW, fbH, x, y, w, h, borderIndex, palette);
     }
 
@@ -149,5 +156,9 @@ public final class UIRenderer {
     private static String ErrStrInit() {
         return String.format("%s initialized with [%d] bytes per pixel.\n",
                 CLASS, bpp);
+    }
+    private static String ErrStrFailedInitBufNull() {
+        return String.format("%s failed to initialize because buf was null.\n",
+                CLASS);
     }
 }
