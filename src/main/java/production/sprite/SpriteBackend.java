@@ -16,7 +16,7 @@ public final class SpriteBackend {
 
     private static ByteBuffer uploadBuffer;
 
-    private static int bpp;
+    static int bpp;
 
     private SpriteBackend() {}
 

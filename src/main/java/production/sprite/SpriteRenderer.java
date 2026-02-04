@@ -68,6 +68,27 @@ public final class SpriteRenderer {
         }
     }
 
+    public static void ClearViewport(int color) {
+        assert(init);
+
+        byte r = (byte)((color >> 16) & 0xFF);
+        byte g = (byte)((color >> 8) & 0xFF);
+        byte b = (byte)(color & 0xFF);
+        byte a = (byte)((color >> 24) & 0xFF);
+
+        int[] vp = DisplayConfig.GetVP();
+
+        for (int y = vp[1]; y < vp[3]; ++y) {
+            for (int x = vp[0]; x < vp[2]; ++x) {
+                int i = (y * SpriteSys.fbWidth + x) * SpriteBackend.bpp;
+                framebuffer[i] = r;
+                framebuffer[i + 1] = g;
+                framebuffer[i + 2] = b;
+                framebuffer[i + 3] = a;
+            }
+        }
+    }
+
     public static void RenderNew() {
         assert(init);
         assert(cam != null);

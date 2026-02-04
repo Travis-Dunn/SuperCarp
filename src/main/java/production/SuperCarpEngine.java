@@ -13,10 +13,7 @@ import production.scene.SceneGame;
 import production.sprite.*;
 import production.tilemap.TileMapFileParser;
 import production.tilemap.TileMapLoader;
-import production.ui.BitmapRegistry;
-import production.ui.ChatBox;
-import production.ui.FontAtlasFileParser;
-import production.ui.Renderer;
+import production.ui.*;
 import whitetail.audio.AudioCategory;
 import whitetail.audio.AudioContext;
 import whitetail.audio.AudioFileParser;
@@ -159,6 +156,8 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
                 SpriteSys.GetFramebufferHeight());
         BitmapRegistry.Init(Data.sp);
 
+        GameFrame.Init();
+
         return true;
     }
 
@@ -225,8 +224,9 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
     @Override
     protected void onRender() {
         SceneManager.Render();
-        SpriteRenderer.Clear(Data.clearColor);
+        SpriteRenderer.Clear(Data.BLACK);
         Player.Render();
+        SpriteRenderer.ClearViewport(Data.clearColor);
         SpriteRenderer.RenderNew();
 
         if (DialogueManager.isActive()) {
@@ -243,7 +243,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
             ChatBox.Draw();
         }
 
-        Renderer.DrawBitmap(BitmapRegistry.BILBO_PORTRAIT, 50, 50);
+        GameFrame.Draw();
 
         SpriteBackend.Present(SpriteSys.GetFramebuffer());
         window.swapBuffers();
