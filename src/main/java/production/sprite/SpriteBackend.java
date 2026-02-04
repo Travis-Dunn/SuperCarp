@@ -16,20 +16,28 @@ public final class SpriteBackend {
 
     private static ByteBuffer uploadBuffer;
 
-    private static final int BYTES_PER_PIXEL = 4;  // RGBA
+    private static int bpp;
 
     private SpriteBackend() {}
 
-    static boolean Init() {
+    static boolean Init(int bpp) {
         assert(!init);
 
         int glErr;
 
         LogSession(LogLevel.DEBUG, CLASS + " initializing...\n");
 
+        if (bpp < 1) {
+            LogFatalAndExit(ErrStrFailedInitBppTooSmall(bpp));
+            return init = false;
+        } else {
+            SpriteBackend.bpp = bpp;
+        }
+
         try {
             uploadBuffer = BufferUtils.createByteBuffer(
-                    SpriteSys.fbWidth * SpriteSys.fbHeight * BYTES_PER_PIXEL);
+           SpriteSys.fbWidth * SpriteSys.fbHeight *
+                SpriteBackend.bpp);
         } catch (OutOfMemoryError e) {
             LogFatalAndExit(CLASS + ERR_STR_FAILED_INIT_OOM);
             return init = false;
@@ -112,7 +120,8 @@ public final class SpriteBackend {
     public static void Present(byte[] framebuffer) {
         assert(init);
         assert(framebuffer != null);
-        assert(framebuffer.length == SpriteSys.fbWidth * SpriteSys.fbHeight * BYTES_PER_PIXEL);
+        assert(framebuffer.length == SpriteSys.fbWidth *
+                SpriteSys.fbHeight * bpp);
 
         uploadBuffer.clear();
         uploadBuffer.put(framebuffer);
@@ -129,7 +138,8 @@ public final class SpriteBackend {
     public static void Present(ByteBuffer framebuffer) {
         assert(init);
         assert(framebuffer != null);
-        assert(framebuffer.remaining() >= SpriteSys.fbWidth * SpriteSys.fbHeight * BYTES_PER_PIXEL);
+        assert(framebuffer.remaining() >= SpriteSys.fbWidth *
+                SpriteSys.fbHeight * bpp);
 
         /* upload texture data */
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, SpriteSys.texID);
@@ -259,4 +269,9 @@ public final class SpriteBackend {
     private static final String ERR_STR_TEX_ID_ZERO = CLASS +
             " shutdown called but texID was already 0. This may indicate " +
             "Init() failed or Shutdown() was called twice.\n";
+
+    private static String ErrStrFailedInitBppTooSmall(int bpp) {
+        return String.format("%s failed to initialize because bpp [%d] must " +
+                "be at least 1", CLASS, bpp);
+    }
 }

@@ -17,6 +17,7 @@ import production.tilemap.TileMapLoader;
 import production.ui.ChatBox;
 import production.ui.FontAtlasFileParser;
 import production.ui.TextRenderer;
+import production.ui.UIRenderer;
 import whitetail.audio.AudioCategory;
 import whitetail.audio.AudioContext;
 import whitetail.audio.AudioFileParser;
@@ -38,7 +39,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         eventManager.addEventListener(this);
 
         if (!SpriteSys.Init(Data.SPRITE_SYS_CAP, DisplayConfig.GetEmulatedW(),
-                DisplayConfig.GetEmulatedH())) {
+                DisplayConfig.GetEmulatedH(), Data.BPP)) {
             LogFatalAndExit(ERR_STR_FAILED_INIT_SPRITE_SYS);
             return false;
         }
@@ -154,6 +155,8 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
 
         DialogueManager.Init(Data.fontAtlas, Data.sp);
         CharRegistry.BILBO.dialogueRoot = BilboDialogue.GREETING;
+
+        UIRenderer.Init(Data.BPP);
 
         return true;
     }

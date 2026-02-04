@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public final class Data {
+    public static final int BPP = 4;
     /* game attribs */
     public static final int SPRITE_SIZE = 16;
     public static final int MAP_ATLAS = 0;

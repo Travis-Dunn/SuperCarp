@@ -1,16 +1,38 @@
 package production.ui;
 
 import production.sprite.SpritePalette;
+import whitetail.utility.logging.LogLevel;
+
+import static whitetail.utility.ErrorHandler.LogFatalAndExit;
+import static whitetail.utility.logging.Logger.LogSession;
 
 /**
  * Immediate-mode UI rendering utilities.
  * All methods draw directly to the framebuffer - nothing persists between frames.
  */
 public final class UIRenderer {
+    private static boolean init;
 
-    private static final int BYTES_PER_PIXEL = 4;  // RGBA
+    private static int bpp;
 
     private UIRenderer() {}
+
+    public static boolean Init(int bpp) {
+        assert(!init);
+
+        LogSession(LogLevel.DEBUG, CLASS + " initializing...\n");
+
+        if (bpp < 1) {
+            LogFatalAndExit(ErrStrFailedInitBppTooSmall(bpp));
+            return init = false;
+        } else {
+            UIRenderer.bpp = bpp;
+        }
+
+        LogSession(LogLevel.DEBUG, ErrStrInit());
+
+        return init = true;
+    }
 
     /**
      * Draw a filled rectangle.
@@ -58,9 +80,9 @@ public final class UIRenderer {
         byte a = (byte)((argbColor >> 24) & 0xFF);
 
         for (int py = y0; py < y1; py++) {
-            int rowOffset = py * fbW * BYTES_PER_PIXEL;
+            int rowOffset = py * fbW * bpp;
             for (int px = x0; px < x1; px++) {
-                int idx = rowOffset + px * BYTES_PER_PIXEL;
+                int idx = rowOffset + px * bpp;
                 fb[idx]     = r;
                 fb[idx + 1] = g;
                 fb[idx + 2] = b;
@@ -120,4 +142,12 @@ public final class UIRenderer {
     }
 
     public static final String CLASS = UIRenderer.class.getSimpleName();
+    private static String ErrStrFailedInitBppTooSmall(int bpp) {
+        return String.format("%s failed to initialize because bpp [%d] must " +
+                "be at least 1", CLASS, bpp);
+    }
+    private static String ErrStrInit() {
+        return String.format("%s initialized with [%d] bytes per pixel.\n",
+                CLASS, bpp);
+    }
 }

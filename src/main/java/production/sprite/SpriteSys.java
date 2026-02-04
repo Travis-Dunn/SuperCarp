@@ -15,7 +15,7 @@ public final class SpriteSys {
     public static final int MIN_CAP = 1;
     static int texID;
 
-    public static boolean Init(int cap, int fbWidth, int fbHeight) {
+    public static boolean Init(int cap, int fbWidth, int fbHeight, int bpp) {
         assert(!init);
 
         LogSession(LogLevel.DEBUG, CLASS + " initializing...\n");
@@ -45,7 +45,7 @@ public final class SpriteSys {
             LogFatalAndExit(ERR_STR_FAILED_INIT_POOL);
             return init = false;
         }
-        if (!SpriteBackend.Init()) {
+        if (!SpriteBackend.Init(bpp)) {
             LogFatalAndExit(ERR_STR_FAILED_INIT_BACKEND);
             return init = false;
         }
