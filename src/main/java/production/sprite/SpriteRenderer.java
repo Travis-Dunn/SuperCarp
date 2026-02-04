@@ -1,5 +1,6 @@
 package production.sprite;
 
+import production.DisplayConfig;
 import whitetail.utility.logging.LogLevel;
 
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
@@ -120,7 +121,7 @@ public final class SpriteRenderer {
         }
     }
 
-    private static void blitSprite(int screenX, int screenY,
+    private static void blitSpriteOld(int screenX, int screenY,
                                    int atlasX, int atlasY, int size,
                                    byte[] atlasPixels, int atlasWidth,
                                    int[] palette,
@@ -136,6 +137,58 @@ public final class SpriteRenderer {
         int y0 = Math.max(screenY, 0);
         int x1 = Math.min(screenX + size, SpriteSys.fbWidth);
         int y1 = Math.min(screenY + size, SpriteSys.fbHeight);
+
+        int srcX, srcY, texelIdx, color, fbIdx;
+        int fbRowOffset, atlasRowOffset;
+
+        for (int y = y0; y < y1; ++y) {
+            fbRowOffset = y * SpriteSys.fbWidth * BYTES_PER_PIXEL;
+
+            srcY = y - screenY;
+            if (flipV) srcY = (size - 1) - srcY;
+            atlasRowOffset = (atlasY + srcY) * atlasWidth;
+
+            for (int x = x0; x < x1; ++x) {
+                srcX = x - screenX;
+                if (flipH) srcX = (size - 1) - srcX;
+
+                texelIdx = atlasPixels[atlasRowOffset + atlasX + srcX] & 0xFF;
+
+                /* alpha test: index 0 = transparent */
+                if (texelIdx == SpritePalette.TRANSPARENT_IDX) continue;
+
+                color = palette[texelIdx];
+                fbIdx = fbRowOffset + x * BYTES_PER_PIXEL;
+
+                framebuffer[fbIdx]     = (byte)((color >> 16) & 0xFF);  /* R */
+                framebuffer[fbIdx + 1] = (byte)((color >> 8) & 0xFF);   /* G */
+                framebuffer[fbIdx + 2] = (byte)(color & 0xFF);          /* B */
+                framebuffer[fbIdx + 3] = (byte)0xFF;                    /* A */
+            }
+        }
+    }
+
+    private static void blitSprite(int screenX, int screenY,
+                                   int atlasX, int atlasY, int size,
+                                   byte[] atlasPixels, int atlasWidth,
+                                   int[] palette,
+                                   boolean flipH, boolean flipV) {
+        screenX += DisplayConfig.GetViewportX();
+        screenY += DisplayConfig.GetViewportY();
+
+        /* early rejection: entirely off-screen */
+        if (screenX + size <= DisplayConfig.GetViewportX() ||
+                screenX >= DisplayConfig.GetViewportX() + DisplayConfig.GetViewportW() ||
+                screenY + size <= DisplayConfig.GetViewportY() ||
+                screenY >= DisplayConfig.GetViewportY() + DisplayConfig.GetViewportH()) {
+            return;
+        }
+
+        /* clip to screen bounds */
+        int x0 = Math.max(screenX, DisplayConfig.GetViewportX());
+        int y0 = Math.max(screenY, DisplayConfig.GetViewportY());
+        int x1 = Math.min(screenX + size, DisplayConfig.GetViewportX() + DisplayConfig.GetViewportW());
+        int y1 = Math.min(screenY + size, DisplayConfig.GetViewportY() + DisplayConfig.GetViewportH());
 
         int srcX, srcY, texelIdx, color, fbIdx;
         int fbRowOffset, atlasRowOffset;

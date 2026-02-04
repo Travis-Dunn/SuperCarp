@@ -1,6 +1,7 @@
 package production.scene;
 
 import production.Data;
+import production.DisplayConfig;
 import production.dialogue.DialogueManager;
 import whitetail.event.Event;
 import whitetail.event.EventType;
@@ -53,8 +54,9 @@ public class SceneGame extends Scene {
 
             if (mouseEvent.button != 0) return false;
 
-            int fbX = (mouseEvent.x * Data.FB_W) / Data.WINDOW_W;
-            int fbY = ((Data.WINDOW_H - mouseEvent.y) * Data.FB_H) / Data.WINDOW_H;
+            int fbX = (mouseEvent.x * DisplayConfig.GetEmulatedW()) / DisplayConfig.GetWindowW();
+            int fbY = ((DisplayConfig.GetWindowH() - mouseEvent.y) *
+                    DisplayConfig.GetEmulatedH()) / DisplayConfig.GetWindowH();
             if (DialogueManager.handleClick(fbX, fbY)) {
                 return true;
             }

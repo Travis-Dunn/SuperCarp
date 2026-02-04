@@ -33,8 +33,14 @@ public class EntryPoint {
                     ERR_STR_FAILED_POPULATE_FROM_CFG);
         }
 
-        if (!engine.initSecondHalf("SuperCarp dev build", Data.WINDOW_W, Data.WINDOW_H,
-                0, true, false, 0.6)) {
+        if (!DisplayConfig.Init(false, 3, 0,
+                0, 1440, 810)) {
+            LogFatalAndExit(ERR_STR_FAILED_DISPLAY_CONFIG);
+        }
+
+        if (!engine.initSecondHalf("SuperCarp dev build",
+                DisplayConfig.GetWindowW(), DisplayConfig.GetWindowH(),
+                0, true, DisplayConfig.IsFullscreen(), 0.6)) {
             LogFatalAndExit("Engine failed to init second half");
             return;
         }
@@ -79,4 +85,7 @@ public class EntryPoint {
             "set up config file, using defaults.\n";
     private static final String ERR_STR_FAILED_POPULATE_FROM_CFG = " failed " +
             "to populate engine variables from config file, using defaults.\n";
+    private static final String ERR_STR_FAILED_DISPLAY_CONFIG = CLASS +
+            " failed because " + DisplayConfig.CLASS + " failed to " +
+            "initialize.\n";
 }

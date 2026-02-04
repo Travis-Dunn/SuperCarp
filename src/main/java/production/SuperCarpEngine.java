@@ -37,13 +37,15 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
     protected boolean onInit() {
         eventManager.addEventListener(this);
 
-        if (!SpriteSys.Init(Data.SPRITE_SYS_CAP, Data.FB_W, Data.FB_H)) {
+        if (!SpriteSys.Init(Data.SPRITE_SYS_CAP, DisplayConfig.GetEmulatedW(),
+                DisplayConfig.GetEmulatedH())) {
             LogFatalAndExit(ERR_STR_FAILED_INIT_SPRITE_SYS);
             return false;
         }
 
         Data.sCam = new SpriteCamera();
-        Data.sCam.init(Data.FB_W, Data.FB_H, Data.SPRITE_SIZE);
+        Data.sCam.init(DisplayConfig.GetViewportW(),
+                DisplayConfig.GetViewportH(), Data.SPRITE_SIZE);
         SpriteRenderer.SetCamera(Data.sCam);
 
         Data.sp = SpritePaletteFileParser.FromFile(Data.TEST_PALETTE_FILENAME);
@@ -114,7 +116,8 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         }
 
         Data.cursor = new Cursor(Data.sCam, Data.tileMap, Data.SPRITE_SIZE,
-                Data.WINDOW_W, Data.WINDOW_H, Data.FB_W, Data.FB_H);
+                DisplayConfig.GetWindowW(), DisplayConfig.GetWindowH(),
+                DisplayConfig.GetEmulatedW(), DisplayConfig.GetEmulatedH());
 
         /* audio */
         Data.testMusicBuf = AudioFileParser.FromFile(
@@ -225,10 +228,13 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         if (DialogueManager.isActive()) {
             // need mouse position in FB coords for hover effects
 
-            int fbX = (Data.screenMouseX * Data.FB_W) / Data.WINDOW_W;
-            int fbY = ((Data.WINDOW_H - Data.screenMouseY) * Data.FB_H) / Data.WINDOW_H;
+            int fbX = (Data.screenMouseX * DisplayConfig.GetEmulatedW())
+                    / DisplayConfig.GetWindowW();
+            int fbY = ((DisplayConfig.GetWindowH() - Data.screenMouseY)
+                    * DisplayConfig.GetEmulatedH()) / DisplayConfig.GetWindowH();
             DialogueManager.draw(SpriteRenderer.GetFramebuffer(),
-                    Data.FB_W, Data.FB_H, fbX, fbY);
+                    DisplayConfig.GetEmulatedW(), DisplayConfig.GetEmulatedH(),
+                    fbX, fbY);
         } else {
             ChatBox.Draw();
         }

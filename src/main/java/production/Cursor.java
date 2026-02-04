@@ -36,8 +36,13 @@ public final class Cursor {
     }
 
     public void handleMouseClick(int sx, int sy) {
+        /*
         int fbX = (sx * fbWidth) / windowWidth;
         int fbY = ((windowHeight - sy) * fbHeight) / windowHeight;
+        */
+        // Convert window coords to framebuffer coords
+        int fbX = DisplayConfig.windowToFbX(sx);
+        int fbY = DisplayConfig.windowToFbY(sy);
 
         if (inViewport(fbX, fbY)) {
             handleViewportClick(fbX, fbY);
@@ -47,13 +52,15 @@ public final class Cursor {
     }
 
     private boolean inViewport(int x, int y) {
-        /* TODO: When we actually have UI, we'll need to do something here */
-        return true;
+        return DisplayConfig.isInViewport(x, y);
     }
 
     private void handleViewportClick(int x, int y) {
-        int tileX = cam.screenToTileX(x, tileSize);
-        int tileY = cam.screenToTileY(y, tileSize);
+        // Convert to viewport-relative coords for camera
+        int vpX = DisplayConfig.fbToVpX(x);
+        int vpY = DisplayConfig.fbToVpY(y);
+        int tileX = cam.screenToTileX(vpX, tileSize);
+        int tileY = cam.screenToTileY(vpY, tileSize);
 
         Char c = map.getCharAt(tileX, tileY);
         if (c != null) {

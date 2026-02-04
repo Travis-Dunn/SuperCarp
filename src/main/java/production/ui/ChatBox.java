@@ -1,6 +1,7 @@
 package production.ui;
 
 import production.Data;
+import production.DisplayConfig;
 import production.sprite.SpriteRenderer;
 
 /**
@@ -18,7 +19,7 @@ public final class ChatBox {
 
     /* hard-coded position - bottom-left of screen */
     private static final int X = 4;
-    private static final int Y_BOTTOM = Data.FB_H - 4;  // 4px from bottom
+    private static final int Y_BOTTOM = DisplayConfig.GetEmulatedH() - 4;  // 4px from bottom
 
     private ChatBox() {}
 
@@ -65,8 +66,8 @@ public final class ChatBox {
         if (font == null) return;
 
         byte[] fb = SpriteRenderer.GetFramebuffer();
-        int fbW = Data.FB_W;
-        int fbH = Data.FB_H;
+        int fbW = DisplayConfig.GetEmulatedW();
+        int fbH = DisplayConfig.GetEmulatedH();
 
         /* calculate Y position for topmost line */
         int lineHeight = font.lineHeight;

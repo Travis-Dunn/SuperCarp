@@ -32,11 +32,6 @@ public final class Data {
      * since there is no need to draw it underneath all the ui. This means the
      * introduction of a few new variables.
      */
-    public static final int FB_W = 320;
-    public static final int FB_H = 240;
-    public static final int PIXEL_SCALE = 4;
-    public static final int WINDOW_W = PIXEL_SCALE * FB_W;
-    public static final int WINDOW_H = PIXEL_SCALE * FB_H;
     public static final int SPRITE_SYS_CAP = 2048;
     public static final String TEST_ATLAS_FILENAME = "test_atlas.png";
     public static final String TEST_PALETTE_FILENAME = "mystic-16-mod-17.png";
