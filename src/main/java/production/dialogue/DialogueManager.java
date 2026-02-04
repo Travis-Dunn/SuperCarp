@@ -1,12 +1,11 @@
 package production.dialogue;
 
-import production.Data;
 import production.Player;
 import production.character.Char;
 import production.sprite.SpritePalette;
 import production.ui.FontAtlas;
 import production.ui.TextRenderer;
-import production.ui.UIRenderer;
+import production.ui.Renderer;
 
 /**
  * Manages dialogue state and rendering.
@@ -167,8 +166,7 @@ public final class DialogueManager {
         }
 
         /* draw background */
-        UIRenderer.DrawRectWithBorder(fb, fbW, fbH,
-                boxX, boxY, boxW, boxH,
+        Renderer.DrawRectWithBorder(boxX, boxY, boxW, boxH,
                 BG_COLOR, BORDER_COLOR, palette);
 
         int textX = boxX + TEXT_PADDING;
@@ -219,8 +217,7 @@ public final class DialogueManager {
 
             /* draw highlight if hovered */
             if (hovered) {
-                UIRenderer.DrawRect(fbW, fbH,
-                        boxX + 1, y, boxW - 2, OPTION_HEIGHT,
+                Renderer.DrawRect(boxX + 1, y, boxW - 2, OPTION_HEIGHT,
                         OPTION_HOVER_COLOR, palette);
             }
 
@@ -240,7 +237,7 @@ public final class DialogueManager {
         if (!isActive()) return false;
 
         /* check if click is in dialogue box */
-        if (!UIRenderer.pointInRect(fbX, fbY, boxX, boxY, boxW, boxH)) {
+        if (!Renderer.pointInRect(fbX, fbY, boxX, boxY, boxW, boxH)) {
             return false;  /* click outside box - could end dialogue or ignore */
         }
 

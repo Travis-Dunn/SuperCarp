@@ -10,14 +10,12 @@ import production.monster.MonsterSpawn;
 import production.save.SaveData;
 import production.save.SaveManager;
 import production.scene.SceneGame;
-import production.script.Scripts;
 import production.sprite.*;
 import production.tilemap.TileMapFileParser;
 import production.tilemap.TileMapLoader;
 import production.ui.ChatBox;
 import production.ui.FontAtlasFileParser;
-import production.ui.TextRenderer;
-import production.ui.UIRenderer;
+import production.ui.Renderer;
 import whitetail.audio.AudioCategory;
 import whitetail.audio.AudioContext;
 import whitetail.audio.AudioFileParser;
@@ -27,7 +25,6 @@ import whitetail.scene.SceneManager;
 import whitetail.scene.SceneType;
 import whitetail.utility.FramerateManager;
 
-import static production.ui.UIRenderer.DrawRectWithBorder;
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
 
 public class SuperCarpEngine extends GameEngine implements EventListener {
@@ -156,7 +153,9 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         DialogueManager.Init(Data.fontAtlas, Data.sp);
         CharRegistry.BILBO.dialogueRoot = BilboDialogue.GREETING;
 
-        UIRenderer.Init(Data.BPP, SpriteSys.GetFramebuffer());
+        Renderer.Init(Data.BPP, SpriteSys.GetFramebuffer(),
+                SpriteSys.GetFramebufferWidth(),
+                SpriteSys.GetFramebufferHeight());
 
         return true;
     }
