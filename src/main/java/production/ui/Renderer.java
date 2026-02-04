@@ -159,6 +159,59 @@ public final class Renderer {
         return px >= rx && px < rx + rw && py >= ry && py < ry + rh;
     }
 
+    /**
+     * Draw a Bitmap at the specified position.
+     * Transparent pixels (index 0) are skipped.
+     *
+     * @param bitmap the bitmap to draw
+     * @param x left edge
+     * @param y top edge
+     */
+    public static void DrawBitmap(Bitmap bitmap, int x, int y) {
+        assert(init);
+        assert(bitmap != null);
+
+        int w = bitmap.width;
+        int h = bitmap.height;
+
+        /* early rejection */
+        if (x + w <= 0 || x >= fbW) return;
+        if (y + h <= 0 || y >= fbH) return;
+
+        /* clip to screen */
+        int x0 = Math.max(x, 0);
+        int y0 = Math.max(y, 0);
+        int x1 = Math.min(x + w, fbW);
+        int y1 = Math.min(y + h, fbH);
+
+        byte[] pixels = bitmap.data;
+        int[] palette = bitmap.getPalette().colors;
+
+        int srcX, texelIdx, color, fbIdx;
+        int fbRowOffset, srcRowOffset;
+
+        for (int py = y0; py < y1; ++py) {
+            fbRowOffset = py * fbW * bpp;
+            srcRowOffset = (py - y) * w;
+
+            for (int px = x0; px < x1; ++px) {
+                srcX = px - x;
+                texelIdx = pixels[srcRowOffset + srcX] & 0xFF;
+
+                /* transparency check */
+                if (texelIdx == 0) continue;
+
+                color = palette[texelIdx];
+                fbIdx = fbRowOffset + px * bpp;
+
+                buf[fbIdx]     = (byte)((color >> 16) & 0xFF);  /* R */
+                buf[fbIdx + 1] = (byte)((color >> 8) & 0xFF);   /* G */
+                buf[fbIdx + 2] = (byte)(color & 0xFF);          /* B */
+                buf[fbIdx + 3] = (byte)((color >> 24) & 0xFF);  /* A */
+            }
+        }
+    }
+
     public static final String CLASS = Renderer.class.getSimpleName();
     private static String ErrStrFailedInitValTooSmall(String s, int i) {
         return String.format("%s failed to initialize because [%s] [%d] must " +

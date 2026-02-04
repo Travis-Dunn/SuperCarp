@@ -13,6 +13,7 @@ import production.scene.SceneGame;
 import production.sprite.*;
 import production.tilemap.TileMapFileParser;
 import production.tilemap.TileMapLoader;
+import production.ui.BitmapRegistry;
 import production.ui.ChatBox;
 import production.ui.FontAtlasFileParser;
 import production.ui.Renderer;
@@ -156,6 +157,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         Renderer.Init(Data.BPP, SpriteSys.GetFramebuffer(),
                 SpriteSys.GetFramebufferWidth(),
                 SpriteSys.GetFramebufferHeight());
+        BitmapRegistry.Init(Data.sp);
 
         return true;
     }
@@ -241,6 +243,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
             ChatBox.Draw();
         }
 
+        Renderer.DrawBitmap(BitmapRegistry.BILBO_PORTRAIT, 50, 50);
 
         SpriteBackend.Present(SpriteSys.GetFramebuffer());
         window.swapBuffers();
