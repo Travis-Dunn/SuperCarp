@@ -107,6 +107,7 @@ public abstract class GameEngine {
             /* if true, fps must be 0, if false fps may or may not be 0 */
             boolean vSync,
             boolean windowed,
+            boolean undecorated,
             double tickDur) {
         assert(initFirstHalf);
         assert(!initSecondHalf);
@@ -126,7 +127,7 @@ public abstract class GameEngine {
                 winHeight = DEFAULT_WIN_HEIGHT;
             }
             if (!(window = new Window()).init(winTitle, winWidth, winHeight,
-                    vSync, windowed)) {
+                    vSync, windowed, undecorated)) {
                 LogFatalAndExit(ERR_STR_FAILED_INIT_WINDOW);
                 return initSecondHalf = false;
             }

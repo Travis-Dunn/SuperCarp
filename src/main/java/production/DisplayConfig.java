@@ -22,6 +22,7 @@ public final class DisplayConfig {
     /* Ratio of display pixels to emulated pixels */
     private static int iPixelScale;
     private static boolean bFullscreen;
+    private static boolean bBorderless;
     private static final int VP_TLX = 4;
     private static final int VP_TLY = 4;
     private static int vp[];
@@ -47,6 +48,7 @@ public final class DisplayConfig {
      */
     public static boolean Init(
             boolean bFullscreen,
+            boolean bBorderless,
             int iPixelScale,
             int emulatedW,
             int emulatedH,
@@ -89,6 +91,7 @@ public final class DisplayConfig {
         vp[1] = VP_TLY;
 
         DisplayConfig.bFullscreen = bFullscreen;
+        DisplayConfig.bBorderless = bBorderless;
 
         if (bFullscreen && windowW == 0 && windowH == 0) {
             if (emulatedW == 0 && emulatedH == 0 && iPixelScale != 0) {
@@ -256,6 +259,7 @@ public final class DisplayConfig {
     public static int GetEmulatedH()    { assert(init); return emulatedH; }
     public static int GetPixelScale()   { assert(init); return iPixelScale; }
     public static boolean IsFullscreen(){ assert(init); return bFullscreen; }
+    public static boolean IsBorderless(){ assert(init); return bBorderless; }
     public static int GetViewportW()    { assert(init); return viewportW; }
     public static int GetViewportH()    { assert(init); return viewportH; }
     public static int GetViewportX()    { assert(init); return VP_TLX; }
@@ -269,7 +273,8 @@ public final class DisplayConfig {
                 "emulated width [%d], emulated height [%d], " +
                 "viewport width [%d], viewport height [%d], " +
                 "pixel scale [%d], and " +
-                (bFullscreen ? "full screen" : "windowed") + " mode.\n",CLASS,
+                (bFullscreen ? "full screen" : "windowed") + " mode." +
+                (bBorderless ? "borderless" : "decorated") + " mode.\n", CLASS,
                 displayW, displayH, windowW, windowH, emulatedW, emulatedH,
                 viewportW, viewportH, iPixelScale);
     }

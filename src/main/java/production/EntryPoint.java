@@ -33,19 +33,20 @@ public class EntryPoint {
                     ERR_STR_FAILED_POPULATE_FROM_CFG);
         }
 
-        if (!DisplayConfig.Init(false, 3, 0,
-                0, 1440, 810)) {
+        if (!DisplayConfig.Init(CFGData.bFullscreen, CFGData.bBorderless,
+                3,
+                0, 0,
+                1440, 810)) {
             LogFatalAndExit(ERR_STR_FAILED_DISPLAY_CONFIG);
         }
 
         if (!engine.initSecondHalf("SuperCarp dev build",
                 DisplayConfig.GetWindowW(), DisplayConfig.GetWindowH(),
-                0, true, DisplayConfig.IsFullscreen(), 0.6)) {
+                0, true, DisplayConfig.IsFullscreen(),
+                DisplayConfig.IsBorderless(), 0.6)) {
             LogFatalAndExit("Engine failed to init second half");
             return;
         }
-
-
         engine.run();
     }
 
@@ -57,11 +58,23 @@ public class EntryPoint {
             return false;
         }
 
-        Data.cfgEntries.add(new ConfigEntry(CFGData.CFG_GLOBAL_VOLUME,
+        Data.cfgEntries.add(new ConfigEntry(CFGData.CFG_F_GLOBAL_VOLUME,
                 ConfigEntryType.FLOAT,
                 0.0f,
                 100.0f,
                 100.0f));
+
+        Data.cfgEntries.add(new ConfigEntry(CFGData.CFG_B_BORDERLESS,
+                ConfigEntryType.BOOL,
+                null,
+                null,
+                true));
+
+        Data.cfgEntries.add(new ConfigEntry(CFGData.CFG_B_FULLSCREEN,
+                ConfigEntryType.BOOL,
+                null,
+                null,
+                false));
 
         if (!ConfigFileParser.Init(Data.cfgEntries)) {
             LogSession(LogLevel.WARNING, ConfigFileParser.CLASS
@@ -73,8 +86,15 @@ public class EntryPoint {
     }
 
     private static boolean populateEngineVariablesFromConfig() {
-        CFGData.globalVolume = ConfigFileParser.GetFloat(
-                CFGData.CFG_GLOBAL_VOLUME);
+        CFGData.fGlobalVolume = ConfigFileParser.GetFloat(
+                CFGData.CFG_F_GLOBAL_VOLUME);
+
+        CFGData.bBorderless = ConfigFileParser.GetBool(
+                CFGData.CFG_B_BORDERLESS);
+
+        CFGData.bFullscreen = ConfigFileParser.GetBool(
+                CFGData.CFG_B_FULLSCREEN);
+
         return true;
     }
 
