@@ -34,7 +34,7 @@ public class EntryPoint {
         }
 
         if (!DisplayConfig.Init(CFGData.bFullscreen, CFGData.bBorderless,
-                3,
+                CFGData.bVsync, CFGData.iFpsTarget, 3,
                 0, 0,
                 1440, 810)) {
             LogFatalAndExit(ERR_STR_FAILED_DISPLAY_CONFIG);
@@ -42,8 +42,8 @@ public class EntryPoint {
 
         if (!engine.initSecondHalf("SuperCarp dev build",
                 DisplayConfig.GetWindowW(), DisplayConfig.GetWindowH(),
-                0, true, DisplayConfig.IsFullscreen(),
-                DisplayConfig.IsBorderless(), 0.6)) {
+                DisplayConfig.GetFpsTarget(), DisplayConfig.IsVsync(), DisplayConfig.IsFullscreen(),
+                DisplayConfig.IsBorderless(), Data.TICK_DUR)) {
             LogFatalAndExit("Engine failed to init second half");
             return;
         }
@@ -76,6 +76,18 @@ public class EntryPoint {
                 null,
                 false));
 
+        Data.cfgEntries.add(new ConfigEntry(CFGData.CFG_B_VSYNC,
+                ConfigEntryType.BOOL,
+                null,
+                null,
+                true));
+
+        Data.cfgEntries.add(new ConfigEntry(CFGData.CFG_I_FPS_TARGET,
+                ConfigEntryType.INT,
+                0,
+                0x7FFFFFFF,
+                0));
+
         if (!ConfigFileParser.Init(Data.cfgEntries)) {
             LogSession(LogLevel.WARNING, ConfigFileParser.CLASS
                     + ERR_STR_FAILED_INIT_CFG);
@@ -94,6 +106,12 @@ public class EntryPoint {
 
         CFGData.bFullscreen = ConfigFileParser.GetBool(
                 CFGData.CFG_B_FULLSCREEN);
+
+        CFGData.bVsync = ConfigFileParser.GetBool(
+                CFGData.CFG_B_VSYNC);
+
+        CFGData.iFpsTarget = ConfigFileParser.GetInt(
+                CFGData.CFG_I_FPS_TARGET);
 
         return true;
     }

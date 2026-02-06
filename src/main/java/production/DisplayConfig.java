@@ -23,6 +23,8 @@ public final class DisplayConfig {
     private static int iPixelScale;
     private static boolean bFullscreen;
     private static boolean bBorderless;
+    private static boolean bVsync;
+    private static int iFpsTarget;
     private static final int VP_TLX = 4;
     private static final int VP_TLY = 4;
     private static int vp[];
@@ -49,6 +51,8 @@ public final class DisplayConfig {
     public static boolean Init(
             boolean bFullscreen,
             boolean bBorderless,
+            boolean bVsync,
+            int fFpsTarget,
             int iPixelScale,
             int emulatedW,
             int emulatedH,
@@ -78,6 +82,9 @@ public final class DisplayConfig {
         } else if (windowH < 0) {
             LogFatalAndExit(ErrStrFailedInitNeg("windowH", windowH));
             return init = false;
+        } else if (fFpsTarget < 0) {
+            LogFatalAndExit(ErrStrFailedInitNeg("fFpsTarget", fFpsTarget));
+            return init = false;
         }
 
         try {
@@ -92,6 +99,8 @@ public final class DisplayConfig {
 
         DisplayConfig.bFullscreen = bFullscreen;
         DisplayConfig.bBorderless = bBorderless;
+        DisplayConfig.bVsync = bVsync;
+        DisplayConfig.iFpsTarget = fFpsTarget;
 
         if (bFullscreen && windowW == 0 && windowH == 0) {
             if (emulatedW == 0 && emulatedH == 0 && iPixelScale != 0) {
@@ -260,6 +269,8 @@ public final class DisplayConfig {
     public static int GetPixelScale()   { assert(init); return iPixelScale; }
     public static boolean IsFullscreen(){ assert(init); return bFullscreen; }
     public static boolean IsBorderless(){ assert(init); return bBorderless; }
+    public static boolean IsVsync()     { assert(init); return bVsync; }
+    public static int GetFpsTarget()    { assert(init); return iFpsTarget; }
     public static int GetViewportW()    { assert(init); return viewportW; }
     public static int GetViewportH()    { assert(init); return viewportH; }
     public static int GetViewportX()    { assert(init); return VP_TLX; }

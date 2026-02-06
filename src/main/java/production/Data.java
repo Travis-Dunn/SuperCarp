@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public final class Data {
+    public static final double TICK_DUR = 0.6f;
     public static final int BPP = 4;
     /* game attribs */
     public static final int SPRITE_SIZE = 16;
