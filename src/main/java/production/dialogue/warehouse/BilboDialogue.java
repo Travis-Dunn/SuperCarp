@@ -24,7 +24,10 @@ public class BilboDialogue {
         );
         WHO_ARE_YOU = new DialogueNode(
                 "Bilbo",
+                /*
                 "I'm Bilbo, and this is Hobbiton.",
+                */
+                "01234567890123456789012345678901234567890123456end",
                 null,
                 null
         );
