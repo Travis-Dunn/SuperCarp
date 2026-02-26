@@ -1,5 +1,6 @@
 package production;
 
+import production.displayOld.DisplayConfigOld;
 import whitetail.loaders.config.ConfigEntry;
 import whitetail.loaders.config.ConfigEntryType;
 import whitetail.loaders.config.ConfigFileParser;
@@ -33,7 +34,7 @@ public class EntryPoint {
                     ERR_STR_FAILED_POPULATE_FROM_CFG);
         }
 
-        if (!DisplayConfig.Init(CFGData.bFullscreen, CFGData.bBorderless,
+        if (!DisplayConfigOld.Init(CFGData.bFullscreen, CFGData.bBorderless,
                 CFGData.bVsync, CFGData.iFpsTarget, 3,
                 0, 0,
                 1440, 810)) {
@@ -41,9 +42,9 @@ public class EntryPoint {
         }
 
         if (!engine.initSecondHalf("SuperCarp dev build",
-                DisplayConfig.GetWindowW(), DisplayConfig.GetWindowH(),
-                DisplayConfig.GetFpsTarget(), DisplayConfig.IsVsync(), DisplayConfig.IsFullscreen(),
-                DisplayConfig.IsBorderless(), Data.TICK_DUR)) {
+                DisplayConfigOld.GetWindowW(), DisplayConfigOld.GetWindowH(),
+                DisplayConfigOld.GetFpsTarget(), DisplayConfigOld.IsVsync(), DisplayConfigOld.IsFullscreen(),
+                DisplayConfigOld.IsBorderless(), Data.TICK_DUR)) {
             LogFatalAndExit("Engine failed to init second half");
             return;
         }
@@ -124,6 +125,6 @@ public class EntryPoint {
     private static final String ERR_STR_FAILED_POPULATE_FROM_CFG = " failed " +
             "to populate engine variables from config file, using defaults.\n";
     private static final String ERR_STR_FAILED_DISPLAY_CONFIG = CLASS +
-            " failed because " + DisplayConfig.CLASS + " failed to " +
+            " failed because " + DisplayConfigOld.CLASS + " failed to " +
             "initialize.\n";
 }

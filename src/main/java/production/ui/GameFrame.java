@@ -1,7 +1,6 @@
 package production.ui;
 
-import production.DisplayConfig;
-import production.sprite.SpritePalette;
+import production.displayOld.DisplayConfigOld;
 import whitetail.utility.logging.LogLevel;
 
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
@@ -30,8 +29,8 @@ public final class GameFrame {
 
         LogSession(LogLevel.DEBUG, CLASS + " initializing...\n");
 
-        screenW = DisplayConfig.GetEmulatedW();
-        screenH = DisplayConfig.GetEmulatedH();
+        screenW = DisplayConfigOld.GetEmulatedW();
+        screenH = DisplayConfigOld.GetEmulatedH();
         edgeW = screenW - (CORNER_SIZE * 2);
         edgeH = screenH - (CORNER_SIZE * 2);
 

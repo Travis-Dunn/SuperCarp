@@ -1,6 +1,5 @@
 package production.script;
 
-import production.GameCtx;
 import production.Player;
 
 public final class Scripts {

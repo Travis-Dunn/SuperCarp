@@ -2,6 +2,7 @@ package production;
 
 import production.character.Char;
 import production.dialogue.DialogueManager;
+import production.displayOld.DisplayConfigOld;
 import production.sprite.SpriteCamera;
 import production.tilemap.Tile;
 import production.tilemap.TileMap;
@@ -41,8 +42,8 @@ public final class Cursor {
         int fbY = ((windowHeight - sy) * fbHeight) / windowHeight;
         */
         // Convert window coords to framebuffer coords
-        int fbX = DisplayConfig.windowToFbX(sx);
-        int fbY = DisplayConfig.windowToFbY(sy);
+        int fbX = DisplayConfigOld.windowToFbX(sx);
+        int fbY = DisplayConfigOld.windowToFbY(sy);
 
         if (inViewport(fbX, fbY)) {
             handleViewportClick(fbX, fbY);
@@ -52,13 +53,13 @@ public final class Cursor {
     }
 
     private boolean inViewport(int x, int y) {
-        return DisplayConfig.isInViewport(x, y);
+        return DisplayConfigOld.isInViewport(x, y);
     }
 
     private void handleViewportClick(int x, int y) {
         // Convert to viewport-relative coords for camera
-        int vpX = DisplayConfig.fbToVpX(x);
-        int vpY = DisplayConfig.fbToVpY(y);
+        int vpX = DisplayConfigOld.fbToVpX(x);
+        int vpY = DisplayConfigOld.fbToVpY(y);
         int tileX = cam.screenToTileX(vpX, tileSize);
         int tileY = cam.screenToTileY(vpY, tileSize);
 
