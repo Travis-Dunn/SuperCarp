@@ -1,6 +1,6 @@
 package production;
 
-import production.displayOld.DisplayConfigOld;
+import production.display.*;
 import whitetail.loaders.config.ConfigEntry;
 import whitetail.loaders.config.ConfigEntryType;
 import whitetail.loaders.config.ConfigFileParser;
@@ -15,6 +15,10 @@ import static whitetail.utility.logging.Logger.EnableDevLogging;
 
 public class EntryPoint {
     public static void main(String args[]) {
+        int displayW, displayH;
+        FramebufferPreset preset;
+        DisplayProps props;
+
         System.out.println("Platform: " + Platform.getName());
 
         SuperCarpEngine engine = new SuperCarpEngine();
@@ -34,17 +38,51 @@ public class EntryPoint {
                     ERR_STR_FAILED_POPULATE_FROM_CFG);
         }
 
-        if (!DisplayConfigOld.Init(CFGData.bFullscreen, CFGData.bBorderless,
-                CFGData.bVsync, CFGData.iFpsTarget, 3,
-                0, 0,
-                1440, 810)) {
-            LogFatalAndExit(ERR_STR_FAILED_DISPLAY_CONFIG);
+        if (!DisplayConfig.QueryDisplayResolution()) {
+            LogFatalAndExit(ERR_STR_FAILED_DESKTOP_RES);
+            return;
+        }
+
+        displayW = DisplayConfig.GetDisplayW();
+        displayH = DisplayConfig.GetDisplayH();
+
+        FramebufferPreset fbs[] = new FramebufferPreset[] {
+                new FramebufferPreset(480, 270)
+        };
+
+        ViewportPreset vps[] = new ViewportPreset[] {
+                new ViewportPreset(4, 4, 320, 180)
+        };
+
+        int resMap[][] = new int[][] {
+                new int[] {1920, 1080, 0}
+        };
+
+        if (!FramebufferConfig.Init(fbs, vps, resMap, false)) {
+            LogFatalAndExit(ERR_STR_FAILED_FRAMEBUFFER_CONFIG);
+            return;
+        }
+
+        if ((preset = FramebufferConfig.ResolvePreset(displayW, displayH)) ==
+                null) {
+            LogFatalAndExit(ERR_STR_FAILED_FRAMEBUFFER_CONFIG_RESOLVE);
+            return;
+        }
+
+        props = FramebufferConfig.BuildDisplayProps(preset,
+                displayW, displayH, CFGData.bBorderless, CFGData.bFullscreen,
+                CFGData.bVsync, CFGData.iFpsTarget);
+
+        if (!DisplayConfig.ApplyDisplayProps(props)) {
+            LogFatalAndExit(ERR_STR_FAILED_APPLY_DISPLAY_PROPS);
+            return;
         }
 
         if (!engine.initSecondHalf("SuperCarp dev build",
-                DisplayConfigOld.GetWindowW(), DisplayConfigOld.GetWindowH(),
-                DisplayConfigOld.GetFpsTarget(), DisplayConfigOld.IsVsync(), DisplayConfigOld.IsFullscreen(),
-                DisplayConfigOld.IsBorderless(), Data.TICK_DUR)) {
+                DisplayConfig.GetWindowW(), DisplayConfig.GetWindowH(),
+                DisplayConfig.GetFpsTarget(), DisplayConfig.IsVSync(),
+                DisplayConfig.IsFullscreen(), DisplayConfig.IsBorderless(),
+                Data.TICK_DUR)) {
             LogFatalAndExit("Engine failed to init second half");
             return;
         }
@@ -124,7 +162,16 @@ public class EntryPoint {
             "set up config file, using defaults.\n";
     private static final String ERR_STR_FAILED_POPULATE_FROM_CFG = " failed " +
             "to populate engine variables from config file, using defaults.\n";
-    private static final String ERR_STR_FAILED_DISPLAY_CONFIG = CLASS +
-            " failed because " + DisplayConfigOld.CLASS + " failed to " +
-            "initialize.\n";
+    private static final String ERR_STR_FAILED_DESKTOP_RES = CLASS + " failed" +
+            " to initialize because DisplayConfig was unable to query desktop" +
+            " resolution.\n";
+    private static final String ERR_STR_FAILED_FRAMEBUFFER_CONFIG = CLASS +
+            " failed to initialize because " + FramebufferConfig.CLASS +
+            " failed to initialize.\n";
+    private static final String ERR_STR_FAILED_FRAMEBUFFER_CONFIG_RESOLVE =
+            CLASS + " failed to initialize because " + FramebufferConfig.CLASS +
+                    " failed to initialize.\n";
+    private static final String ERR_STR_FAILED_APPLY_DISPLAY_PROPS = CLASS +
+            " failed to initialize because " + DisplayConfig.CLASS + " failed" +
+            " to apply the display properties.\n";
 }

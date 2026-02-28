@@ -5,7 +5,8 @@ import org.lwjgl.input.Mouse;
 import production.character.CharRegistry;
 import production.dialogue.DialogueManager;
 import production.dialogue.warehouse.BilboDialogue;
-import production.displayOld.DisplayConfigOld;
+import production.display.DisplayConfig;
+import production.display.FramebufferConfig;
 import production.monster.MonsterRegistry;
 import production.monster.MonsterSpawn;
 import production.save.SaveData;
@@ -34,15 +35,15 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
     protected boolean onInit() {
         eventManager.addEventListener(this);
 
-        if (!SpriteSys.Init(Data.SPRITE_SYS_CAP, DisplayConfigOld.GetEmulatedW(),
-                DisplayConfigOld.GetEmulatedH(), Data.BPP)) {
+        if (!SpriteSys.Init(Data.SPRITE_SYS_CAP, DisplayConfig.GetEmulatedW(),
+                DisplayConfig.GetEmulatedH(), Data.BPP)) {
             LogFatalAndExit(ERR_STR_FAILED_INIT_SPRITE_SYS);
             return false;
         }
 
         Data.sCam = new SpriteCamera();
-        Data.sCam.init(DisplayConfigOld.GetViewportW(),
-                DisplayConfigOld.GetViewportH(), Data.SPRITE_SIZE);
+        Data.sCam.init(FramebufferConfig.GetViewportW(),
+                FramebufferConfig.GetViewportH(), Data.SPRITE_SIZE);
         SpriteRenderer.SetCamera(Data.sCam);
 
         Data.sp = SpritePaletteFileParser.FromFile(Data.TEST_PALETTE_FILENAME);
@@ -113,8 +114,8 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         }
 
         Data.cursor = new Cursor(Data.sCam, Data.tileMap, Data.SPRITE_SIZE,
-                DisplayConfigOld.GetWindowW(), DisplayConfigOld.GetWindowH(),
-                DisplayConfigOld.GetEmulatedW(), DisplayConfigOld.GetEmulatedH());
+                DisplayConfig.GetWindowW(), DisplayConfig.GetWindowH(),
+                DisplayConfig.GetEmulatedW(), DisplayConfig.GetEmulatedH());
 
         /* audio */
         Data.testMusicBuf = AudioFileParser.FromFile(
@@ -233,12 +234,12 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         if (DialogueManager.isActive()) {
             // need mouse position in FB coords for hover effects
 
-            int fbX = (Data.screenMouseX * DisplayConfigOld.GetEmulatedW())
-                    / DisplayConfigOld.GetWindowW();
-            int fbY = ((DisplayConfigOld.GetWindowH() - Data.screenMouseY)
-                    * DisplayConfigOld.GetEmulatedH()) / DisplayConfigOld.GetWindowH();
+            int fbX = (Data.screenMouseX * DisplayConfig.GetEmulatedW())
+                    / DisplayConfig.GetWindowW();
+            int fbY = ((DisplayConfig.GetWindowH() - Data.screenMouseY)
+                    * DisplayConfig.GetEmulatedH()) / DisplayConfig.GetWindowH();
             DialogueManager.draw(SpriteSys.GetFramebuffer(),
-                    DisplayConfigOld.GetEmulatedW(), DisplayConfigOld.GetEmulatedH(),
+                    DisplayConfig.GetEmulatedW(), DisplayConfig.GetEmulatedH(),
                     fbX, fbY);
         } else {
             ChatBox.Draw();

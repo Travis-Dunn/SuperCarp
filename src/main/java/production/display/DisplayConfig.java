@@ -211,7 +211,7 @@ public final class DisplayConfig {
     public static int GetOffsetX()          { assert(init); return offsetX; }
     public static int GetOffsetY()          { assert(init); return offsetY; }
 
-    private static final String CLASS = DisplayConfig.class.getSimpleName();
+    public static final String CLASS = DisplayConfig.class.getSimpleName();
     private static final String ERR_STR_LIB_CALL_FAILED = CLASS + " failed " +
             "to query display resolution because " +
             "lwjgl.opengl.Display.getDesktopDisplayMode returned null.\n";

@@ -1,6 +1,6 @@
 package production.sprite;
 
-import production.displayOld.DisplayConfigOld;
+import production.display.FramebufferConfig;
 import whitetail.utility.logging.LogLevel;
 
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
@@ -76,7 +76,7 @@ public final class SpriteRenderer {
         byte b = (byte)(color & 0xFF);
         byte a = (byte)((color >> 24) & 0xFF);
 
-        int[] vp = DisplayConfigOld.GetVP();
+        int[] vp = FramebufferConfig.GetViewportBounds();
 
         for (int y = vp[1]; y < vp[3]; ++y) {
             for (int x = vp[0]; x < vp[2]; ++x) {
@@ -194,22 +194,23 @@ public final class SpriteRenderer {
                                    byte[] atlasPixels, int atlasWidth,
                                    int[] palette,
                                    boolean flipH, boolean flipV) {
-        screenX += DisplayConfigOld.GetViewportX();
-        screenY += DisplayConfigOld.GetViewportY();
+        int vpArr[] = FramebufferConfig.GetViewportBounds();
+        screenX += vpArr[0];
+        screenY += vpArr[1];
 
         /* early rejection: entirely off-screen */
-        if (screenX + size <= DisplayConfigOld.GetViewportX() ||
-                screenX >= DisplayConfigOld.GetViewportX() + DisplayConfigOld.GetViewportW() ||
-                screenY + size <= DisplayConfigOld.GetViewportY() ||
-                screenY >= DisplayConfigOld.GetViewportY() + DisplayConfigOld.GetViewportH()) {
+        if (screenX + size <= vpArr[0] ||
+                screenX >= vpArr[2] ||
+                screenY + size <= vpArr[1] ||
+                screenY >= vpArr[3]) {
             return;
         }
 
         /* clip to screen bounds */
-        int x0 = Math.max(screenX, DisplayConfigOld.GetViewportX());
-        int y0 = Math.max(screenY, DisplayConfigOld.GetViewportY());
-        int x1 = Math.min(screenX + size, DisplayConfigOld.GetViewportX() + DisplayConfigOld.GetViewportW());
-        int y1 = Math.min(screenY + size, DisplayConfigOld.GetViewportY() + DisplayConfigOld.GetViewportH());
+        int x0 = Math.max(screenX, vpArr[0]);
+        int y0 = Math.max(screenY,vpArr[1]);
+        int x1 = Math.min(screenX + size, vpArr[2]);
+        int y1 = Math.min(screenY + size, vpArr[3]);
 
         int srcX, srcY, texelIdx, color, fbIdx;
         int fbRowOffset, atlasRowOffset;
