@@ -27,7 +27,7 @@ public class BilboDialogue {
                 /*
                 "I'm Bilbo, and this is Hobbiton.",
                 */
-                "01234567890123456789012345678901234567890123456end",
+                "012345678901234567ty0123456789012345678901234567890123456789",
                 null,
                 null
         );

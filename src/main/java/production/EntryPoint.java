@@ -47,11 +47,11 @@ public class EntryPoint {
         displayH = DisplayConfig.GetDisplayH();
 
         FramebufferPreset fbs[] = new FramebufferPreset[] {
-                new FramebufferPreset(480, 270)
+                new FramebufferPreset(384, 216)
         };
 
         ViewportPreset vps[] = new ViewportPreset[] {
-                new ViewportPreset(4, 4, 320, 180)
+                new ViewportPreset(4, 4, 305, 155)
         };
 
         int resMap[][] = new int[][] {

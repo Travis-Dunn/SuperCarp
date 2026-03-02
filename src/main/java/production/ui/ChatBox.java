@@ -1,5 +1,6 @@
 package production.ui;
 
+import production.Data;
 import production.display.DisplayConfig;
 import production.sprite.SpriteSys;
 
@@ -14,11 +15,11 @@ public final class ChatBox {
     private static int count = 0;  // total messages received (for indexing)
 
     private static FontAtlas font;
-    private static int color = 0xFFFFFFFF;  // default white
+    private static int color = Data.BLACK;  // default white
 
     /* hard-coded position - bottom-left of screen */
-    private static final int X = 4;
-    private static final int Y_BOTTOM = DisplayConfig.GetEmulatedH() - 4;  // 4px from bottom
+    private static final int X = 5;
+    private static final int Y_BOTTOM = DisplayConfig.GetEmulatedH() - 8;  // 4px from bottom
 
     private ChatBox() {}
 

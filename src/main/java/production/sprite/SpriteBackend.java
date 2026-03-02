@@ -3,6 +3,7 @@ package production.sprite;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
+import production.display.DisplayConfig;
 import whitetail.utility.logging.LogLevel;
 
 import java.nio.ByteBuffer;
@@ -141,6 +142,12 @@ public final class SpriteBackend {
         assert(framebuffer.remaining() >= SpriteSys.fbWidth *
                 SpriteSys.fbHeight * bpp);
 
+        GL11.glViewport(
+                DisplayConfig.GetOffsetX(),
+                DisplayConfig.GetOffsetY(),
+                DisplayConfig.GetEmulatedW() * DisplayConfig.GetPixelScale(),
+                DisplayConfig.GetEmulatedH() * DisplayConfig.GetPixelScale());
+
         /* upload texture data */
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, SpriteSys.texID);
         GL11.glTexSubImage2D(GL11.GL_TEXTURE_2D, 0, 0, 0,
@@ -170,6 +177,9 @@ public final class SpriteBackend {
         GL11.glEnd();
 
         /* restore state */
+        GL11.glViewport(0, 0,
+                DisplayConfig.GetWindowW(), DisplayConfig.GetWindowH());
+
         GL11.glMatrixMode(GL11.GL_PROJECTION);
         GL11.glPopMatrix();
 

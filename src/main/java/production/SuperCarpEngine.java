@@ -144,8 +144,9 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         * enters that area. I distinguish between load time (player enters area)
         * and init time. Init time only ever happens once per session. */
 
+        /* 16_rs_mono_freetype.fnt */
         Data.fontAtlas = FontAtlasFileParser.FromFile(
-                "16_rs_mono_freetype.fnt", Data.sp, 11);
+                "monogram_16_java.fnt", Data.sp, 11);
 
         ChatBox.Init(Data.fontAtlas);
         ChatBox.AddMsg("Welcome to SuperCarp.");
@@ -231,9 +232,11 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         SpriteRenderer.ClearViewport(Data.clearColor);
         SpriteRenderer.RenderNew();
 
+        GameFrame.Draw();
         if (DialogueManager.isActive()) {
             // need mouse position in FB coords for hover effects
 
+            /*
             int fbX = (Data.screenMouseX * DisplayConfig.GetEmulatedW())
                     / DisplayConfig.GetWindowW();
             int fbY = ((DisplayConfig.GetWindowH() - Data.screenMouseY)
@@ -241,11 +244,12 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
             DialogueManager.draw(SpriteSys.GetFramebuffer(),
                     DisplayConfig.GetEmulatedW(), DisplayConfig.GetEmulatedH(),
                     fbX, fbY);
+             */
+            Renderer.DrawBitmap1(BitmapRegistry.BILBO_PORTRAIT, GameFrame.PORTRAIT_X_NPC, GameFrame.PORTRAIT_Y);
+            Renderer.DrawBitmap1(BitmapRegistry.BILBO_PORTRAIT, GameFrame.PORTRAIT_X_PLAYER, GameFrame.PORTRAIT_Y);
         } else {
             ChatBox.Draw();
         }
-
-        GameFrame.Draw();
 
         SpriteBackend.Present(SpriteSys.GetFramebuffer());
         window.swapBuffers();

@@ -22,6 +22,8 @@ public final class BitmapRegistry {
     public static Bitmap FRAME_T;
     public static Bitmap FRAME_B;
 
+    public static Bitmap FRAME_0;
+
     private BitmapRegistry() {}
 
     public static boolean Init(SpritePalette palette) {
@@ -38,6 +40,8 @@ public final class BitmapRegistry {
         FRAME_R = BitmapFileParser.FromFile("frame_r.png", palette);
         FRAME_T = BitmapFileParser.FromFile("frame_t.png", palette);
         FRAME_B = BitmapFileParser.FromFile("frame_b.png", palette);
+
+        FRAME_0 = BitmapFileParser.FromFile("frame_0.png", palette);
 
         LogSession(LogLevel.DEBUG, CLASS + " initialized.\n");
 
@@ -58,6 +62,8 @@ public final class BitmapRegistry {
         FRAME_R = null;
         FRAME_T = null;
         FRAME_B = null;
+
+        FRAME_0 = null;
 
         init = false;
 

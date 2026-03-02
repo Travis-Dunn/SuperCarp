@@ -23,17 +23,6 @@ public final class Data {
     public static final int PLAYER_ATLAS = 1;
     public static final int MAP_PALETTE = 0;
     public static final int BLACK = 0xFF160D13;
-    /**
-     * This combo of framebuffer size and pixel scale yields a 1920x1080 window.
-     * TODO: make a module that reads monitor settings and sets framebuffer,
-     * pixel scale, and window resolution appropriately. This will need to take
-     * setting such as 'fullscreen' into account. These will be read from the
-     * config file, which will be editable via in game menus in the future.
-     *
-     * We also want to render the game viewport to a subsection of the window,
-     * since there is no need to draw it underneath all the ui. This means the
-     * introduction of a few new variables.
-     */
     public static final int SPRITE_SYS_CAP = 2048;
     public static final String TEST_ATLAS_FILENAME = "test_atlas.png";
     public static final String TEST_PALETTE_FILENAME = "mystic-16-mod-17.png";
