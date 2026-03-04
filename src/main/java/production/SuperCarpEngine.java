@@ -145,13 +145,13 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         * and init time. Init time only ever happens once per session. */
 
         /* 16_rs_mono_freetype.fnt */
-        Data.fontAtlas = FontAtlasFileParser.FromFile(
+        Data.fontAtlasOld = FontAtlasFileParser.FromFile(
                 "monogram_16_java.fnt", Data.sp, 11);
 
-        ChatBox.Init(Data.fontAtlas);
+        ChatBox.Init(Data.fontAtlasOld);
         ChatBox.AddMsg("Welcome to SuperCarp.");
 
-        DialogueManager.Init(Data.fontAtlas, Data.sp);
+        DialogueManager.Init(Data.fontAtlasOld, Data.sp);
         CharRegistry.BILBO.dialogueRoot = BilboDialogue.GREETING;
 
         Renderer.Init(Data.BPP, SpriteSys.GetFramebuffer(),
@@ -245,8 +245,8 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
                     DisplayConfig.GetEmulatedW(), DisplayConfig.GetEmulatedH(),
                     fbX, fbY);
              */
-            Renderer.DrawBitmap1(BitmapRegistry.BILBO_PORTRAIT, GameFrame.PORTRAIT_X_NPC, GameFrame.PORTRAIT_Y);
-            Renderer.DrawBitmap1(BitmapRegistry.BILBO_PORTRAIT, GameFrame.PORTRAIT_X_PLAYER, GameFrame.PORTRAIT_Y);
+            Renderer.DrawBitmap1(BitmapRegistry.BILBO_PORTRAIT, GameFrame.GetPortraitXNpc(), GameFrame.GetPortraitY());
+            Renderer.DrawBitmap1(BitmapRegistry.BILBO_PORTRAIT, GameFrame.GetPortraitXPlayer(), GameFrame.GetPortraitY());
         } else {
             ChatBox.Draw();
         }

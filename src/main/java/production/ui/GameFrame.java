@@ -8,9 +8,9 @@ public class GameFrame {
     private static boolean init;
     private static Bitmap frame;
 
-    public static int PORTRAIT_X_NPC;
-    public static int PORTRAIT_X_PLAYER;
-    public static int PORTRAIT_Y;
+    private static int portraitXNpc;
+    private static int portraitXPlayer;
+    private static int portraitY;
 
     public static boolean Init() {
         assert(!init);
@@ -21,9 +21,9 @@ public class GameFrame {
 
         if (w == 384 && h == 216) {
             frame = BitmapRegistry.FRAME_0;
-            PORTRAIT_X_NPC = 12;
-            PORTRAIT_X_PLAYER = 268;
-            PORTRAIT_Y = 169;
+            portraitXNpc = 12;
+            portraitXPlayer = 268;
+            portraitY = 169;
         } else {
             LogFatalAndExit(ErrStrUnsupportedRes(w, h));
             return init = false;
@@ -36,6 +36,24 @@ public class GameFrame {
         assert(init);
 
         Renderer.DrawBitmap(frame, 0, 0);
+    }
+
+    public static int GetPortraitXNpc() {
+        assert(init);
+
+        return portraitXNpc;
+    }
+
+    public static int GetPortraitXPlayer() {
+        assert(init);
+
+        return portraitXPlayer;
+    }
+
+    public static int GetPortraitY() {
+        assert(init);
+
+        return portraitY;
     }
 
     public static final String CLASS = GameFrame.class.getSimpleName();

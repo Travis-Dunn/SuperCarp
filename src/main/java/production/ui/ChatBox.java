@@ -14,7 +14,7 @@ public final class ChatBox {
     private static final String[] lines = new String[LINE_COUNT];
     private static int count = 0;  // total messages received (for indexing)
 
-    private static FontAtlas font;
+    private static FontAtlasOld font;
     private static int color = Data.BLACK;  // default white
 
     /* hard-coded position - bottom-left of screen */
@@ -26,8 +26,8 @@ public final class ChatBox {
     /**
      * Initialize with a font. Call once during game init.
      */
-    public static void Init(FontAtlas fontAtlas) {
-        font = fontAtlas;
+    public static void Init(FontAtlasOld fontAtlasOld) {
+        font = fontAtlasOld;
         for (int i = 0; i < LINE_COUNT; i++) {
             lines[i] = null;
         }
@@ -77,7 +77,7 @@ public final class ChatBox {
         for (int i = 0; i < LINE_COUNT; i++) {
             if (lines[i] != null) {
                 int y = startY + (i * lineHeight);
-                TextRenderer.draw(fb, fbW, fbH, font, lines[i], X, y, color);
+                TextRendererOld.draw(fb, fbW, fbH, font, lines[i], X, y, color);
             }
         }
     }

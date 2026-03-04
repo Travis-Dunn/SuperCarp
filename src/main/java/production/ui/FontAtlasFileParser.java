@@ -27,8 +27,8 @@ public final class FontAtlasFileParser {
      * @param palette palette for color mapping (uses index 1 for foreground)
      * @param fgIndex palette index to use for glyph pixels
      */
-    public static FontAtlas FromFile(String fntFilename, SpritePalette palette,
-                                     int fgIndex) {
+    public static FontAtlasOld FromFile(String fntFilename, SpritePalette palette,
+                                        int fgIndex) {
         assert(fntFilename != null && !fntFilename.isEmpty());
         assert(palette != null);
 
@@ -56,8 +56,8 @@ public final class FontAtlasFileParser {
         }
     }
 
-    private static FontAtlas FromStream(InputStream s, String fntFilename,
-                                        SpritePalette palette, int fgIndex)
+    private static FontAtlasOld FromStream(InputStream s, String fntFilename,
+                                           SpritePalette palette, int fgIndex)
             throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(s));
 
@@ -66,7 +66,7 @@ public final class FontAtlasFileParser {
         int scaleW = 0;
         int scaleH = 0;
         String atlasFilename = null;
-        FontAtlas.Glyph[] glyphs = new FontAtlas.Glyph[MAX_CHAR];
+        FontAtlasOld.Glyph[] glyphs = new FontAtlasOld.Glyph[MAX_CHAR];
 
         String line;
         while ((line = reader.readLine()) != null) {
@@ -85,7 +85,7 @@ public final class FontAtlasFileParser {
             else if (line.startsWith("char ")) {
                 int id = parseIntField(line, "id");
                 if (id >= 0 && id < MAX_CHAR) {
-                    glyphs[id] = new FontAtlas.Glyph(
+                    glyphs[id] = new FontAtlasOld.Glyph(
                             parseIntField(line, "x"),
                             parseIntField(line, "y"),
                             parseIntField(line, "width"),
@@ -110,7 +110,7 @@ public final class FontAtlasFileParser {
             return null;
         }
 
-        return new FontAtlas(lineHeight, base, scaleW, scaleH, pixels, glyphs);
+        return new FontAtlasOld(lineHeight, base, scaleW, scaleH, pixels, glyphs);
     }
 
     private static byte[] loadAtlasImage(String fntFilename, String atlasFilename,

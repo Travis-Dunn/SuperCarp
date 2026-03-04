@@ -222,6 +222,8 @@ public final class SpriteBackend {
         LogSession(LogLevel.DEBUG, CLASS + " shutdown complete.\n");
     }
 
+    static int GetBytesPerPixel() { assert(init); return bpp; }
+
     private static boolean CheckGlErrorInit(String operation) {
         assert(!init);
 

@@ -1,233 +1,221 @@
 package production.ui;
 
+import production.display.DisplayConfig;
 import production.sprite.SpritePalette;
+import production.sprite.SpriteSys;
+import whitetail.utility.logging.LogLevel;
 
-/**
- * Renders text to the framebuffer using a FontAtlas.
- * Supports word wrap and left/center/right alignment (left implemented).
- */
+import static whitetail.utility.ErrorHandler.LogFatalAndExit;
+import static whitetail.utility.logging.Logger.LogSession;
+
 public final class TextRenderer {
+    private static boolean init;
 
-    public static final int ALIGN_LEFT = 0;
-    public static final int ALIGN_CENTER = 1;
-    public static final int ALIGN_RIGHT = 2;
+    private static int bpp;
+    private static byte fb[];
+    private static int fbW, fbH;
 
-    private static final int BYTES_PER_PIXEL = 4;  // RGBA
+    public static boolean Init() {
+        assert(!init);
 
-    private TextRenderer() {}
+        bpp = SpriteSys.GetBytesPerPixel();
+        fb = SpriteSys.GetFramebuffer();
+        fbW = DisplayConfig.GetEmulatedW();
+        fbH = DisplayConfig.GetEmulatedH();
 
-    /**
-     * Draw a string to the framebuffer.
+        return init = true;
+    }
+
+    /***
+     * Draws a line of text using the font atlas with top left (x, y).
+     * Renders partially off-screen lines.
+     * Wrapping, if desired, is caller's responsibility.
      *
-     * @param fb framebuffer (RGBA byte array)
-     * @param fbWidth framebuffer width in pixels
-     * @param fbHeight framebuffer height in pixels
-     * @param font the font atlas to use
-     * @param text the string to render
-     * @param x left edge of text area
-     * @param y top edge of text area
-     * @param color palette color (ARGB packed int)
-     * @param maxWidth max width for word wrap (0 = no wrap)
-     * @param align alignment (ALIGN_LEFT, ALIGN_CENTER, ALIGN_RIGHT)
-     * @return the Y position after the last line (for chaining)
+     * @param atlas
+     * @param s
+     * @param x
+     * @param y
+     * @param argb
      */
-    public static int draw(byte[] fb, int fbWidth, int fbHeight,
-                           FontAtlas font, String text,
-                           int x, int y, int color,
-                           int maxWidth, int align) {
-        if (text == null || text.isEmpty()) return y;
+    public static void DrawLineLeft(FontAtlas atlas, String s, int x, int y,
+            int argb) {
+        assert(init);
 
-        byte r = (byte)((color >> 16) & 0xFF);
-        byte g = (byte)((color >> 8) & 0xFF);
-        byte b = (byte)(color & 0xFF);
-        byte a = (byte)((color >> 24) & 0xFF);
-
-        int cursorX = x;
-        int cursorY = y;
-        int lineStart = 0;
-
-        if (maxWidth <= 0) {
-            /* no wrapping - single line */
-            drawLine(fb, fbWidth, fbHeight, font, text, 0, text.length(),
-                    x, y, r, g, b, a, align, maxWidth);
-            return y + font.lineHeight;
+        if (atlas == null) {
+            LogFatalAndExit(ErrStrFailedDrawAtlasNull(s));
+            return;
         }
-
-        /* word wrap */
-        int i = 0;
-        int lastSpace = -1;
-        int lineWidth = 0;
-
-        while (i < text.length()) {
-            char c = text.charAt(i);
-
-            /* handle explicit newlines */
-            if (c == '\n') {
-                drawLine(fb, fbWidth, fbHeight, font, text, lineStart, i,
-                        x, cursorY, r, g, b, a, align, maxWidth);
-                cursorY += font.lineHeight;
-                lineStart = i + 1;
-                lastSpace = -1;
-                lineWidth = 0;
-                i++;
-                continue;
-            }
-
-            FontAtlas.Glyph glyph = font.getGlyph(c);
-            int glyphAdvance = (glyph != null) ? glyph.xAdvance : 0;
-
-            if (c == ' ') {
-                lastSpace = i;
-            }
-
-            if (lineWidth + glyphAdvance > maxWidth && lineStart < i) {
-                /* need to wrap */
-                int lineEnd;
-                int nextStart;
-
-                if (lastSpace > lineStart) {
-                    /* wrap at last space */
-                    lineEnd = lastSpace;
-                    nextStart = lastSpace + 1;
-                } else {
-                    /* no space - break at current position */
-                    lineEnd = i;
-                    nextStart = i;
-                }
-
-                drawLine(fb, fbWidth, fbHeight, font, text, lineStart, lineEnd,
-                        x, cursorY, r, g, b, a, align, maxWidth);
-                cursorY += font.lineHeight;
-                lineStart = nextStart;
-                lastSpace = -1;
-
-                /* recalculate width from new line start */
-                lineWidth = 0;
-                for (int j = lineStart; j <= i; j++) {
-                    if (j < text.length()) {
-                        FontAtlas.Glyph g2 = font.getGlyph(text.charAt(j));
-                        if (g2 != null) lineWidth += g2.xAdvance;
-                    }
-                }
-            } else {
-                lineWidth += glyphAdvance;
-            }
-
-            i++;
+        if (s == null) {
+            LogFatalAndExit(ERR_STR_FAILED_DRAW_S_NULL);
+            return;
         }
-
-        /* draw remaining text */
-        if (lineStart < text.length()) {
-            drawLine(fb, fbWidth, fbHeight, font, text, lineStart, text.length(),
-                    x, cursorY, r, g, b, a, align, maxWidth);
-            cursorY += font.lineHeight;
+        if (s.isEmpty()) {
+            LogSession(LogLevel.WARNING, ERR_STR_DRAW_EMPTY_STR);
         }
-
-        return cursorY;
-    }
-
-    /**
-     * Draw a single line (or substring) of text.
-     */
-    private static void drawLine(byte[] fb, int fbWidth, int fbHeight,
-                                 FontAtlas font, String text,
-                                 int start, int end,
-                                 int x, int y,
-                                 byte r, byte g, byte b, byte a,
-                                 int align, int maxWidth) {
-        if (start >= end) return;
-
-        int cursorX = x;
-
-        /* alignment offset */
-        if (align != ALIGN_LEFT && maxWidth > 0) {
-            int lineWidth = font.measureWidth(text, start, end);
-            if (align == ALIGN_CENTER) {
-                cursorX = x + (maxWidth - lineWidth) / 2;
-            } else if (align == ALIGN_RIGHT) {
-                cursorX = x + maxWidth - lineWidth;
-            }
+        if (y >= fbH || y + atlas.lineHeight < 0) {
+            return;
         }
-
-        for (int i = start; i < end; i++) {
-            char c = text.charAt(i);
-            FontAtlas.Glyph glyph = font.getGlyph(c);
-
-            if (glyph == null) continue;
-
-            int drawX = cursorX + glyph.xOffset;
-            int drawY = y + glyph.yOffset;
-
-            blitGlyph(fb, fbWidth, fbHeight, font, glyph,
-                    drawX, drawY, r, g, b, a);
-
-            cursorX += glyph.xAdvance;
-        }
-    }
-
-    /**
-     * Blit a single glyph to the framebuffer.
-     */
-    private static void blitGlyph(byte[] fb, int fbWidth, int fbHeight,
-                                  FontAtlas font, FontAtlas.Glyph glyph,
-                                  int screenX, int screenY,
-                                  byte r, byte g, byte b, byte a) {
-        /* early rejection */
-        if (screenX + glyph.width <= 0 || screenX >= fbWidth ||
-                screenY + glyph.height <= 0 || screenY >= fbHeight) {
+        if (x >= fbW) {
             return;
         }
 
-        /* clip to screen */
-        int x0 = Math.max(screenX, 0);
-        int y0 = Math.max(screenY, 0);
-        int x1 = Math.min(screenX + glyph.width, fbWidth);
-        int y1 = Math.min(screenY + glyph.height, fbHeight);
+        byte r = (byte)((argb >> 16) & 0xFF);
+        byte g = (byte)((argb >> 8) & 0xFF);
+        byte b = (byte)(argb & 0xFF);
+        byte a = (byte)((argb >> 24) & 0xFF);
 
-        byte[] atlasPixels = font.pixels;
-        int atlasWidth = font.atlasWidth;
+        int i, l = s.length();
+        Glyph glyph;
 
-        for (int py = y0; py < y1; py++) {
-            int srcY = py - screenY;
-            int atlasRowOffset = (glyph.y + srcY) * atlasWidth;
-            int fbRowOffset = py * fbWidth * BYTES_PER_PIXEL;
+        for (i = 0; i < l; ++i, x += (glyph != null) ? glyph.xAdvance : 0) {
+            if ((glyph = atlas.getGlyph(s.charAt(i))) == null) continue;
 
-            for (int px = x0; px < x1; px++) {
-                int srcX = px - screenX;
-                int atlasIdx = atlasRowOffset + glyph.x + srcX;
+            BlitGlyph(atlas, x + glyph.xOffset, y + glyph.yOffset, glyph,
+                    r, g, b, a);
+        }
+    }
 
-                /* transparency check */
-                if (atlasPixels[atlasIdx] == SpritePalette.TRANSPARENT_IDX) {
-                    continue;
-                }
+    /***
+     * Draws a line of text using the font atlas with top center (x, y).
+     * Renders partially off-screen lines.
+     * Wrapping, if desired, is caller's responsibility.
+     *
+     * @param atlas
+     * @param s
+     * @param x
+     * @param y
+     * @param argb
+     */
+    public static void DrawLineCenter(FontAtlas atlas, String s, int x, int y,
+            int argb) {
+        assert(init);
 
-                int fbIdx = fbRowOffset + px * BYTES_PER_PIXEL;
-                fb[fbIdx]     = r;
+        if (atlas == null) {
+            LogFatalAndExit(ErrStrFailedDrawAtlasNull(s));
+            return;
+        }
+        if (s == null) {
+            LogFatalAndExit(ERR_STR_FAILED_DRAW_S_NULL);
+            return;
+        }
+        if (s.isEmpty()) {
+            LogSession(LogLevel.WARNING, ERR_STR_DRAW_EMPTY_STR);
+        }
+        if (y >= fbH || y + atlas.lineHeight < 0) {
+            return;
+        }
+
+        byte r = (byte)((argb >> 16) & 0xFF);
+        byte g = (byte)((argb >> 8) & 0xFF);
+        byte b = (byte)(argb & 0xFF);
+        byte a = (byte)((argb >> 24) & 0xFF);
+
+        int i, l = s.length();
+        int cursorX = x - atlas.measureWidth(s) / 2;
+        Glyph glyph;
+
+        for (i = 0; i < l; ++i, cursorX += (glyph != null) ? glyph.xAdvance : 0) {
+            if ((glyph = atlas.getGlyph(s.charAt(i))) == null) continue;
+
+            BlitGlyph(atlas, cursorX + glyph.xOffset, y + glyph.yOffset, glyph,
+                    r, g, b, a);
+        }
+    }
+
+    /***
+     * Draws a line of text using the font atlas with top right (x, y).
+     * center.
+     * Renders partially off-screen lines.
+     * Wrapping, if desired, is caller's responsibility.
+     *
+     * @param atlas
+     * @param s
+     * @param x
+     * @param y
+     * @param argb
+     */
+    public static void DrawLineRight(FontAtlas atlas, String s, int x, int y,
+            int argb) {
+        assert(init);
+
+        if (atlas == null) {
+            LogFatalAndExit(ErrStrFailedDrawAtlasNull(s));
+            return;
+        }
+        if (s == null) {
+            LogFatalAndExit(ERR_STR_FAILED_DRAW_S_NULL);
+            return;
+        }
+        if (s.isEmpty()) {
+            LogSession(LogLevel.WARNING, ERR_STR_DRAW_EMPTY_STR);
+            return;
+        }
+        if (y >= fbH || y + atlas.lineHeight < 0) {
+            return;
+        }
+        if (x < 0) {
+            return;
+        }
+
+        byte r = (byte)((argb >> 16) & 0xFF);
+        byte g = (byte)((argb >> 8) & 0xFF);
+        byte b = (byte)(argb & 0xFF);
+        byte a = (byte)((argb >> 24) & 0xFF);
+
+        int i, l = s.length();
+        int cursorX = x - atlas.measureWidth(s);
+        Glyph glyph;
+
+        for (i = 0; i < l; ++i, cursorX += (glyph != null) ? glyph.xAdvance : 0) {
+            if ((glyph = atlas.getGlyph(s.charAt(i))) == null) continue;
+
+            BlitGlyph(atlas, cursorX + glyph.xOffset, y + glyph.yOffset, glyph,
+                    r, g, b, a);
+        }
+    }
+
+    private static void BlitGlyph(FontAtlas atlas, int x, int y, Glyph glyph,
+            byte r, byte g, byte b, byte a) {
+        if (x + glyph.w <= 0 || x >= fbW || y + glyph.h <= 0 || y >= fbH)
+            return;
+
+        int x0 = Math.max(x , 0);
+        int y0 = Math.max(y , 0);
+        int x1 = Math.min(x + glyph.w, fbW);
+        int y1 = Math.min(y + glyph.h, fbH);
+
+        byte buf[] = atlas.buf;
+        int atlasW = atlas.w;
+        int px, py, srcy, srcx, atlasRowOffset, fbRowOffset, atlasIdx, fbIdx;
+
+        for (py = y0; py < y1; ++py) {
+            srcy = py - y;
+            atlasRowOffset = (glyph.y + srcy) * atlasW;
+            fbRowOffset = py * fbW * bpp;
+
+            for (px = x0; px < x1; ++px) {
+                srcx = px - x;
+                atlasIdx = atlasRowOffset + glyph.x + srcx;
+
+                if (buf[atlasIdx] == SpritePalette.TRANSPARENT_IDX) continue;
+
+                fbIdx = fbRowOffset + px * bpp;
+                fb[fbIdx] = r;
                 fb[fbIdx + 1] = g;
                 fb[fbIdx + 2] = b;
                 fb[fbIdx + 3] = a;
             }
         }
-    }
 
-    /**
-     * Convenience overload: left-aligned, no wrap.
-     */
-    public static int draw(byte[] fb, int fbWidth, int fbHeight,
-                           FontAtlas font, String text,
-                           int x, int y, int color) {
-        return draw(fb, fbWidth, fbHeight, font, text, x, y, color, 0, ALIGN_LEFT);
-    }
-
-    /**
-     * Convenience overload: left-aligned with wrap.
-     */
-    public static int draw(byte[] fb, int fbWidth, int fbHeight,
-                           FontAtlas font, String text,
-                           int x, int y, int color, int maxWidth) {
-        return draw(fb, fbWidth, fbHeight, font, text, x, y, color,
-                maxWidth, ALIGN_LEFT);
     }
 
     public static final String CLASS = TextRenderer.class.getSimpleName();
+    private static String ErrStrFailedDrawAtlasNull(String s) {
+        return String.format("%s failed to draw string [%s] because the " +
+                FontAtlas.CLASS + " was null.\n", CLASS, s);
+    }
+    private static final String ERR_STR_FAILED_DRAW_S_NULL = CLASS + " failed" +
+            " to a draw string because it was null.\n";
+    private static final String ERR_STR_DRAW_EMPTY_STR = CLASS + " tried to " +
+            "draw an empty string.\n";
 }

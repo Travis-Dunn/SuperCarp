@@ -3,8 +3,8 @@ package production.dialogue;
 import production.Player;
 import production.character.Char;
 import production.sprite.SpritePalette;
-import production.ui.FontAtlas;
-import production.ui.TextRenderer;
+import production.ui.FontAtlasOld;
+import production.ui.TextRendererOld;
 import production.ui.Renderer;
 
 /**
@@ -32,7 +32,7 @@ public final class DialogueManager {
     private static final int OPTION_HOVER_COLOR = 5;   // highlight for hovered option
 
     /* --- rendering state --- */
-    private static FontAtlas font;
+    private static FontAtlasOld font;
     private static SpritePalette palette;
 
     /* --- hit testing (computed during draw, used for clicks) --- */
@@ -44,8 +44,8 @@ public final class DialogueManager {
 
     private DialogueManager() {}
 
-    public static void Init(FontAtlas fontAtlas, SpritePalette pal) {
-        font = fontAtlas;
+    public static void Init(FontAtlasOld fontAtlasOld, SpritePalette pal) {
+        font = fontAtlasOld;
         palette = pal;
         currentNode = null;
         currentChar = null;
@@ -174,17 +174,17 @@ public final class DialogueManager {
 
         /* draw speaker name */
         if (currentNode.speaker != null) {
-            TextRenderer.draw(fb, fbW, fbH, font,
+            TextRendererOld.draw(fb, fbW, fbH, font,
                     currentNode.speaker + ":",
                     textX, textY, TEXT_COLOR);
             textY += font.lineHeight;
         }
 
         /* draw main text */
-        TextRenderer.draw(fb, fbW, fbH, font,
+        TextRendererOld.draw(fb, fbW, fbH, font,
                 currentNode.text,
                 textX, textY, TEXT_COLOR,
-                boxW - (TEXT_PADDING * 2), TextRenderer.ALIGN_LEFT);
+                boxW - (TEXT_PADDING * 2), TextRendererOld.ALIGN_LEFT);
 
         /* draw options or continue prompt */
         if (currentNode.hasOptions()) {
@@ -192,7 +192,7 @@ public final class DialogueManager {
         } else if (!currentNode.isTerminal()) {
             /* click to continue indicator */
             int promptY = boxY + boxH - TEXT_PADDING - font.lineHeight;
-            TextRenderer.draw(fb, fbW, fbH, font,
+            TextRendererOld.draw(fb, fbW, fbH, font,
                     "[Click to continue]",
                     textX, promptY, TEXT_COLOR);
         }
@@ -223,7 +223,7 @@ public final class DialogueManager {
 
             /* draw option text */
             String text = (i + 1) + ". " + options[i].text;
-            TextRenderer.draw(fb, fbW, fbH, font, text, textX, y, TEXT_COLOR);
+            TextRendererOld.draw(fb, fbW, fbH, font, text, textX, y, TEXT_COLOR);
         }
     }
 

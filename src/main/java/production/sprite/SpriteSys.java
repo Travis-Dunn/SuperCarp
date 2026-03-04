@@ -100,6 +100,12 @@ public final class SpriteSys {
         return SpriteRenderer.framebuffer;
     }
 
+    public static int GetBytesPerPixel() {
+        assert(init);
+
+        return SpriteBackend.GetBytesPerPixel();
+    }
+
     public static final String CLASS = SpriteSys.class.getSimpleName();
     private static String ErrStrCapOutOfBounds(int c) {
         return String.format("%s defaulted to [%d] capacity because an " +

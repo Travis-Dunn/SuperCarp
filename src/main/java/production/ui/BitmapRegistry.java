@@ -13,14 +13,6 @@ public final class BitmapRegistry {
     private static boolean init;
 
     public static Bitmap BILBO_PORTRAIT;
-    public static Bitmap FRAME_TL;
-    public static Bitmap FRAME_TR;
-    public static Bitmap FRAME_BL;
-    public static Bitmap FRAME_BR;
-    public static Bitmap FRAME_L;
-    public static Bitmap FRAME_R;
-    public static Bitmap FRAME_T;
-    public static Bitmap FRAME_B;
 
     public static Bitmap FRAME_0;
 
@@ -32,14 +24,6 @@ public final class BitmapRegistry {
         LogSession(LogLevel.DEBUG, CLASS + " initializing...\n");
 
         BILBO_PORTRAIT = BitmapFileParser.FromFile("bilbo.png", palette);
-        FRAME_TL = BitmapFileParser.FromFile("frame_tl.png", palette);
-        FRAME_TR = BitmapFileParser.FromFile("frame_tr.png", palette);
-        FRAME_BL = BitmapFileParser.FromFile("frame_bl.png", palette);
-        FRAME_BR = BitmapFileParser.FromFile("frame_br.png", palette);
-        FRAME_L = BitmapFileParser.FromFile("frame_l.png", palette);
-        FRAME_R = BitmapFileParser.FromFile("frame_r.png", palette);
-        FRAME_T = BitmapFileParser.FromFile("frame_t.png", palette);
-        FRAME_B = BitmapFileParser.FromFile("frame_b.png", palette);
 
         FRAME_0 = BitmapFileParser.FromFile("frame_0.png", palette);
 
@@ -54,14 +38,6 @@ public final class BitmapRegistry {
         LogSession(LogLevel.DEBUG, CLASS + " shutting down...\n");
 
         BILBO_PORTRAIT = null;
-        FRAME_TL = null;
-        FRAME_TR = null;
-        FRAME_BL = null;
-        FRAME_BR = null;
-        FRAME_L = null;
-        FRAME_R = null;
-        FRAME_T = null;
-        FRAME_B = null;
 
         FRAME_0 = null;
 
