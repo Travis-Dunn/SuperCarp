@@ -35,15 +35,16 @@ public final class GL12SoftwareFramebuffer {
     The viewport in DisplayConfig is the emulated viewport - not the same thing.
      */
     private static int vpX, vpY;
-    private static int vpW, vpH;
+    private static int fbW, fbH;
     private static int winW, winH;
+    private static int vpW, vpH;
 
     private GL12SoftwareFramebuffer() {}
 
     public static boolean Init(
             GLSourceTexelLayout layout,
             GLTextureTexelLayout internalLayout,
-            int vpW, int vpH,
+            int fbW, int fbH,
             int vpX, int vpY,
             int winW, int winH) {
         assert(!init);
@@ -57,8 +58,8 @@ public final class GL12SoftwareFramebuffer {
         GL12SoftwareFramebuffer.srcFormat = layout;
         GL12SoftwareFramebuffer.dstFormat = internalLayout;
 
-        if (!(vpW > 0 && vpH > 0)) {
-            LogFatalAndExit(ErrStrInitVPRes(vpW, vpH));
+        if (!(fbW > 0 && fbH > 0)) {
+            LogFatalAndExit(ErrStrInitVPRes(fbW, fbH));
             return init = false;
         }
 
@@ -72,27 +73,29 @@ public final class GL12SoftwareFramebuffer {
             return init = false;
         }
 
-        if (!(vpW + vpX <= winW)) {
-            LogFatalAndExit(ErrStrInitTooWide(vpX, vpW, winW));
+        if (!(fbW + vpX <= winW)) {
+            LogFatalAndExit(ErrStrInitTooWide(vpX, fbW, winW));
             return init = false;
         }
 
-        if (!(vpH + vpY <= winH)) {
-            LogFatalAndExit(ErrStrInitTooTall(vpY, vpH, winH));
+        if (!(fbH + vpY <= winH)) {
+            LogFatalAndExit(ErrStrInitTooTall(vpY, fbH, winH));
             return init = false;
         }
 
-        GL12SoftwareFramebuffer.vpW = vpW;
-        GL12SoftwareFramebuffer.vpH = vpH;
+        GL12SoftwareFramebuffer.fbW = fbW;
+        GL12SoftwareFramebuffer.fbH = fbH;
         GL12SoftwareFramebuffer.vpX = vpX;
         GL12SoftwareFramebuffer.vpY = vpY;
         GL12SoftwareFramebuffer.winW = winW;
         GL12SoftwareFramebuffer.winH = winH;
+        GL12SoftwareFramebuffer.vpW = winW - vpX * 2;
+        GL12SoftwareFramebuffer.vpH = winH - vpY * 2;
 
         try {
             uploadBuf = BufferUtils.createIntBuffer(
-                    GL12SoftwareFramebuffer.vpW *
-                            GL12SoftwareFramebuffer.vpH);
+                    GL12SoftwareFramebuffer.fbW *
+                            GL12SoftwareFramebuffer.fbH);
         } catch (OutOfMemoryError e) {
             LogFatalAndExit(CLASS + ERR_STR_FAILED_INIT_OOM);
             return init = false;
@@ -147,13 +150,13 @@ public final class GL12SoftwareFramebuffer {
 
         GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0,
                 GL12SoftwareFramebuffer.dstFormat.glInternalLayout,
-                GL12SoftwareFramebuffer.vpW, GL12SoftwareFramebuffer.vpH,
+                GL12SoftwareFramebuffer.fbW, GL12SoftwareFramebuffer.fbH,
                 0, GL12SoftwareFramebuffer.srcFormat.glFormat,
                 GL12SoftwareFramebuffer.srcFormat.glType, (IntBuffer) null);
 
         if (!CheckGlErrorInit("glTexImage2D(GL_TEXTURE_2D, 0, " +
-                "GL_RGBA, [" + GL12SoftwareFramebuffer.vpW + "], [" +
-                GL12SoftwareFramebuffer.vpH + "], 0, GL_RGBA, GL_UNSIGNED_" +
+                "GL_RGBA, [" + GL12SoftwareFramebuffer.fbW + "], [" +
+                GL12SoftwareFramebuffer.fbH + "], 0, GL_RGBA, GL_UNSIGNED_" +
                 "BYTE, (ByteBuffer) null)"))
             return init = false;
 
@@ -163,8 +166,8 @@ public final class GL12SoftwareFramebuffer {
             return init = false;
 
         try {
-            buf = new int[GL12SoftwareFramebuffer.vpW *
-                    GL12SoftwareFramebuffer.vpH];
+            buf = new int[GL12SoftwareFramebuffer.fbW *
+                    GL12SoftwareFramebuffer.fbH];
         } catch (OutOfMemoryError e) {
             LogFatalAndExit(CLASS + ERR_STR_FAILED_INIT_OOM);
             return init = false;
@@ -172,8 +175,8 @@ public final class GL12SoftwareFramebuffer {
 
         /* TODO: update me */
         LogSession(LogLevel.DEBUG, CLASS + " initialized with ["
-                + GL12SoftwareFramebuffer.vpW + "] width, [" +
-                GL12SoftwareFramebuffer.vpH + "] height.\n");
+                + GL12SoftwareFramebuffer.fbW + "] width, [" +
+                GL12SoftwareFramebuffer.fbH + "] height.\n");
 
         return init = true;
     }
@@ -207,8 +210,8 @@ public final class GL12SoftwareFramebuffer {
         assert(init);
         assert(buf != null);
         assert(GL12SoftwareFramebuffer.srcFormat.bpp == 4);
-        assert(buf.length == GL12SoftwareFramebuffer.vpW *
-                GL12SoftwareFramebuffer.vpH);
+        assert(buf.length == GL12SoftwareFramebuffer.fbW *
+                GL12SoftwareFramebuffer.fbH);
 
         uploadBuf.clear();
         uploadBuf.put(buf);
@@ -219,7 +222,7 @@ public final class GL12SoftwareFramebuffer {
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, texId);
 
         GL11.glTexSubImage2D(GL11.GL_TEXTURE_2D, 0, 0, 0,
-                vpW, vpH, srcFormat.glFormat, srcFormat.glType, uploadBuf);
+                fbW, fbH, srcFormat.glFormat, srcFormat.glType, uploadBuf);
 
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glDisable(GL11.GL_DEPTH_TEST);

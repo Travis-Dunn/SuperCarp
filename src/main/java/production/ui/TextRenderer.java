@@ -12,16 +12,17 @@ public final class TextRenderer {
     private static boolean init;
 
     private static int bpp;
-    private static byte fb[];
+    private static int buf[];
     private static int fbW, fbH;
 
-    public static boolean Init() {
+    public static boolean Init(int buf[], int fbW, int fbH, int bpp) {
         assert(!init);
 
-        bpp = SpriteSys.GetBytesPerPixel();
-        fb = SpriteSys.GetFramebuffer();
-        fbW = DisplayConfig.GetEmulatedW();
-        fbH = DisplayConfig.GetEmulatedH();
+        /* TODO input validation */
+        TextRenderer.buf = buf;
+        TextRenderer.fbW = fbW;
+        TextRenderer.fbH = fbH;
+        TextRenderer.bpp = bpp;
 
         return init = true;
     }
@@ -191,7 +192,7 @@ public final class TextRenderer {
         for (py = y0; py < y1; ++py) {
             srcy = py - y;
             atlasRowOffset = (glyph.y + srcy) * atlasW;
-            fbRowOffset = py * fbW * bpp;
+            fbRowOffset = py * fbW;
 
             for (px = x0; px < x1; ++px) {
                 srcx = px - x;
@@ -199,11 +200,11 @@ public final class TextRenderer {
 
                 if (buf[atlasIdx] == SpritePalette.TRANSPARENT_IDX) continue;
 
-                fbIdx = fbRowOffset + px * bpp;
-                fb[fbIdx] = r;
-                fb[fbIdx + 1] = g;
-                fb[fbIdx + 2] = b;
-                fb[fbIdx + 3] = a;
+                fbIdx = fbRowOffset + px;
+                TextRenderer.buf[fbIdx] = (r & 0xFF) << 24
+                        | (g & 0xFF) << 16
+                        | (b & 0xFF) <<  8
+                        | (a & 0xFF);
             }
         }
 

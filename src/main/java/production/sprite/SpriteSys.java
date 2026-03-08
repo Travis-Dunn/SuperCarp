@@ -45,10 +45,6 @@ public final class SpriteSys {
             LogFatalAndExit(ERR_STR_FAILED_INIT_POOL);
             return init = false;
         }
-        if (!SpriteBackend.Init(bpp)) {
-            LogFatalAndExit(ERR_STR_FAILED_INIT_BACKEND);
-            return init = false;
-        }
         if (!SpriteRenderer.Init()) {
             LogFatalAndExit(ERR_STR_FAILED_INIT_RENDERER);
             return init = false;
@@ -65,7 +61,6 @@ public final class SpriteSys {
         LogSession(LogLevel.DEBUG, CLASS + " shutting down...\n");
 
         SpritePool.Shutdown();
-        SpriteBackend.Shutdown();
         SpriteRenderer.Shutdown();
 
         init = false;
@@ -94,16 +89,10 @@ public final class SpriteSys {
         return fbHeight;
     }
 
-    public static byte[] GetFramebuffer() {
+    public static void SetBuf(int buf[]) {
         assert(init);
 
-        return SpriteRenderer.framebuffer;
-    }
-
-    public static int GetBytesPerPixel() {
-        assert(init);
-
-        return SpriteBackend.GetBytesPerPixel();
+        SpriteRenderer.framebuffer = buf;
     }
 
     public static final String CLASS = SpriteSys.class.getSimpleName();
@@ -124,9 +113,6 @@ public final class SpriteSys {
     private static final String ERR_STR_FAILED_INIT_POOL = CLASS +
             " failed to initialize because " + SpritePool.CLASS + " failed " +
             "to initialize.\n";
-    private static final String ERR_STR_FAILED_INIT_BACKEND = CLASS +
-            " failed to initialize because " + SpriteBackend.CLASS + " failed" +
-            " to initialize.\n";
     private static final String ERR_STR_FAILED_INIT_RENDERER = CLASS +
             " failed to initialize because " + SpriteRenderer.CLASS +
             " failed to initialize.\n";

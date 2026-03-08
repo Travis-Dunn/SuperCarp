@@ -23,6 +23,9 @@ import whitetail.core.GameEngine;
 import whitetail.event.*;
 import whitetail.scene.SceneManager;
 import whitetail.scene.SceneType;
+import whitetail.software_framebuffer.GL12SoftwareFramebuffer;
+import whitetail.software_framebuffer.GLSourceTexelLayout;
+import whitetail.software_framebuffer.GLTextureTexelLayout;
 import whitetail.utility.FramerateManager;
 
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
@@ -40,6 +43,23 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
             LogFatalAndExit(ERR_STR_FAILED_INIT_SPRITE_SYS);
             return false;
         }
+
+        int px = DisplayConfig.GetPixelScale();
+
+        if (!GL12SoftwareFramebuffer.Init(
+                GLSourceTexelLayout.RGBA_UINT_8888,
+                GLTextureTexelLayout.RGBA8,
+                DisplayConfig.GetEmulatedW(),
+                DisplayConfig.GetEmulatedH(),
+                DisplayConfig.GetOffsetX(),
+                DisplayConfig.GetOffsetY(),
+                DisplayConfig.GetWindowW(),
+                DisplayConfig.GetWindowH())) {
+            LogFatalAndExit(ErrStrInitFailedFramebuffer());
+            return false;
+        }
+
+        SpriteSys.SetBuf(GL12SoftwareFramebuffer.GetBuf());
 
         Data.sCam = new SpriteCamera();
         Data.sCam.init(FramebufferConfig.GetViewportW(),
@@ -145,21 +165,27 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         * and init time. Init time only ever happens once per session. */
 
         /* 16_rs_mono_freetype.fnt */
-        Data.fontAtlasOld = FontAtlasFileParser.FromFile(
+        Data.fontAtlasOld = FontAtlasFileParserOld.FromFile(
+                "monogram_16_java.fnt", Data.sp, 11);
+        Data.fontAtlas = FontAtlasFileParser.FromFile(
                 "monogram_16_java.fnt", Data.sp, 11);
 
-        ChatBox.Init(Data.fontAtlasOld);
+        ChatBox.Init(Data.fontAtlas);
         ChatBox.AddMsg("Welcome to SuperCarp.");
 
         DialogueManager.Init(Data.fontAtlasOld, Data.sp);
         CharRegistry.BILBO.dialogueRoot = BilboDialogue.GREETING;
 
-        Renderer.Init(Data.BPP, SpriteSys.GetFramebuffer(),
+        Renderer.Init(GL12SoftwareFramebuffer.GetBuf(),
                 SpriteSys.GetFramebufferWidth(),
                 SpriteSys.GetFramebufferHeight());
         BitmapRegistry.Init(Data.sp);
 
         GameFrame.Init();
+
+        TextRenderer.Init(GL12SoftwareFramebuffer.GetBuf(),
+                DisplayConfig.GetEmulatedW(), DisplayConfig.GetEmulatedH(),
+                4);
 
         return true;
     }
@@ -232,6 +258,10 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         SpriteRenderer.ClearViewport(Data.clearColor);
         SpriteRenderer.RenderNew();
 
+        if (Keyboard.isKeyDown(Keyboard.KEY_Q)) {
+
+            GameFrame.Draw();
+        }
         GameFrame.Draw();
         if (DialogueManager.isActive()) {
             // need mouse position in FB coords for hover effects
@@ -251,7 +281,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
             ChatBox.Draw();
         }
 
-        SpriteBackend.Present(SpriteSys.GetFramebuffer());
+        GL12SoftwareFramebuffer.Present();
         window.swapBuffers();
     }
 
@@ -292,4 +322,8 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
     public static final String CLASS = SuperCarpEngine.class.getSimpleName();
     private static final String ERR_STR_FAILED_INIT_SPRITE_SYS = " failed to " +
             "initialize because the sprite system failed to initialize.\n";
+    private static String ErrStrInitFailedFramebuffer() {
+        return String.format("%s failed to initialize because the %s failed " +
+                "to initialize.\n", CLASS, GL12SoftwareFramebuffer.CLASS);
+    }
 }

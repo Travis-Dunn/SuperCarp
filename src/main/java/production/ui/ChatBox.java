@@ -3,6 +3,7 @@ package production.ui;
 import production.Data;
 import production.display.DisplayConfig;
 import production.sprite.SpriteSys;
+import whitetail.software_framebuffer.GL12SoftwareFramebuffer;
 
 /**
  * Simple chat box that displays the last N messages.
@@ -15,6 +16,7 @@ public final class ChatBox {
     private static int count = 0;  // total messages received (for indexing)
 
     private static FontAtlasOld font;
+    private static FontAtlas fontAtlas;
     private static int color = Data.BLACK;  // default white
 
     /* hard-coded position - bottom-left of screen */
@@ -23,11 +25,8 @@ public final class ChatBox {
 
     private ChatBox() {}
 
-    /**
-     * Initialize with a font. Call once during game init.
-     */
-    public static void Init(FontAtlasOld fontAtlasOld) {
-        font = fontAtlasOld;
+    public static void Init(FontAtlas fontAtlas) {
+        ChatBox.fontAtlas = fontAtlas;
         for (int i = 0; i < LINE_COUNT; i++) {
             lines[i] = null;
         }
@@ -46,7 +45,7 @@ public final class ChatBox {
      * Older messages scroll up; oldest discarded when full.
      */
     public static void AddMsg(String message) {
-        if (font == null) {
+        if (fontAtlas == null) {
             System.out.println("[ChatBox] " + message);
             return;
         }
@@ -63,21 +62,21 @@ public final class ChatBox {
      * Draw the chat box. Call during render, after sprites.
      */
     public static void Draw() {
-        if (font == null) return;
+        if (fontAtlas == null) return;
 
-        byte[] fb = SpriteSys.GetFramebuffer();
+        int[] fb = GL12SoftwareFramebuffer.GetBuf();
         int fbW = DisplayConfig.GetEmulatedW();
         int fbH = DisplayConfig.GetEmulatedH();
 
         /* calculate Y position for topmost line */
-        int lineHeight = font.lineHeight;
+        int lineHeight = fontAtlas.lineHeight;
         int totalHeight = LINE_COUNT * lineHeight;
         int startY = Y_BOTTOM - totalHeight;
 
         for (int i = 0; i < LINE_COUNT; i++) {
             if (lines[i] != null) {
                 int y = startY + (i * lineHeight);
-                TextRendererOld.draw(fb, fbW, fbH, font, lines[i], X, y, color);
+                TextRenderer.DrawLineLeft(fontAtlas, lines[i], X, y, color);
             }
         }
     }

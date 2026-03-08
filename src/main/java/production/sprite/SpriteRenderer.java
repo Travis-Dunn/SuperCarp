@@ -11,7 +11,7 @@ public final class SpriteRenderer {
     private static boolean init;
 
     private static SpriteCamera cam;
-    static byte[] framebuffer;
+    static int[] framebuffer;
 
     private static final int MAX_LAYERS = 8;
     private static short[][] handlesByLayerArr;
@@ -31,8 +31,6 @@ public final class SpriteRenderer {
         LogSession(LogLevel.DEBUG, CLASS + " initializing...\n");
 
         try {
-            framebuffer = new byte[
-                    SpriteSys.fbWidth * SpriteSys.fbHeight * BYTES_PER_PIXEL];
             handlesByLayerArr = new short[MAX_LAYERS][SpriteSys.cap];
             layerCounts = new int[MAX_LAYERS];
             paletteArr = new SpritePalette[SpritePool.MAX_PALETTE + 1];
@@ -60,13 +58,18 @@ public final class SpriteRenderer {
         byte b = (byte)(color & 0xFF);
         byte a = (byte)((color >> 24) & 0xFF);
 
-        for (int i = 0; i < framebuffer.length; i += BYTES_PER_PIXEL) {
-            framebuffer[i]     = r;
-            framebuffer[i + 1] = g;
-            framebuffer[i + 2] = b;
-            framebuffer[i + 3] = a;
+        for (int i = 0; i < framebuffer.length; ++i) {
+            framebuffer[i]     = (r & 0xFF) << 24
+                    | (g & 0xFF) << 16
+                    | (b & 0xFF) <<  8
+                    | (a & 0xFF);
         }
     }
+
+    /* TODO: when I moved the framebuffer ownership to GL12SoftwareFramebuffer,
+    I broke the init pattern. Now this class requires that SpriteSys.SetBuf be
+    called in addition to Init. Fix this.
+     */
 
     public static void ClearViewport(int color) {
         assert(init);
@@ -75,16 +78,17 @@ public final class SpriteRenderer {
         byte g = (byte)((color >> 8) & 0xFF);
         byte b = (byte)(color & 0xFF);
         byte a = (byte)((color >> 24) & 0xFF);
+        int c = (r & 0xFF) << 24
+                | (g & 0xFF) << 16
+                | (b & 0xFF) <<  8
+                | (a & 0xFF);
 
         int[] vp = FramebufferConfig.GetViewportBounds();
 
         for (int y = vp[1]; y < vp[3]; ++y) {
             for (int x = vp[0]; x < vp[2]; ++x) {
-                int i = (y * SpriteSys.fbWidth + x) * SpriteBackend.bpp;
-                framebuffer[i] = r;
-                framebuffer[i + 1] = g;
-                framebuffer[i + 2] = b;
-                framebuffer[i + 3] = a;
+                int i = (y * SpriteSys.fbWidth + x);
+                framebuffer[i] = c;
             }
         }
     }
@@ -199,16 +203,16 @@ public final class SpriteRenderer {
         screenY += vpArr[1];
 
         /* early rejection: entirely off-screen */
-        if (screenX + size <= vpArr[0] ||
-                screenX >= vpArr[2] ||
-                screenY + size <= vpArr[1] ||
-                screenY >= vpArr[3]) {
+        if (screenX + size < vpArr[0] ||
+                screenX > vpArr[2] ||
+                screenY + size < vpArr[1] ||
+                screenY > vpArr[3]) {
             return;
         }
 
         /* clip to screen bounds */
         int x0 = Math.max(screenX, vpArr[0]);
-        int y0 = Math.max(screenY,vpArr[1]);
+        int y0 = Math.max(screenY, vpArr[1]);
         int x1 = Math.min(screenX + size, vpArr[2]);
         int y1 = Math.min(screenY + size, vpArr[3]);
 
@@ -216,7 +220,7 @@ public final class SpriteRenderer {
         int fbRowOffset, atlasRowOffset;
 
         for (int y = y0; y < y1; ++y) {
-            fbRowOffset = y * SpriteSys.fbWidth * BYTES_PER_PIXEL;
+            fbRowOffset = y * SpriteSys.fbWidth;
 
             srcY = y - screenY;
             if (flipV) srcY = (size - 1) - srcY;
@@ -232,12 +236,18 @@ public final class SpriteRenderer {
                 if (texelIdx == SpritePalette.TRANSPARENT_IDX) continue;
 
                 color = palette[texelIdx];
-                fbIdx = fbRowOffset + x * BYTES_PER_PIXEL;
+                fbIdx = fbRowOffset + x;
 
-                framebuffer[fbIdx]     = (byte)((color >> 16) & 0xFF);  /* R */
-                framebuffer[fbIdx + 1] = (byte)((color >> 8) & 0xFF);   /* G */
-                framebuffer[fbIdx + 2] = (byte)(color & 0xFF);          /* B */
-                framebuffer[fbIdx + 3] = (byte)0xFF;                    /* A */
+                byte r = (byte)((color >> 16) & 0xFF);
+                byte g = (byte)((color >> 8) & 0xFF);
+                byte b = (byte)(color & 0xFF);
+                byte a = (byte)((color >> 24) & 0xFF);
+                int c = (r & 0xFF) << 24
+                        | (g & 0xFF) << 16
+                        | (b & 0xFF) <<  8
+                        | (a & 0xFF);
+
+                framebuffer[fbIdx]     = c;
             }
         }
     }

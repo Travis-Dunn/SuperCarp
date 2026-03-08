@@ -51,7 +51,7 @@ public class EntryPoint {
         };
 
         ViewportPreset vps[] = new ViewportPreset[] {
-                new ViewportPreset(4, 4, 305, 155)
+                new ViewportPreset(4, 4, 304, 154)
         };
 
         int resMap[][] = new int[][] {

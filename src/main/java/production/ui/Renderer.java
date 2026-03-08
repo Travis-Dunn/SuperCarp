@@ -13,24 +13,15 @@ import static whitetail.utility.logging.Logger.LogSession;
 public final class Renderer {
     private static boolean init;
 
-    private static int bpp;
-    private static byte buf[];
+    private static int buf[];
     private static int fbW, fbH;
 
     private Renderer() {}
 
-    public static boolean Init(int bpp, byte buf[], int fbW, int fbH) {
+    public static boolean Init(int buf[], int fbW, int fbH) {
         assert(!init);
 
         LogSession(LogLevel.DEBUG, CLASS + " initializing...\n");
-
-        if (bpp < 1) {
-            LogFatalAndExit(ErrStrFailedInitValTooSmall(
-                    "bytes per pixel", bpp));
-            return init = false;
-        } else {
-            Renderer.bpp = bpp;
-        }
 
         if (fbW < 1) {
             LogFatalAndExit(ErrStrFailedInitValTooSmall(
@@ -72,7 +63,6 @@ public final class Renderer {
      */
     public static void DrawRect(int x, int y, int w, int h,
                                 int paletteIndex, SpritePalette palette) {
-        /* bounds check palette index */
         if (paletteIndex < 0 || paletteIndex > palette.maxIdx) return;
 
         int color = palette.colors[paletteIndex];
@@ -84,30 +74,21 @@ public final class Renderer {
      */
     private static void _DrawRect(int x, int y, int w, int h,
                                   int argbColor) {
-        /* early rejection */
         if (w <= 0 || h <= 0) return;
         if (x + w <= 0 || x >= Renderer.fbW) return;
         if (y + h <= 0 || y >= Renderer.fbH) return;
 
-        /* clip to screen */
         int x0 = Math.max(x, 0);
         int y0 = Math.max(y, 0);
         int x1 = Math.min(x + w, Renderer.fbW);
         int y1 = Math.min(y + h, Renderer.fbH);
 
-        byte r = (byte)((argbColor >> 16) & 0xFF);
-        byte g = (byte)((argbColor >> 8) & 0xFF);
-        byte b = (byte)(argbColor & 0xFF);
-        byte a = (byte)((argbColor >> 24) & 0xFF);
+        int pixel = argbToRgba(argbColor);
 
         for (int py = y0; py < y1; py++) {
-            int rowOffset = py * Renderer.fbW * bpp;
+            int rowOffset = py * Renderer.fbW;
             for (int px = x0; px < x1; px++) {
-                int idx = rowOffset + px * bpp;
-                buf[idx]     = r;
-                buf[idx + 1] = g;
-                buf[idx + 2] = b;
-                buf[idx + 3] = a;
+                buf[rowOffset + px] = pixel;
             }
         }
     }
@@ -127,16 +108,12 @@ public final class Renderer {
      * Draw a rectangle outline with raw ARGB color.
      */
     private static void _DrawRectOutline(int x, int y, int w, int h,
-                                        int argbColor) {
+                                         int argbColor) {
         if (w <= 0 || h <= 0) return;
 
-        /* top edge */
         _DrawRect(x, y, w, 1, argbColor);
-        /* bottom edge */
         _DrawRect(x, y + h - 1, w, 1, argbColor);
-        /* left edge */
         _DrawRect(x, y + 1, 1, h - 2, argbColor);
-        /* right edge */
         _DrawRect(x + w - 1, y + 1, 1, h - 2, argbColor);
     }
 
@@ -162,10 +139,6 @@ public final class Renderer {
     /**
      * Draw a Bitmap at the specified position.
      * Transparent pixels (index 0) are skipped.
-     *
-     * @param bitmap the bitmap to draw
-     * @param x left edge
-     * @param y top edge
      */
     public static void DrawBitmap(Bitmap bitmap, int x, int y) {
         assert(init);
@@ -174,11 +147,9 @@ public final class Renderer {
         int w = bitmap.width;
         int h = bitmap.height;
 
-        /* early rejection */
         if (x + w <= 0 || x >= fbW) return;
         if (y + h <= 0 || y >= fbH) return;
 
-        /* clip to screen */
         int x0 = Math.max(x, 0);
         int y0 = Math.max(y, 0);
         int x1 = Math.min(x + w, fbW);
@@ -187,27 +158,21 @@ public final class Renderer {
         byte[] pixels = bitmap.data;
         int[] palette = bitmap.getPalette().colors;
 
-        int srcX, texelIdx, color, fbIdx;
+        int srcX, texelIdx, fbIdx;
         int fbRowOffset, srcRowOffset;
 
         for (int py = y0; py < y1; ++py) {
-            fbRowOffset = py * fbW * bpp;
+            fbRowOffset = py * fbW;
             srcRowOffset = (py - y) * w;
 
             for (int px = x0; px < x1; ++px) {
                 srcX = px - x;
                 texelIdx = pixels[srcRowOffset + srcX] & 0xFF;
 
-                /* transparency check */
                 if (texelIdx == 0) continue;
 
-                color = palette[texelIdx];
-                fbIdx = fbRowOffset + px * bpp;
-
-                buf[fbIdx]     = (byte)((color >> 16) & 0xFF);  /* R */
-                buf[fbIdx + 1] = (byte)((color >> 8) & 0xFF);   /* G */
-                buf[fbIdx + 2] = (byte)(color & 0xFF);          /* B */
-                buf[fbIdx + 3] = (byte)((color >> 24) & 0xFF);  /* A */
+                fbIdx = fbRowOffset + px;
+                buf[fbIdx] = argbToRgba(palette[texelIdx]);
             }
         }
     }
@@ -219,11 +184,9 @@ public final class Renderer {
         int w = bitmap.width;
         int h = bitmap.height;
 
-        /* early rejection */
         if (x + w <= 0 || x >= fbW) return;
         if (y + h <= 0 || y >= fbH) return;
 
-        /* clip to screen */
         int x0 = Math.max(x, 0);
         int y0 = Math.max(y, 0);
         int x1 = Math.min(x + w, fbW);
@@ -232,31 +195,33 @@ public final class Renderer {
         byte[] pixels = bitmap.data;
         int[] palette = bitmap.getPalette().colors;
 
-        int srcX, texelIdx, color, fbIdx;
+        int srcX, texelIdx, fbIdx;
         int fbRowOffset, srcRowOffset;
 
         for (int py = y0; py < y1; ++py) {
-            fbRowOffset = py * fbW * bpp;
+            fbRowOffset = py * fbW;
             srcRowOffset = (py - y) * w;
 
             for (int px = x0; px < x1; ++px) {
                 srcX = px - x;
                 texelIdx = pixels[srcRowOffset + srcX] & 0xFF;
 
-                /* transparency check */
-                /*
-                if (texelIdx == 0) continue;
-                 */
-
-                color = palette[texelIdx];
-                fbIdx = fbRowOffset + px * bpp;
-
-                buf[fbIdx]     = (byte)((color >> 16) & 0xFF);  /* R */
-                buf[fbIdx + 1] = (byte)((color >> 8) & 0xFF);   /* G */
-                buf[fbIdx + 2] = (byte)(color & 0xFF);          /* B */
-                buf[fbIdx + 3] = (byte)((color >> 24) & 0xFF);  /* A */
+                fbIdx = fbRowOffset + px;
+                buf[fbIdx] = argbToRgba(palette[texelIdx]);
             }
         }
+    }
+
+    /**
+     * Convert ARGB (as stored in palettes) to RGBA packed for
+     * GL_UNSIGNED_INT_8_8_8_8.
+     */
+    private static int argbToRgba(int argb) {
+        int r = (argb >> 16) & 0xFF;
+        int g = (argb >>  8) & 0xFF;
+        int b =  argb        & 0xFF;
+        int a = (argb >> 24) & 0xFF;
+        return (r << 24) | (g << 16) | (b << 8) | a;
     }
 
     public static final String CLASS = Renderer.class.getSimpleName();
@@ -265,8 +230,7 @@ public final class Renderer {
                 "be at least 1", CLASS, s, i);
     }
     private static String ErrStrInit() {
-        return String.format("%s initialized with [%d] bytes per pixel.\n",
-                CLASS, bpp);
+        return String.format("%s initialized.\n", CLASS);
     }
     private static String ErrStrFailedInitBufNull() {
         return String.format("%s failed to initialize because buf was null.\n",

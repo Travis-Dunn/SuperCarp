@@ -12,12 +12,23 @@ import java.io.InputStreamReader;
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
 import static whitetail.utility.ErrorHandler.LogFatalExcpAndExit;
 
-public final class FontAtlasFileParser {
+/**
+ * Parses BMFont text format (.fnt) and accompanying atlas image.
+ */
+public final class FontAtlasFileParserOld {
     private static final String FONTS_DIR = "fonts";
     private static final int MAX_CHAR = 256;
 
-    public static FontAtlas FromFile(String fntFilename, SpritePalette palette,
-                                     int fgIndex) {
+    /**
+     * Load a BMFont from .fnt file.
+     * Expects the atlas PNG to be in the same directory.
+     *
+     * @param fntFilename the .fnt file name (e.g., "dialogue.fnt")
+     * @param palette palette for color mapping (uses index 1 for foreground)
+     * @param fgIndex palette index to use for glyph pixels
+     */
+    public static FontAtlasOld FromFile(String fntFilename, SpritePalette palette,
+                                        int fgIndex) {
         assert(fntFilename != null && !fntFilename.isEmpty());
         assert(palette != null);
 
@@ -29,7 +40,7 @@ public final class FontAtlasFileParser {
         }
 
         try {
-            InputStream stream = FontAtlasFileParser.class.getResourceAsStream(p);
+            InputStream stream = FontAtlasFileParserOld.class.getResourceAsStream(p);
             if (stream == null) {
                 LogFatalAndExit(ErrStrFailedLoad(fntFilename));
                 return null;
@@ -45,8 +56,8 @@ public final class FontAtlasFileParser {
         }
     }
 
-    private static FontAtlas FromStream(InputStream s, String fntFilename,
-                                        SpritePalette palette, int fgIndex)
+    private static FontAtlasOld FromStream(InputStream s, String fntFilename,
+                                           SpritePalette palette, int fgIndex)
             throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(s));
 
@@ -55,7 +66,7 @@ public final class FontAtlasFileParser {
         int scaleW = 0;
         int scaleH = 0;
         String atlasFilename = null;
-        Glyph[] glyphs = new Glyph[MAX_CHAR];
+        FontAtlasOld.Glyph[] glyphs = new FontAtlasOld.Glyph[MAX_CHAR];
 
         String line;
         while ((line = reader.readLine()) != null) {
@@ -74,7 +85,7 @@ public final class FontAtlasFileParser {
             else if (line.startsWith("char ")) {
                 int id = parseIntField(line, "id");
                 if (id >= 0 && id < MAX_CHAR) {
-                    glyphs[id] = new Glyph(
+                    glyphs[id] = new FontAtlasOld.Glyph(
                             parseIntField(line, "x"),
                             parseIntField(line, "y"),
                             parseIntField(line, "width"),
@@ -92,19 +103,23 @@ public final class FontAtlasFileParser {
             return null;
         }
 
-        byte[] buf = loadAtlasImage(fntFilename, atlasFilename,
+        /* load atlas image */
+        byte[] pixels = loadAtlasImage(fntFilename, atlasFilename,
                 scaleW, scaleH, fgIndex);
-        if (buf == null) return null;
+        if (pixels == null) {
+            return null;
+        }
 
-        return new FontAtlas(lineHeight, base, scaleW, scaleH, buf, glyphs);
+        return new FontAtlasOld(lineHeight, base, scaleW, scaleH, pixels, glyphs);
     }
 
     private static byte[] loadAtlasImage(String fntFilename, String atlasFilename,
                                          int expectedW, int expectedH, int fgIndex) {
+        /* atlas is in same directory as .fnt file */
         String p = "/" + FONTS_DIR + "/" + atlasFilename;
 
         try {
-            InputStream stream = FontAtlasFileParser.class.getResourceAsStream(p);
+            InputStream stream = FontAtlasFileParserOld.class.getResourceAsStream(p);
             if (stream == null) {
                 LogFatalAndExit(ErrStrFailedLoadAtlas(fntFilename, atlasFilename));
                 return null;
@@ -138,6 +153,7 @@ public final class FontAtlasFileParser {
                     int argb = image.getRGB(x, y);
                     int alpha = (argb >> 24) & 0xFF;
 
+                    /* treat any non-transparent pixel as foreground */
                     if (alpha > 127) {
                         pixels[y * w + x] = (byte) fgIndex;
                     } else {
@@ -154,6 +170,10 @@ public final class FontAtlasFileParser {
         }
     }
 
+    /**
+     * Parse an integer field from a BMFont line.
+     * Format: "fieldName=123"
+     */
     private static int parseIntField(String line, String field) {
         String search = field + "=";
         int start = line.indexOf(search);
@@ -175,6 +195,10 @@ public final class FontAtlasFileParser {
         }
     }
 
+    /**
+     * Parse a quoted string field from a BMFont line.
+     * Format: fieldName="value"
+     */
     private static String parseStringField(String line, String field) {
         String search = field + "=\"";
         int start = line.indexOf(search);
@@ -187,7 +211,9 @@ public final class FontAtlasFileParser {
         return line.substring(start, end);
     }
 
-    private static final String CLASS = FontAtlasFileParser.class.getSimpleName();
+    /* --- error strings --- */
+
+    private static final String CLASS = FontAtlasFileParserOld.class.getSimpleName();
 
     private static String ErrStrInvalidExtension(String filename) {
         return String.format("%s rejected file [%s]. Only .fnt files are " +
