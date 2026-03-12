@@ -200,8 +200,10 @@ public final class TextRenderer {
 
                 if (buf[atlasIdx] == SpritePalette.TRANSPARENT_IDX) continue;
 
-                fbIdx = fbRowOffset + px;
-                TextRenderer.buf[fbIdx] = (r & 0xFF) << 24
+                /* TODO: stop unpacking and repacking the color int.
+                * Make it so that bits per channel and order are configurable
+                * in the palette, then set it up so they match the buffer */
+                TextRenderer.buf[fbRowOffset + px] = (r & 0xFF) << 24
                         | (g & 0xFF) << 16
                         | (b & 0xFF) <<  8
                         | (a & 0xFF);

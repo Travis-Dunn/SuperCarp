@@ -19,8 +19,4 @@ public final class DialogueRenderer {
         return init = true;
     }
 
-    /*
-    public static void Draw
-
-     */
 }

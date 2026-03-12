@@ -1,5 +1,6 @@
 package production;
 
+import production.carpscript.ScriptRunner;
 import production.monster.MonsterSpawn;
 import production.scene.SceneGame;
 import production.sprite.SpriteAtlas;
@@ -14,6 +15,7 @@ import whitetail.loaders.config.ConfigEntry;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 public final class Data {
     public static final double TICK_DUR = 0.6f;
@@ -71,4 +73,7 @@ public final class Data {
 
     public static int screenMouseX;
     public static int screenMouseY;
+
+    public static ScriptRunner scriptRunner;
+    public static Map<String, Object> playerVars;
 }

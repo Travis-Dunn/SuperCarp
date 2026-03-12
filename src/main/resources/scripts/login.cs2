@@ -1,0 +1,2 @@
+[login,on_login]
+mes("Welcome to SuperCarp!")

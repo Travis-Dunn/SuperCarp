@@ -2,6 +2,8 @@ package production;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
+import production.carpscript.ScriptRunner;
+import production.carpscript.command_handlers.MesCommand;
 import production.character.CharRegistry;
 import production.dialogue.DialogueManager;
 import production.dialogue.warehouse.BilboDialogue;
@@ -27,6 +29,8 @@ import whitetail.software_framebuffer.GL12SoftwareFramebuffer;
 import whitetail.software_framebuffer.GLSourceTexelLayout;
 import whitetail.software_framebuffer.GLTextureTexelLayout;
 import whitetail.utility.FramerateManager;
+
+import java.io.File;
 
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
 
@@ -186,6 +190,12 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         TextRenderer.Init(GL12SoftwareFramebuffer.GetBuf(),
                 DisplayConfig.GetEmulatedW(), DisplayConfig.GetEmulatedH(),
                 4);
+
+        Data.scriptRunner = new ScriptRunner();
+        Data.scriptRunner.registerCommand("mes", new MesCommand());
+        Data.scriptRunner.loadScripts(new File("src/main/resources/scripts"));
+
+        Data.scriptRunner.fireTrigger("login", "on_login", Data.playerVars);
 
         return true;
     }
