@@ -1,6 +1,5 @@
 package production.carpscript;
 
-import java.io.File;
 import java.util.Map;
 
 /**
@@ -20,8 +19,9 @@ import java.util.Map;
  *   scripts.registerCommand("p_delay", new PDelayCommand());
  *   // ... etc
  *
- *   // Load all script files
- *   scripts.loadScripts(new File("data/scripts"));
+ *   // Load script files (classpath resources under "scripts/")
+ *   scripts.loadScripts("npcs/guard.cs2", "npcs/shopkeeper.cs2",
+ *                        "quests/cooks_quest.cs2", "login.cs2");
  *
  * RUNTIME (when game events occur):
  * ──────────────────────────────────
@@ -76,12 +76,19 @@ public class ScriptRunner {
     }
 
     /**
-     * Load and compile all script files from a directory.
-     * Call this once during game init, after registering commands.
+     * Load and compile script files.
+     *
+     * Each filename is resolved as a classpath resource under the
+     * "scripts" directory (e.g., "npcs/guard.cs2" loads from
+     * /scripts/npcs/guard.cs2 on the classpath). Call this once during
+     * game init, after registering commands.
+     *
+     * @param filenames  The script filenames relative to the scripts
+     *                   directory
      */
-    public void loadScripts(File scriptsDirectory) {
+    public void loadScripts(String... filenames) {
         ScriptLoader loader = new ScriptLoader(registry);
-        loader.loadDirectory(scriptsDirectory);
+        loader.loadScripts(filenames);
     }
 
     // ══════════════════════════════════════════════════════════════════

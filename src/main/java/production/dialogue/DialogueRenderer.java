@@ -163,7 +163,7 @@ public final class DialogueRenderer {
                 headerY, headerARGB);
         int w = TextRenderer.DrawLineCenter(fontAtlas, CONTINUE_STR, centerXNpc,
                 footerY, argb0);
-        
+
         clickToContinueMinX = centerXNpc - (w / 2);
         clickToContinueMaxX = clickToContinueMinX + w;
 

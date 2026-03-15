@@ -200,7 +200,10 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         Data.scriptRunner.registerCommand("mes", new MesCommand());
         Data.scriptRunner.registerCommand("dlg", new DlgCommand());
         Data.scriptRunner.registerCommand("endlg", new EnDlgCommand());
+        /*
         Data.scriptRunner.loadScripts(new File("src/main/resources/scripts"));
+         */
+        Data.scriptRunner.loadScripts("login.cs2", "test.cs2");
 
         Data.scriptRunner.fireTrigger("login", "on_login", Data.playerVars);
 
@@ -269,10 +272,6 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
     }
 
     private void onTick(float dt) {
-        /*
-        Data.testSpawn.update();
-        spawns are now managed by the map
-         */
 
         Data.tileMap.update();
         Player.Update(dt);

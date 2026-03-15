@@ -23,16 +23,21 @@ public final class SpritePaletteFileParser {
             return null;
         }
 
-        try (InputStream stream =
-                     SpritePaletteFileParser.class.getResourceAsStream(p)) {
+        InputStream stream = null;
+        try {
+            stream = SpritePaletteFileParser.class.getResourceAsStream(p);
             if (stream == null) {
                 LogFatalAndExit(ErrStrFailedLoad(filename));
                 return null;
             }
             return FromStream(stream, filename);
-        } catch (IOException e) {
-            LogFatalExcpAndExit(ErrStrFailedLoad(filename), e);
-            return null;
+        } finally {
+            if (stream != null) {
+                try {
+                    stream.close();
+                } catch (IOException ignored) {
+                }
+            }
         }
     }
 
@@ -63,7 +68,7 @@ public final class SpritePaletteFileParser {
             return null;
         }
 
-        colorToIndexMap = new HashMap<>(total);
+        colorToIndexMap = new HashMap<Integer, Integer>(total);
         indexToColorArray = new int[total];
 
         idx = 0;
