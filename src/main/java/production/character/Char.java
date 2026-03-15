@@ -4,8 +4,11 @@ import production.dialogue.DialogueNode;
 import production.sprite.SpriteAnim;
 import production.sprite.SpriteAnimDef;
 import production.sprite.SpriteAnimSys;
+import production.ui.Bitmap;
+import whitetail.utility.logging.LogLevel;
 
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
+import static whitetail.utility.logging.Logger.LogSession;
 
 public final class Char {
     private int spriteHandle;
@@ -14,6 +17,7 @@ public final class Char {
 
     public final String name;
     public final String displayName;
+    private Bitmap portrait;
 
     public final short atlasIndices[][];
     public final short frameDurMs[];
@@ -63,6 +67,17 @@ public final class Char {
         }
     }
 
+    public void setPortrait(Bitmap portrait) {
+        if (portrait == null) {
+            LogSession(LogLevel.WARNING, ERR_STR_PORTRAIT_NULL);
+            return;
+        }
+
+        this.portrait = portrait;
+    }
+
+    public Bitmap getPortrait() { return portrait; }
+
     public static final String CLASS = Char.class.getSimpleName();
     private String errStrAnimInfoMismatch() {
         return String.format("%s construction failed because there were [%d] " +
@@ -70,4 +85,6 @@ public final class Char {
                 "bools. There must be the same number of each.\n", CLASS,
                 atlasIndices.length, frameDurMs.length, loops.length);
     }
+    private static final String ERR_STR_PORTRAIT_NULL = CLASS + " tried to " +
+            "portrait to null.\n";
 }

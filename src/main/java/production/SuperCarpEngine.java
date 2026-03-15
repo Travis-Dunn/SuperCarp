@@ -2,10 +2,15 @@ package production;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
+import production.carpscript.ExecutionState;
 import production.carpscript.ScriptRunner;
+import production.carpscript.ScriptState;
+import production.carpscript.command_handlers.EnDlgCommand;
+import production.carpscript.command_handlers.DlgCommand;
 import production.carpscript.command_handlers.MesCommand;
 import production.character.CharRegistry;
 import production.dialogue.DialogueManager;
+import production.dialogue.DialogueRenderer;
 import production.dialogue.warehouse.BilboDialogue;
 import production.display.DisplayConfig;
 import production.display.FramebufferConfig;
@@ -193,15 +198,27 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
 
         Data.scriptRunner = new ScriptRunner();
         Data.scriptRunner.registerCommand("mes", new MesCommand());
+        Data.scriptRunner.registerCommand("dlg", new DlgCommand());
+        Data.scriptRunner.registerCommand("endlg", new EnDlgCommand());
         Data.scriptRunner.loadScripts(new File("src/main/resources/scripts"));
 
         Data.scriptRunner.fireTrigger("login", "on_login", Data.playerVars);
+
+        DialogueRenderer.Init(Data.fontAtlas, Data.sp.colors[0],
+                Data.sp.colors[6], Data.sp.colors[3], Data.sp.colors[8]);
 
         return true;
     }
 
     @Override
     protected void onProcessInput() {
+        Data.screenMouseX = Mouse.getX();
+        Data.screenMouseY = Mouse.getY();
+        Data.emulatedMouseX = DisplayConfig.WindowToFramebufferX(
+                Data.screenMouseX);
+        Data.emulatedMouseY = DisplayConfig.WindowToFramebufferY(
+                Data.screenMouseY);
+
         SceneManager.OnInput();
         while (Keyboard.next()) {
             boolean keyDown = Keyboard.getEventKeyState();
@@ -242,6 +259,8 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         Data.sCam.update((float)delta);
          */
 
+        DialogueRenderer.UpdateMousePos(Data.emulatedMouseX,
+                Data.emulatedMouseY);
 
         Data.sCam.setPos((float)Player.screenX, (float)Player.screenY);
         SpriteAnimSys.Update(dt);
@@ -257,6 +276,21 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
 
         Data.tileMap.update();
         Player.Update(dt);
+
+        /* Suspended scripts are handled elsewhere */
+        ScriptState s = Player.GetDialogueScriptState();
+        if (s != null) {
+            if (s.state == ExecutionState.DELAYED) {
+                s.delayTicks--;
+                if (s.delayTicks <= 0) {
+                    Data.scriptRunner.resumeDelayedScript(s, Data.playerVars);
+                }
+            }
+            if (s.state == ExecutionState.FINISHED) {
+                Player.SetDialogueScriptState(null);
+            }
+        }
+
         SaveManager.RequestSave(SaveData.Capture());
     }
 
@@ -273,23 +307,9 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
             GameFrame.Draw();
         }
         GameFrame.Draw();
-        if (DialogueManager.isActive()) {
-            // need mouse position in FB coords for hover effects
 
-            /*
-            int fbX = (Data.screenMouseX * DisplayConfig.GetEmulatedW())
-                    / DisplayConfig.GetWindowW();
-            int fbY = ((DisplayConfig.GetWindowH() - Data.screenMouseY)
-                    * DisplayConfig.GetEmulatedH()) / DisplayConfig.GetWindowH();
-            DialogueManager.draw(SpriteSys.GetFramebuffer(),
-                    DisplayConfig.GetEmulatedW(), DisplayConfig.GetEmulatedH(),
-                    fbX, fbY);
-             */
-            Renderer.DrawBitmap1(BitmapRegistry.BILBO_PORTRAIT, GameFrame.GetPortraitXNpc(), GameFrame.GetPortraitY());
-            Renderer.DrawBitmap1(BitmapRegistry.BILBO_PORTRAIT, GameFrame.GetPortraitXPlayer(), GameFrame.GetPortraitY());
-        } else {
-            ChatBox.Draw();
-        }
+        if (DialogueRenderer.IsActive()) DialogueRenderer.Draw();
+        else ChatBox.Draw();
 
         GL12SoftwareFramebuffer.Present();
         window.swapBuffers();

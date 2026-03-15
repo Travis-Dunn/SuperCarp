@@ -25,9 +25,19 @@ public final class CharRegistry {
         return c;
     }
 
+    /* TODO: When you start adding production anims, note that Bilbo isn't the
+    only one who uses this anim - so does the safe default, MISSING_CHAR */
     public static final Char BILBO = register(new Char(
             "Bilbo",
             "Bilbo",
+            new short[][] { { 0, 1, 2 } },
+            new short[] { 200 },
+            new boolean[] { true }
+    ));
+
+    public static final Char MISSING_CHAR = register(new Char(
+            "Missing char",
+            "Missing char",
             new short[][] { { 0, 1, 2 } },
             new short[] { 200 },
             new boolean[] { true }

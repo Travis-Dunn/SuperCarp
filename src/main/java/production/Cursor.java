@@ -1,13 +1,17 @@
 package production;
 
+import production.carpscript.ScriptState;
 import production.character.Char;
 import production.dialogue.DialogueManager;
+import production.dialogue.DialogueRenderer;
 import production.display.DisplayConfig;
 import production.display.FramebufferConfig;
 import production.sprite.SpriteCamera;
 import production.tilemap.Tile;
 import production.tilemap.TileMap;
 import production.ui.ChatBox;
+import production.ui.GameFrame;
+import production.ui.InterfaceController;
 
 import java.util.ArrayList;
 
@@ -46,18 +50,13 @@ public final class Cursor {
         int fbX = DisplayConfig.WindowToFramebufferX(sx);
         int fbY = DisplayConfig.WindowToFramebufferY(sy);
 
-        if (inViewport(fbX, fbY)) {
-            handleViewportClick(fbX, fbY);
-        } else {
-            handleUiClick(fbX, fbY);
-        }
+        if (handleViewportClick(fbX, fbY)) return;
+        else if (handleUiClick(fbX, fbY)) return;
     }
 
-    private boolean inViewport(int x, int y) {
-        return FramebufferConfig.InViewport(x, y);
-    }
+    private boolean handleViewportClick(int x, int y) {
+        if (!FramebufferConfig.InViewport(x, y)) return false;
 
-    private void handleViewportClick(int x, int y) {
         // Convert to viewport-relative coords for camera
         int vpX = DisplayConfig.FramebufferToViewportX(x);
         int vpY = DisplayConfig.FramebufferToViewportY(y);
@@ -67,10 +66,11 @@ public final class Cursor {
         Char c = map.getCharAt(tileX, tileY);
         if (c != null) {
             handleCharClick(c, tileX, tileY);
-            return;
+            return true;
         }
 
         handleTileClick(tileX, tileY);
+        return true;
     }
 
     private void handleCharClick(Char c, int tileX, int tileY) {
@@ -92,14 +92,21 @@ public final class Cursor {
             if (DevLoggingEnabled()) {
                 ChatBox.AddMsg("Already next to " + c.displayName);
             }
-            /* TODO: initiate dialogue */
-            DialogueManager.start(c, c.dialogueRoot);
+
+            /* New way of doing dialogue! */
+            ScriptState s = Data.scriptRunner.fireTrigger(Data.TRIGGER_DIALOGUE, c.name,
+                    Data.playerVars);
+            if (s != null) {
+                Player.SetDialogueScriptState(s);
+            }
+
             return;
         }
 
         Player.setPath(path);
         DialogueManager.setPendingTarget(c);
         /* TODO: store talk target for dialogue on arrival */
+        Player.SetDialogueTarget(c);
     }
 
     private void handleTileClick(int tileX, int tileY) {
@@ -134,11 +141,13 @@ public final class Cursor {
                 if (DevLoggingEnabled()) {
                     ChatBox.AddMsg("Click: already at [" + tileX + ", " + tileY + "]");
                 }
+                InterfaceController.CloseInterfaces();
             } else {
                 if (DevLoggingEnabled()) {
                     ChatBox.AddMsg("Found path to adjacent tile: path length=" + path.size());
                 }
                 Player.setPath(path);
+                InterfaceController.CloseInterfaces();
             }
 
             return;
@@ -154,15 +163,21 @@ public final class Cursor {
             if (DevLoggingEnabled()) {
                 ChatBox.AddMsg("Click: already at [" + tileX + ", " + tileY + "]");
             }
+            InterfaceController.CloseInterfaces();
         } else {
             if (DevLoggingEnabled()) {
                 ChatBox.AddMsg("Click: path length=" + path.size());
             }
             Player.setPath(path);
+            InterfaceController.CloseInterfaces();
         }
     }
 
-    private void handleUiClick(int x, int y) {
-        /* TODO */
+    private boolean handleUiClick(int x, int y) {
+        if (!GameFrame.InChatBox(x, y)) return false;
+
+        if (DialogueRenderer.HandleClick(x, y)) return true;
+
+        return false;
     }
 }

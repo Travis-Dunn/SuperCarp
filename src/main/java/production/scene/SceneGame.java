@@ -1,6 +1,9 @@
 package production.scene;
 
 import production.Data;
+import production.Player;
+import production.carpscript.ExecutionState;
+import production.carpscript.ScriptState;
 import production.dialogue.DialogueManager;
 import production.display.DisplayConfig;
 import whitetail.event.Event;
@@ -26,7 +29,6 @@ public class SceneGame extends Scene {
 
     @Override
     public void onUpdate(double delta) {
-
     }
 
     @Override

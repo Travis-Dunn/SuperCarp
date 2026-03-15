@@ -1,16 +1,18 @@
 package production;
 
+import production.carpscript.ScriptState;
 import production.character.Char;
-import production.dialogue.DialogueManager;
 import production.sprite.SpriteAnim;
 import production.sprite.SpriteCamera;
 import production.sprite.SpritePool;
 import production.tilemap.Tile;
 import whitetail.utility.FramerateManager;
+import whitetail.utility.logging.LogLevel;
 
 import java.util.ArrayList;
 
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
+import static whitetail.utility.logging.Logger.LogSession;
 
 public final class Player {
     static SpriteCamera cam;
@@ -40,6 +42,10 @@ public final class Player {
     // Path following
     static ArrayList<Integer> path = null;
     static int pathIndex = 0;
+
+    private static Char dialogueTarget;
+
+    private static ScriptState dialogueScript;
 
     private Player() {}
 
@@ -76,12 +82,26 @@ public final class Player {
         }
 
         /* check if we arrived at a pending talk target */
+        /* TODO: right now I believe that this is going to be a little more
+        sophisticated. Specifically, we probably should check every frame to
+        see if we are adjacent to the target, rather than completing the path
+        and then doing the action. The reason for this is that the target might
+        have moved. Same is going to be true for combat */
         if (path != null && pathIndex >= path.size()) {
             clearPath();
 
+            /*
             if (DialogueManager.hasPendingTarget()) {
                 Char target = DialogueManager.getPendingTarget();
                 DialogueManager.start(target, target.dialogueRoot);
+            }
+             */
+
+            if (dialogueTarget == null) return;
+            ScriptState s = Data.scriptRunner.fireTrigger(Data.TRIGGER_DIALOGUE,
+                    dialogueTarget.name, Data.playerVars);
+            if (s != null) {
+                Player.SetDialogueScriptState(s);
             }
         }
 
@@ -154,9 +174,31 @@ public final class Player {
         pathIndex = 0;
     }
 
+    public static void SetDialogueTarget(Char c) {
+        if (c == null) {
+            LogSession(LogLevel.WARNING, ERR_STR_DIALOGUE_TARGET_NULL);
+            return;
+        }
+        dialogueTarget = c;
+    }
+
+    public static void ClearDialogueTarget() { dialogueTarget = null; }
+
+    public static void SetDialogueScriptState(ScriptState s) {
+        dialogueScript = s;
+    }
+
+    public static ScriptState GetDialogueScriptState() {
+        return dialogueScript;
+    }
+
+    public static void ClearDialogueScriptState() { dialogueScript = null; }
+
     public static final String CLASS = Player.class.getSimpleName();
     private static String ErrStrTileNotFound(int x, int y) {
         return String.format("Critical error! Tile not found [%d, %d].\n", x,
                 y);
     }
+    private static final String ERR_STR_DIALOGUE_TARGET_NULL = CLASS +
+            " tried to set dialogue target to null.\n";
 }

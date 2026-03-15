@@ -1,0 +1,4 @@
+[dlg,Bilbo]
+dlg("Hi, I'm Bilbo.|And this is Hobbiton.")
+dlg("We are hobbits.")
+endlg()

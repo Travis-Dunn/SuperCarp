@@ -73,7 +73,10 @@ public final class Data {
 
     public static int screenMouseX;
     public static int screenMouseY;
+    public static int emulatedMouseX, emulatedMouseY;
 
     public static ScriptRunner scriptRunner;
     public static Map<String, Object> playerVars;
+
+    public static final String TRIGGER_DIALOGUE = "dlg";
 }

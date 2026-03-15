@@ -126,7 +126,16 @@ public class ScriptRunner {
      * @param state       The suspended ScriptState to resume
      * @param playerVars  The player's persistent variable map (same one)
      */
-    public void resumeScript(ScriptState state, Map<String, Object> playerVars) {
+    public void resumeDelayedScript(ScriptState state, Map<String, Object> playerVars) {
+        if (state.state != ExecutionState.DELAYED) {
+            return; // nothing to resume
+        }
+        state.state = ExecutionState.RUNNING;
+        vm.execute(state, playerVars);
+    }
+
+    public void resumeSuspendedScript(ScriptState state, Map<String,
+            Object> playerVars) {
         if (state.state != ExecutionState.SUSPENDED) {
             return; // nothing to resume
         }

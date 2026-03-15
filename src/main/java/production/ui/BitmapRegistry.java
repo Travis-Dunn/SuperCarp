@@ -1,5 +1,6 @@
 package production.ui;
 
+import production.character.CharRegistry;
 import production.sprite.SpritePalette;
 import whitetail.utility.logging.LogLevel;
 
@@ -12,6 +13,7 @@ import static whitetail.utility.logging.Logger.LogSession;
 public final class BitmapRegistry {
     private static boolean init;
 
+    public static Bitmap MISSING_PORTRAIT;
     public static Bitmap BILBO_PORTRAIT;
 
     public static Bitmap FRAME_0;
@@ -24,6 +26,11 @@ public final class BitmapRegistry {
         LogSession(LogLevel.DEBUG, CLASS + " initializing...\n");
 
         BILBO_PORTRAIT = BitmapFileParser.FromFile("bilbo.png", palette);
+        CharRegistry.BILBO.setPortrait(BILBO_PORTRAIT);
+
+        MISSING_PORTRAIT = BitmapFileParser.FromFile(
+                "missing_portrait.png", palette);
+        CharRegistry.MISSING_CHAR.setPortrait(MISSING_PORTRAIT);
 
         FRAME_0 = BitmapFileParser.FromFile("frame_0.png", palette);
 

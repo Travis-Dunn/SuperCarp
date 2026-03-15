@@ -26,11 +26,18 @@ public enum ExecutionState {
      * to resume — the program counter, the stack, local variables. So the
      * VM itself can be stateless; all the state lives in this object.
      */
-    SUSPENDED,
+    DELAYED,
 
     /**
      * The script has finished execution (hit RETURN or ran past the last
      * instruction). This ScriptState can be discarded.
      */
-    FINISHED
+    FINISHED,
+
+    /**
+     * Indefinite suspension - first added for dialogue, where the script
+     * needs to update the DialogueRenderer, and then wait patiently to either
+     * be continued, or canceled.
+     */
+    SUSPENDED
 }
