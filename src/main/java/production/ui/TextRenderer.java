@@ -37,27 +37,32 @@ public final class TextRenderer {
      * @param x
      * @param y
      * @param argb
+     * @return width of the drawn line in pixels, or 0 on error
      */
-    public static void DrawLineLeft(FontAtlas atlas, String s, int x, int y,
-            int argb) {
+    public static int DrawLineLeft(FontAtlas atlas, String s, int x, int y,
+                                   int argb) {
         assert(init);
 
         if (atlas == null) {
             LogFatalAndExit(ErrStrFailedDrawAtlasNull(s));
-            return;
+            return 0;
         }
         if (s == null) {
             LogFatalAndExit(ERR_STR_FAILED_DRAW_S_NULL);
-            return;
+            return 0;
         }
         if (s.isEmpty()) {
             LogSession(LogLevel.WARNING, ERR_STR_DRAW_EMPTY_STR);
+            return 0;
         }
+
+        int width = atlas.measureWidth(s);
+
         if (y >= fbH || y + atlas.lineHeight < 0) {
-            return;
+            return width;
         }
         if (x >= fbW) {
-            return;
+            return width;
         }
 
         byte r = (byte)((argb >> 16) & 0xFF);
@@ -74,6 +79,8 @@ public final class TextRenderer {
             BlitGlyph(atlas, x + glyph.xOffset, y + glyph.yOffset, glyph,
                     r, g, b, a);
         }
+
+        return width;
     }
 
     /***
@@ -86,24 +93,29 @@ public final class TextRenderer {
      * @param x
      * @param y
      * @param argb
+     * @return width of the drawn line in pixels, or 0 on error
      */
-    public static void DrawLineCenter(FontAtlas atlas, String s, int x, int y,
-            int argb) {
+    public static int DrawLineCenter(FontAtlas atlas, String s, int x, int y,
+                                     int argb) {
         assert(init);
 
         if (atlas == null) {
             LogFatalAndExit(ErrStrFailedDrawAtlasNull(s));
-            return;
+            return 0;
         }
         if (s == null) {
             LogFatalAndExit(ERR_STR_FAILED_DRAW_S_NULL);
-            return;
+            return 0;
         }
         if (s.isEmpty()) {
             LogSession(LogLevel.WARNING, ERR_STR_DRAW_EMPTY_STR);
+            return 0;
         }
+
+        int width = atlas.measureWidth(s);
+
         if (y >= fbH || y + atlas.lineHeight < 0) {
-            return;
+            return width;
         }
 
         byte r = (byte)((argb >> 16) & 0xFF);
@@ -112,7 +124,7 @@ public final class TextRenderer {
         byte a = (byte)((argb >> 24) & 0xFF);
 
         int i, l = s.length();
-        int cursorX = x - atlas.measureWidth(s) / 2;
+        int cursorX = x - width / 2;
         Glyph glyph;
 
         for (i = 0; i < l; ++i, cursorX += (glyph != null) ? glyph.xAdvance : 0) {
@@ -121,6 +133,8 @@ public final class TextRenderer {
             BlitGlyph(atlas, cursorX + glyph.xOffset, y + glyph.yOffset, glyph,
                     r, g, b, a);
         }
+
+        return width;
     }
 
     /***
@@ -134,28 +148,32 @@ public final class TextRenderer {
      * @param x
      * @param y
      * @param argb
+     * @return width of the drawn line in pixels, or 0 on error
      */
-    public static void DrawLineRight(FontAtlas atlas, String s, int x, int y,
-            int argb) {
+    public static int DrawLineRight(FontAtlas atlas, String s, int x, int y,
+                                    int argb) {
         assert(init);
 
         if (atlas == null) {
             LogFatalAndExit(ErrStrFailedDrawAtlasNull(s));
-            return;
+            return 0;
         }
         if (s == null) {
             LogFatalAndExit(ERR_STR_FAILED_DRAW_S_NULL);
-            return;
+            return 0;
         }
         if (s.isEmpty()) {
             LogSession(LogLevel.WARNING, ERR_STR_DRAW_EMPTY_STR);
-            return;
+            return 0;
         }
+
+        int width = atlas.measureWidth(s);
+
         if (y >= fbH || y + atlas.lineHeight < 0) {
-            return;
+            return width;
         }
         if (x < 0) {
-            return;
+            return width;
         }
 
         byte r = (byte)((argb >> 16) & 0xFF);
@@ -164,7 +182,7 @@ public final class TextRenderer {
         byte a = (byte)((argb >> 24) & 0xFF);
 
         int i, l = s.length();
-        int cursorX = x - atlas.measureWidth(s);
+        int cursorX = x - width;
         Glyph glyph;
 
         for (i = 0; i < l; ++i, cursorX += (glyph != null) ? glyph.xAdvance : 0) {
@@ -173,10 +191,12 @@ public final class TextRenderer {
             BlitGlyph(atlas, cursorX + glyph.xOffset, y + glyph.yOffset, glyph,
                     r, g, b, a);
         }
+
+        return width;
     }
 
     private static void BlitGlyph(FontAtlas atlas, int x, int y, Glyph glyph,
-            byte r, byte g, byte b, byte a) {
+                                  byte r, byte g, byte b, byte a) {
         if (x + glyph.w <= 0 || x >= fbW || y + glyph.h <= 0 || y >= fbH)
             return;
 
@@ -201,8 +221,8 @@ public final class TextRenderer {
                 if (buf[atlasIdx] == SpritePalette.TRANSPARENT_IDX) continue;
 
                 /* TODO: stop unpacking and repacking the color int.
-                * Make it so that bits per channel and order are configurable
-                * in the palette, then set it up so they match the buffer */
+                 * Make it so that bits per channel and order are configurable
+                 * in the palette, then set it up so they match the buffer */
                 TextRenderer.buf[fbRowOffset + px] = (r & 0xFF) << 24
                         | (g & 0xFF) << 16
                         | (b & 0xFF) <<  8

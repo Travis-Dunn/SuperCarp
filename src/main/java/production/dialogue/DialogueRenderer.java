@@ -161,8 +161,11 @@ public final class DialogueRenderer {
         Renderer.DrawBitmap1(speakerPortrait, portraitXNpc, portraitY);
         TextRenderer.DrawLineCenter(fontAtlas, speaker.displayName, centerXNpc,
                 headerY, headerARGB);
-        TextRenderer.DrawLineCenter(fontAtlas, CONTINUE_STR, centerXNpc,
+        int w = TextRenderer.DrawLineCenter(fontAtlas, CONTINUE_STR, centerXNpc,
                 footerY, argb0);
+        
+        clickToContinueMinX = centerXNpc - (w / 2);
+        clickToContinueMaxX = clickToContinueMinX + w;
 
         switch (bodyLines.length) {
             case 0: {
