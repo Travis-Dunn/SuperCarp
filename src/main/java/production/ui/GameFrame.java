@@ -20,6 +20,11 @@ public class GameFrame {
     private static int op20Y, op21Y;
     private static int op1Y;
 
+    /* These are font dependant.
+        If we change font, all of these have to be re-derived. */
+    private static int clickToContinueMinY;
+    private static int clickToContinueMaxY;
+
     public static boolean Init() {
         assert(!init);
         assert(BitmapRegistry.IsInitialized());
@@ -51,6 +56,8 @@ public class GameFrame {
             op20Y = 172;
             op21Y = 185;
             op1Y = op31Y;
+            clickToContinueMinY = 203;
+            clickToContinueMaxY = 210;
         } else {
             LogFatalAndExit(ErrStrUnsupportedRes(w, h));
             return init = false;
@@ -103,6 +110,17 @@ public class GameFrame {
     public static int GetOp21Y() { assert(init); return op21Y; }
     public static int GetOp1Y() { assert(init); return op1Y; }
 
+    public static int GetClickToContinueMinY() {
+        assert(init);
+
+        return clickToContinueMinY;
+    }
+
+    public static int GetClickToContinueMaxY() {
+        assert(init);
+
+        return clickToContinueMaxY;
+    }
 
     public static final String CLASS = GameFrame.class.getSimpleName();
     private static String ErrStrUnsupportedRes(int w, int h) {

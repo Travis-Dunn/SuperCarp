@@ -7,16 +7,16 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import whitetail.loaders.AssetStreamResolver;
+
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
 import static whitetail.utility.ErrorHandler.LogFatalExcpAndExit;
 
 public final class SpritePaletteFileParser {
-    private static final String PALETTES_DIR = "palettes";
+    private static final String ASSET_SUBDIR = "palettes";
 
     public static SpritePalette FromFile(String filename) {
-        assert(filename != null && !filename.isEmpty());
-
-        String p = "/" + PALETTES_DIR + "/" + filename;
+        assert(filename != null && filename.length() > 0);
 
         if (!filename.toLowerCase().endsWith(".png")) {
             LogFatalAndExit(ErrStrInvalidExtension(filename));
@@ -25,7 +25,7 @@ public final class SpritePaletteFileParser {
 
         InputStream stream = null;
         try {
-            stream = SpritePaletteFileParser.class.getResourceAsStream(p);
+            stream = AssetStreamResolver.Open(ASSET_SUBDIR, filename);
             if (stream == null) {
                 LogFatalAndExit(ErrStrFailedLoad(filename));
                 return null;

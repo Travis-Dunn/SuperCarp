@@ -9,7 +9,7 @@ import java.util.Map;
 public class EnDlgCommand implements CommandHandler {
     @Override
     public Object execute(ScriptState state, Object[] args, Map<String, Object> playerVars) {
-        DialogueRenderer.Clear();
+        DialogueRenderer.Deactivate();
 
         return null;
     }

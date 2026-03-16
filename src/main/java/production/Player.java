@@ -6,11 +6,13 @@ import production.sprite.SpriteAnim;
 import production.sprite.SpriteCamera;
 import production.sprite.SpritePool;
 import production.tilemap.Tile;
+import production.ui.Bitmap;
 import whitetail.utility.FramerateManager;
 import whitetail.utility.logging.LogLevel;
 
 import java.util.ArrayList;
 
+import static production.ui.BitmapRegistry.MISSING_PORTRAIT;
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
 import static whitetail.utility.logging.Logger.LogSession;
 
@@ -19,6 +21,8 @@ public final class Player {
 
     static int spriteHandle;
     static SpriteAnim anim;
+
+    private static Bitmap portrait;
 
     // Logical position (tiles)
     public static int tileX;
@@ -194,6 +198,16 @@ public final class Player {
 
     public static void ClearDialogueScriptState() { dialogueScript = null; }
 
+    public static Bitmap GetPortrait() { return portrait; }
+    public static void SetPortrait(Bitmap portrait) {
+        if (portrait == null) {
+            LogSession(LogLevel.WARNING, ERR_STR_PORTRAIT_NULL);
+            Player.portrait = MISSING_PORTRAIT;
+            return;
+        }
+        Player.portrait = portrait;
+    }
+
     public static final String CLASS = Player.class.getSimpleName();
     private static String ErrStrTileNotFound(int x, int y) {
         return String.format("Critical error! Tile not found [%d, %d].\n", x,
@@ -201,4 +215,6 @@ public final class Player {
     }
     private static final String ERR_STR_DIALOGUE_TARGET_NULL = CLASS +
             " tried to set dialogue target to null.\n";
+    private static final String ERR_STR_PORTRAIT_NULL = CLASS + " tried to " +
+            "portrait to null.\n";
 }

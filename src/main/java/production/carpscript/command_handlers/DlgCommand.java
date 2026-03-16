@@ -19,10 +19,7 @@ public class DlgCommand implements CommandHandler {
         We can use that to look the Char up in case we need to check it's state.
          */
         Char c = CharRegistry.get(state.triggerSubject);
-        DialogueRenderer.SetSpeaker(c);
-        DialogueRenderer.Activate();
-        DialogueRenderer.SetBodyText((String)args[0]);
-        DialogueRenderer.SetStateDlgChar();
+        DialogueRenderer.SetStateDlgChar(c, (String)args[0]);
 
         state.state = ExecutionState.SUSPENDED;
 

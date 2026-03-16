@@ -16,13 +16,9 @@ import static whitetail.utility.logging.Logger.LogSession;
 public final class DialogueRenderer {
     private static boolean init;
 
-    private static boolean active;
-
     private static int state;
     private static final int INACTIVE = 0;
     private static final int DLG_CHAR = 1;
-
-    private static boolean clickToContinueFunction;
 
     private static int lineHeight;
     private static int textBoxMinY, textBoxMaxY;
@@ -36,10 +32,10 @@ public final class DialogueRenderer {
     private static int op20Y, op21Y;
     private static int op1Y;
 
-    private static int clickToContinueMinX = 124;
-    private static int clickToContinueMaxX = 224;
-    private static int clickToContinueMinY = 203;
-    private static int clickToContinueMaxY = 209;
+    private static int clickToContinueMinX;
+    private static int clickToContinueMaxX;
+    private static int clickToContinueMinY;
+    private static int clickToContinueMaxY;
 
     /* Framebuffer space */
     private static int mouseX, mouseY;
@@ -50,7 +46,10 @@ public final class DialogueRenderer {
     private static final String MISSING_STR = "MISSING STR";
     private static final String TOO_MANY_LINES_STR = "TOO MANY LINES!";
     private static String bodyText = MISSING_STR;
-    private static String bodyLines[];
+
+    private static final int MAX_BODY_LINES = 5;
+    private static String[] bodyLines = new String[MAX_BODY_LINES];
+    private static int bodyLineCount;
 
     private static Char speaker;
     private static Bitmap speakerPortrait;
@@ -95,6 +94,10 @@ public final class DialogueRenderer {
         op20Y = GameFrame.GetOp20Y();
         op21Y = GameFrame.GetOp21Y();
         op1Y = GameFrame.GetOp1Y();
+        DialogueRenderer.clickToContinueMinY =
+                GameFrame.GetClickToContinueMinY();
+        DialogueRenderer.clickToContinueMaxY =
+                GameFrame.GetClickToContinueMaxY();
 
         state = INACTIVE;
 
@@ -116,24 +119,13 @@ public final class DialogueRenderer {
      * @param x mouse x coordinate in emulated framebuffer space
      * @param y mouse y coordinate in emulated framebuffer space
      */
-    public static void UpdateMousePos(int x, int y) {
+    public static void UpdateMouseHover(int x, int y) {
         assert(init);
 
         if (x >= clickToContinueMinX && x <= clickToContinueMaxX &&
                 y >= clickToContinueMinY && y <= clickToContinueMaxY) {
             interactiveHovered = true;
         } else interactiveHovered = false;
-    }
-
-    public static void Clear() {
-        assert(init);
-
-        active = false;
-        state = INACTIVE;
-        bodyText = MISSING_STR;
-        speaker = MISSING_CHAR;
-        speakerPortrait = MISSING_PORTRAIT;
-        bodyLines = new String[0];
     }
 
     public static boolean HandleClick(int x, int y) {
@@ -167,7 +159,7 @@ public final class DialogueRenderer {
         clickToContinueMinX = centerXNpc - (w / 2);
         clickToContinueMaxX = clickToContinueMinX + w;
 
-        switch (bodyLines.length) {
+        switch (bodyLineCount) {
             case 0: {
                 TextRenderer.DrawLineCenter(fontAtlas, MISSING_STR,
                         centerXNpc, op1Y, bodyARGB);
@@ -201,8 +193,27 @@ public final class DialogueRenderer {
         }
     }
 
-    public static void SetSpeaker(Char c) {
+    public static void Deactivate() {
         assert(init);
+
+        speaker = null;
+        speakerPortrait = null;
+        Player.ClearDialogueTarget();
+        Player.ClearDialogueScriptState();
+        state = INACTIVE;
+        ClearBodyLines();
+        bodyText = MISSING_STR;
+    }
+
+    public static boolean IsActive() {
+        assert(init);
+
+        return state == DLG_CHAR; }
+
+    public static void SetStateDlgChar(Char c, String s) {
+        assert(init);
+
+        state = DLG_CHAR;
 
         speaker = c;
         if (speaker == null) {
@@ -215,30 +226,44 @@ public final class DialogueRenderer {
             LogSession(LogLevel.WARNING, ERR_STR_SPEAKER_PORTRAIT_NULL);
             speakerPortrait = MISSING_PORTRAIT;
         }
-    }
 
-    public static void Activate() { assert(init); active = true; }
-    public static void Deactivate() {
-        assert(init);
-
-        speaker = null;
-        speakerPortrait = null;
-        Player.ClearDialogueTarget();
-        Player.ClearDialogueScriptState();
-        state = INACTIVE;
-
-        active = false;
-    }
-
-    public static void SetBodyText(String s) {
         bodyText = s != null ? s : MISSING_STR;
 
-        bodyLines = bodyText.split("\\|");
+        ParseBodyLines();
     }
 
-    public static boolean IsActive() { assert(init); return active; }
+    private static void ParseBodyLines() {
+        assert(init);
 
-    public static void SetStateDlgChar() { assert(init); state = DLG_CHAR; }
+        int i, start = 0;
+        int len = bodyText.length();
+
+        bodyLineCount = 0;
+
+        for (i = 0; i < len; ++i) {
+            if (bodyText.charAt(i) == '|') {
+                if (bodyLineCount < MAX_BODY_LINES) {
+                    bodyLines[bodyLineCount++] = bodyText.substring(start, i);
+                }
+                start = i + 1;
+            }
+        }
+        if (bodyLineCount < MAX_BODY_LINES) {
+            bodyLines[bodyLineCount++] = bodyText.substring(start, len);
+        }
+    }
+
+    private static void ClearBodyLines() {
+        assert(init);
+
+        int i;
+
+        for (i = 0; i < bodyLineCount; ++i) {
+            bodyLines[i] = "";
+        }
+
+        bodyLineCount = 0;
+    }
 
     public static final String CLASS = DialogueRenderer.class.getSimpleName();
     private static final String ERR_STR_SPEAKER_NULL = CLASS + " tried to set" +

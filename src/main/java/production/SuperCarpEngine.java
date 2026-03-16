@@ -28,6 +28,7 @@ import whitetail.audio.AudioContext;
 import whitetail.audio.AudioFileParser;
 import whitetail.core.GameEngine;
 import whitetail.event.*;
+import whitetail.loaders.AssetStreamResolver;
 import whitetail.scene.SceneManager;
 import whitetail.scene.SceneType;
 import whitetail.software_framebuffer.GL12SoftwareFramebuffer;
@@ -37,6 +38,7 @@ import whitetail.utility.FramerateManager;
 
 import java.io.File;
 
+import static production.ui.BitmapRegistry.MISSING_PORTRAIT;
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
 
 public class SuperCarpEngine extends GameEngine implements EventListener {
@@ -54,6 +56,13 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         }
 
         int px = DisplayConfig.GetPixelScale();
+
+        File assetsDir = new File("assets");
+        if (assetsDir.isDirectory()) {
+            AssetStreamResolver.Init(assetsDir);
+        } else {
+            AssetStreamResolver.Init();
+        }
 
         if (!GL12SoftwareFramebuffer.Init(
                 GLSourceTexelLayout.RGBA_UINT_8888,
@@ -131,6 +140,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
 
         Player.spriteHandle = playerSpriteHandle;
         Player.anim = playerAnimHandle;
+        Player.SetPortrait(MISSING_PORTRAIT);
 
         if (!SaveManager.Init()) return false;
         SaveData loaded = SaveManager.Load();
@@ -210,6 +220,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         DialogueRenderer.Init(Data.fontAtlas, Data.sp.colors[0],
                 Data.sp.colors[6], Data.sp.colors[3], Data.sp.colors[8]);
 
+
         return true;
     }
 
@@ -262,7 +273,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         Data.sCam.update((float)delta);
          */
 
-        DialogueRenderer.UpdateMousePos(Data.emulatedMouseX,
+        DialogueRenderer.UpdateMouseHover(Data.emulatedMouseX,
                 Data.emulatedMouseY);
 
         Data.sCam.setPos((float)Player.screenX, (float)Player.screenY);
