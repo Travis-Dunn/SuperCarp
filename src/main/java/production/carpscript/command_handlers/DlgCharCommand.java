@@ -9,7 +9,7 @@ import production.dialogue.DialogueRenderer;
 
 import java.util.Map;
 
-public class DlgCommand implements CommandHandler {
+public class DlgCharCommand implements CommandHandler {
     @Override
     public Object execute(ScriptState state, Object[] args, Map<String, Object> playerVars) {
         /* call a dialogue renderer method to set state, using the args

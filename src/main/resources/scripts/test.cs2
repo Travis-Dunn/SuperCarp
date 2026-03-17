@@ -1,4 +1,5 @@
 [dlg,Bilbo]
-dlg("Hi, I'm Bilbo.|And this is Hobbiton.")
-dlg("We are hobbits.")
+dlgc("Hi, I'm Bilbo.|And this is Hobbiton.")
+dlgp("Are you really hobbits?")
+dlgc("Yes, we are really hobbits.")
 endlg()

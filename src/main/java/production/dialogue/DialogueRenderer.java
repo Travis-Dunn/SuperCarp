@@ -19,6 +19,7 @@ public final class DialogueRenderer {
     private static int state;
     private static final int INACTIVE = 0;
     private static final int DLG_CHAR = 1;
+    private static final int DLG_PLAYER = 2;
 
     private static int lineHeight;
     private static int textBoxMinY, textBoxMaxY;
@@ -27,6 +28,7 @@ public final class DialogueRenderer {
     private static int portraitXPlayer;
     private static int portraitY;
     private static int centerXNpc;
+    private static int centerXPlayer;
     private static int headerY, footerY;
     private static int op30Y, op31Y, op32Y;
     private static int op20Y, op21Y;
@@ -45,6 +47,8 @@ public final class DialogueRenderer {
     private static final String CONTINUE_STR = "Click to continue";
     private static final String MISSING_STR = "MISSING STR";
     private static final String TOO_MANY_LINES_STR = "TOO MANY LINES!";
+    private static final String MISSING_CHAR_DISPLAY_NAME_STR =
+            "MISSING_NAME";
     private static String bodyText = MISSING_STR;
 
     private static final int MAX_BODY_LINES = 5;
@@ -53,6 +57,9 @@ public final class DialogueRenderer {
 
     private static Char speaker;
     private static Bitmap speakerPortrait;
+    private static Bitmap playerPortrait;
+    private static String charDisplayName;
+    private static String playerDisplayName;
 
     private static FontAtlas fontAtlas;
 
@@ -74,6 +81,7 @@ public final class DialogueRenderer {
         portraitXPlayer = GameFrame.GetPortraitXPlayer();
         portraitY = GameFrame.GetPortraitY();
         centerXNpc = GameFrame.GetCenterXNpc();
+        centerXPlayer = GameFrame.GetCenterXPlayer();
         headerY = GameFrame.GetHeaderY();
         footerY = GameFrame.GetFooterY();
         speaker = MISSING_CHAR;
@@ -109,7 +117,8 @@ public final class DialogueRenderer {
 
         switch (state) {
             case INACTIVE: return;
-            case DLG_CHAR: DrawDlgChar();
+            case DLG_CHAR: DrawDlgChar(); break;
+            case DLG_PLAYER: DrawDlgPlayer(); break;
         }
     }
 
@@ -122,6 +131,8 @@ public final class DialogueRenderer {
     public static void UpdateMouseHover(int x, int y) {
         assert(init);
 
+        if (!(state == DLG_CHAR || state == DLG_PLAYER)) return;
+
         if (x >= clickToContinueMinX && x <= clickToContinueMaxX &&
                 y >= clickToContinueMinY && y <= clickToContinueMaxY) {
             interactiveHovered = true;
@@ -132,7 +143,7 @@ public final class DialogueRenderer {
         assert(init);
 
         /* Only one interactable possible at the moment */
-        if (state == DLG_CHAR) {
+        if (state == DLG_CHAR || state == DLG_PLAYER) {
             if (x >= clickToContinueMinX && x <= clickToContinueMaxX &&
                 y >= clickToContinueMinY && y <= clickToContinueMaxY) {
                 ScriptState s = Player.GetDialogueScriptState();
@@ -148,10 +159,12 @@ public final class DialogueRenderer {
     }
 
     private static void DrawDlgChar() {
+        assert(init);
+
         int argb0 = interactiveHovered ? interactiveHoverARGB : interactiveARGB;
 
         Renderer.DrawBitmap1(speakerPortrait, portraitXNpc, portraitY);
-        TextRenderer.DrawLineCenter(fontAtlas, speaker.displayName, centerXNpc,
+        TextRenderer.DrawLineCenter(fontAtlas, charDisplayName, centerXNpc,
                 headerY, headerARGB);
         int w = TextRenderer.DrawLineCenter(fontAtlas, CONTINUE_STR, centerXNpc,
                 footerY, argb0);
@@ -193,6 +206,56 @@ public final class DialogueRenderer {
         }
     }
 
+    private static void DrawDlgPlayer() {
+        assert(init);
+
+        int argb0 = interactiveHovered ? interactiveHoverARGB : interactiveARGB;
+
+        Renderer.DrawBitmap1(playerPortrait, portraitXPlayer, portraitY);
+        TextRenderer.DrawLineCenter(fontAtlas, playerDisplayName, centerXPlayer,
+                headerY, headerARGB);
+
+        /* Probably should calculate the values for the click box once,
+        * and cache. */
+        int w = TextRenderer.DrawLineCenter(fontAtlas, CONTINUE_STR,
+                centerXPlayer, footerY, argb0);
+
+        clickToContinueMinX = centerXPlayer - (w / 2);
+        clickToContinueMaxX = clickToContinueMinX + w;
+        switch (bodyLineCount) {
+            case 0: {
+                TextRenderer.DrawLineCenter(fontAtlas, MISSING_STR,
+                        centerXPlayer, op1Y, bodyARGB);
+            }
+            break;
+            case 1: {
+                TextRenderer.DrawLineCenter(fontAtlas, bodyLines[0],
+                        centerXPlayer, op1Y, bodyARGB);
+            }
+            break;
+            case 2: {
+                TextRenderer.DrawLineCenter(fontAtlas, bodyLines[0],
+                        centerXPlayer, op20Y, bodyARGB);
+                TextRenderer.DrawLineCenter(fontAtlas, bodyLines[1],
+                        centerXPlayer, op21Y, bodyARGB);
+            }
+            break;
+            case 3: {
+                TextRenderer.DrawLineCenter(fontAtlas, bodyLines[0],
+                        centerXPlayer, op30Y, bodyARGB);
+                TextRenderer.DrawLineCenter(fontAtlas, bodyLines[1],
+                        centerXPlayer, op31Y, bodyARGB);
+                TextRenderer.DrawLineCenter(fontAtlas, bodyLines[2],
+                        centerXPlayer, op32Y, bodyARGB);
+            }
+            break;
+            default: {
+                TextRenderer.DrawLineCenter(fontAtlas, TOO_MANY_LINES_STR,
+                        centerXPlayer, op1Y, bodyARGB);
+            }
+        }
+    }
+
     public static void Deactivate() {
         assert(init);
 
@@ -208,7 +271,7 @@ public final class DialogueRenderer {
     public static boolean IsActive() {
         assert(init);
 
-        return state == DLG_CHAR; }
+        return state == DLG_CHAR || state == DLG_PLAYER; }
 
     public static void SetStateDlgChar(Char c, String s) {
         assert(init);
@@ -227,8 +290,27 @@ public final class DialogueRenderer {
             speakerPortrait = MISSING_PORTRAIT;
         }
 
+        charDisplayName = c.displayName;
+        if (charDisplayName == null) {
+            LogSession(LogLevel.WARNING, ERR_STR_CHAR_DISPLAY_NAME_NULL);
+            charDisplayName = MISSING_CHAR_DISPLAY_NAME_STR;
+        }
+
         bodyText = s != null ? s : MISSING_STR;
 
+        ParseBodyLines();
+    }
+
+    public static void SetStateDlgPlayer(String s) {
+        assert(init);
+
+        state = DLG_PLAYER;
+
+        playerPortrait = Player.GetPortrait();
+
+        playerDisplayName = Player.GetDisplayName();
+
+        bodyText = s != null ? s : MISSING_STR;
         ParseBodyLines();
     }
 
@@ -272,4 +354,6 @@ public final class DialogueRenderer {
             " tried to set speaker portrait to null.\n";
     private static final String ERR_STR_INIT_FONT_ATLAS_NULL = CLASS +
             " failed to initialize because the font atlas was null.\n";
+    private static final String ERR_STR_CHAR_DISPLAY_NAME_NULL = CLASS +
+            " tried to set char display name to null";
 }

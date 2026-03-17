@@ -51,6 +51,9 @@ public final class Player {
 
     private static ScriptState dialogueScript;
 
+    private static String displayName;
+    private static final String MISSING_NAME_STR = "MISSING_NAME";
+
     private Player() {}
 
     // Called from KEYDOWN handler
@@ -206,6 +209,14 @@ public final class Player {
             return;
         }
         Player.portrait = portrait;
+    }
+
+    public static void SetDisplayName(String s) {
+        displayName = s;
+    }
+
+    public static String GetDisplayName() {
+        return displayName != null ? displayName : MISSING_NAME_STR;
     }
 
     public static final String CLASS = Player.class.getSimpleName();

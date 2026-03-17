@@ -12,6 +12,7 @@ public class GameFrame {
     private static int portraitXPlayer;
     private static int portraitY;
     private static int centerXNpc;
+    private static int centerXPlayer;
     private static int headerY;
     private static int footerY;
     private static int textBoxMinY, textBoxMaxY;
@@ -44,6 +45,7 @@ public class GameFrame {
             portraitXPlayer = 268;
             portraitY = 169;
             centerXNpc = 175;
+            centerXPlayer = 135;
             headerY = 159;
             footerY = 199;
             textBoxMinY = 161;
@@ -101,6 +103,7 @@ public class GameFrame {
     public static int GetTextBoxMaxX() { assert(init); return textBoxMaxX; }
 
     public static int GetCenterXNpc() { assert(init); return centerXNpc; }
+    public static int GetCenterXPlayer() { assert(init); return centerXPlayer; }
     public static int GetHeaderY() { assert(init); return headerY; }
     public static int GetFooterY() { assert(init); return footerY; }
     public static int GetOp30Y() { assert(init); return op30Y; }

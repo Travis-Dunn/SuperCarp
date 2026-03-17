@@ -5,8 +5,9 @@ import org.lwjgl.input.Mouse;
 import production.carpscript.ExecutionState;
 import production.carpscript.ScriptRunner;
 import production.carpscript.ScriptState;
+import production.carpscript.command_handlers.DlgPlayerCommand;
 import production.carpscript.command_handlers.EnDlgCommand;
-import production.carpscript.command_handlers.DlgCommand;
+import production.carpscript.command_handlers.DlgCharCommand;
 import production.carpscript.command_handlers.MesCommand;
 import production.character.CharRegistry;
 import production.dialogue.DialogueManager;
@@ -140,7 +141,6 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
 
         Player.spriteHandle = playerSpriteHandle;
         Player.anim = playerAnimHandle;
-        Player.SetPortrait(MISSING_PORTRAIT);
 
         if (!SaveManager.Init()) return false;
         SaveData loaded = SaveManager.Load();
@@ -199,6 +199,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
                 SpriteSys.GetFramebufferWidth(),
                 SpriteSys.GetFramebufferHeight());
         BitmapRegistry.Init(Data.sp);
+        Player.SetPortrait(MISSING_PORTRAIT);
 
         GameFrame.Init();
 
@@ -208,8 +209,9 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
 
         Data.scriptRunner = new ScriptRunner();
         Data.scriptRunner.registerCommand("mes", new MesCommand());
-        Data.scriptRunner.registerCommand("dlg", new DlgCommand());
+        Data.scriptRunner.registerCommand("dlgc", new DlgCharCommand());
         Data.scriptRunner.registerCommand("endlg", new EnDlgCommand());
+        Data.scriptRunner.registerCommand("dlgp", new DlgPlayerCommand());
         /*
         Data.scriptRunner.loadScripts(new File("src/main/resources/scripts"));
          */
