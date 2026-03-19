@@ -2,4 +2,7 @@
 dlgc("Hi, I'm Bilbo.|And this is Hobbiton.")
 dlgp("Are you really hobbits?")
 dlgc("Yes, we are really hobbits.")
+dlgc("Do you like Hobbiton so far?")
+dlgo("Yes|Also yes|Possibly...|*Looks at feet*")
+mes("hi")
 endlg()

@@ -11,6 +11,7 @@ public class GameFrame {
     private static int portraitXNpc;
     private static int portraitXPlayer;
     private static int portraitY;
+    private static int centerX;
     private static int centerXNpc;
     private static int centerXPlayer;
     private static int headerY;
@@ -20,6 +21,11 @@ public class GameFrame {
     private static int op30Y, op31Y, op32Y;
     private static int op20Y, op21Y;
     private static int op1Y;
+
+    private static int option40Y, option41Y, option42Y, option43Y;
+    private static int option30Y, option31Y, option32Y;
+    private static int option20Y, option21Y;
+    private static int option10Y;
 
     /* These are font dependant.
         If we change font, all of these have to be re-derived. */
@@ -44,6 +50,7 @@ public class GameFrame {
             portraitXNpc = 12;
             portraitXPlayer = 268;
             portraitY = 169;
+            centerX = 152;
             centerXNpc = 175;
             centerXPlayer = 135;
             headerY = 159;
@@ -58,6 +65,18 @@ public class GameFrame {
             op20Y = 172;
             op21Y = 185;
             op1Y = op31Y;
+
+            option40Y = 169;
+            option41Y = 179;
+            option42Y = 189;
+            option43Y = 199;
+            option30Y = 173;
+            option31Y = 183;
+            option32Y = 193;
+            option20Y = 177;
+            option21Y = 187;
+            option10Y = option31Y;
+
             clickToContinueMinY = 203;
             clickToContinueMaxY = 210;
         } else {
@@ -78,6 +97,8 @@ public class GameFrame {
         return x >= textBoxMinX && x <= textBoxMaxX &&
                 y >= textBoxMinY && y < textBoxMaxY;
     }
+
+    public static int GetCenterX() { assert(init); return centerX; }
 
     public static int GetPortraitXNpc() {
         assert(init);
@@ -112,6 +133,17 @@ public class GameFrame {
     public static int GetOp20Y() { assert(init); return op20Y; }
     public static int GetOp21Y() { assert(init); return op21Y; }
     public static int GetOp1Y() { assert(init); return op1Y; }
+
+    public static int GetOption40Y() { assert(init); return option40Y; }
+    public static int GetOption41Y() { assert(init); return option41Y; }
+    public static int GetOption42Y() { assert(init); return option42Y; }
+    public static int GetOption43Y() { assert(init); return option43Y; }
+    public static int GetOption30Y() { assert(init); return option30Y; }
+    public static int GetOption31Y() { assert(init); return option31Y; }
+    public static int GetOption32Y() { assert(init); return option32Y; }
+    public static int GetOption20Y() { assert(init); return option20Y; }
+    public static int GetOption21Y() { assert(init); return option21Y; }
+    public static int GetOption10Y() { assert(init); return option10Y; }
 
     public static int GetClickToContinueMinY() {
         assert(init);

@@ -5,10 +5,7 @@ import org.lwjgl.input.Mouse;
 import production.carpscript.ExecutionState;
 import production.carpscript.ScriptRunner;
 import production.carpscript.ScriptState;
-import production.carpscript.command_handlers.DlgPlayerCommand;
-import production.carpscript.command_handlers.EnDlgCommand;
-import production.carpscript.command_handlers.DlgCharCommand;
-import production.carpscript.command_handlers.MesCommand;
+import production.carpscript.command_handlers.*;
 import production.character.CharRegistry;
 import production.dialogue.DialogueManager;
 import production.dialogue.DialogueRenderer;
@@ -212,6 +209,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         Data.scriptRunner.registerCommand("dlgc", new DlgCharCommand());
         Data.scriptRunner.registerCommand("endlg", new EnDlgCommand());
         Data.scriptRunner.registerCommand("dlgp", new DlgPlayerCommand());
+        Data.scriptRunner.registerCommand("dlgo", new DlgOptionCommand());
         /*
         Data.scriptRunner.loadScripts(new File("src/main/resources/scripts"));
          */
@@ -234,6 +232,9 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
                 Data.screenMouseX);
         Data.emulatedMouseY = DisplayConfig.WindowToFramebufferY(
                 Data.screenMouseY);
+
+        DialogueRenderer.UpdateMouseHover(Data.emulatedMouseX,
+                Data.emulatedMouseY);
 
         SceneManager.OnInput();
         while (Keyboard.next()) {
@@ -275,8 +276,6 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         Data.sCam.update((float)delta);
          */
 
-        DialogueRenderer.UpdateMouseHover(Data.emulatedMouseX,
-                Data.emulatedMouseY);
 
         Data.sCam.setPos((float)Player.screenX, (float)Player.screenY);
         SpriteAnimSys.Update(dt);

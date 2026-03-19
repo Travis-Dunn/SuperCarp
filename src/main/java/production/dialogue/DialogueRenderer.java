@@ -20,6 +20,7 @@ public final class DialogueRenderer {
     private static final int INACTIVE = 0;
     private static final int DLG_CHAR = 1;
     private static final int DLG_PLAYER = 2;
+    private static final int DLG_OPTION = 3;
 
     private static int lineHeight;
     private static int textBoxMinY, textBoxMaxY;
@@ -27,12 +28,32 @@ public final class DialogueRenderer {
     private static int portraitXNpc;
     private static int portraitXPlayer;
     private static int portraitY;
+    private static int centerX;
     private static int centerXNpc;
     private static int centerXPlayer;
     private static int headerY, footerY;
     private static int op30Y, op31Y, op32Y;
     private static int op20Y, op21Y;
     private static int op1Y;
+
+    private static int option40Y, option41Y, option42Y, option43Y;
+    private static int option30Y, option31Y, option32Y;
+    private static int option20Y, option21Y;
+    private static int option10Y;
+    private static int option0MinX, option0MaxX;
+    private static int option0MinY, option0MaxY;
+    private static int option1MinX, option1MaxX;
+    private static int option1MinY, option1MaxY;
+    private static int option2MinX, option2MaxX;
+    private static int option2MinY, option2MaxY;
+    private static int option3MinX, option3MaxX;
+    private static int option3MinY, option3MaxY;
+    private static boolean option0Hovered;
+    private static boolean option1Hovered;
+    private static boolean option2Hovered;
+    private static boolean option3Hovered;
+
+    private static int selectedOption;
 
     private static int clickToContinueMinX;
     private static int clickToContinueMaxX;
@@ -45,6 +66,7 @@ public final class DialogueRenderer {
     private static boolean interactiveHovered;
 
     private static final String CONTINUE_STR = "Click to continue";
+    private static final String SELECT_OPTION_STR = "Select an option";
     private static final String MISSING_STR = "MISSING STR";
     private static final String TOO_MANY_LINES_STR = "TOO MANY LINES!";
     private static final String MISSING_CHAR_DISPLAY_NAME_STR =
@@ -80,6 +102,7 @@ public final class DialogueRenderer {
         portraitXNpc = GameFrame.GetPortraitXNpc();
         portraitXPlayer = GameFrame.GetPortraitXPlayer();
         portraitY = GameFrame.GetPortraitY();
+        centerX = GameFrame.GetCenterX();
         centerXNpc = GameFrame.GetCenterXNpc();
         centerXPlayer = GameFrame.GetCenterXPlayer();
         headerY = GameFrame.GetHeaderY();
@@ -102,10 +125,19 @@ public final class DialogueRenderer {
         op20Y = GameFrame.GetOp20Y();
         op21Y = GameFrame.GetOp21Y();
         op1Y = GameFrame.GetOp1Y();
-        DialogueRenderer.clickToContinueMinY =
-                GameFrame.GetClickToContinueMinY();
-        DialogueRenderer.clickToContinueMaxY =
-                GameFrame.GetClickToContinueMaxY();
+
+        option40Y = GameFrame.GetOption40Y();
+        option41Y = GameFrame.GetOption41Y();
+        option42Y = GameFrame.GetOption42Y();
+        option43Y = GameFrame.GetOption43Y();
+        option30Y = GameFrame.GetOption30Y();
+        option31Y = GameFrame.GetOption31Y();
+        option32Y = GameFrame.GetOption32Y();
+        option20Y = GameFrame.GetOption20Y();
+        option21Y = GameFrame.GetOption21Y();
+        option10Y = GameFrame.GetOption10Y();
+
+        selectedOption = -1;
 
         state = INACTIVE;
 
@@ -119,7 +151,14 @@ public final class DialogueRenderer {
             case INACTIVE: return;
             case DLG_CHAR: DrawDlgChar(); break;
             case DLG_PLAYER: DrawDlgPlayer(); break;
+            case DLG_OPTION: DrawDlgOption(); break;
         }
+
+        interactiveHovered = false;
+        option0Hovered = false;
+        option1Hovered = false;
+        option2Hovered = false;
+        option3Hovered = false;
     }
 
     /**
@@ -131,12 +170,54 @@ public final class DialogueRenderer {
     public static void UpdateMouseHover(int x, int y) {
         assert(init);
 
-        if (!(state == DLG_CHAR || state == DLG_PLAYER)) return;
-
-        if (x >= clickToContinueMinX && x <= clickToContinueMaxX &&
-                y >= clickToContinueMinY && y <= clickToContinueMaxY) {
-            interactiveHovered = true;
-        } else interactiveHovered = false;
+        if (state == DLG_CHAR || state == DLG_PLAYER) {
+            if (clickToContinueMinX == 0) return;
+            if (x >= clickToContinueMinX && x <= clickToContinueMaxX &&
+                    y >= clickToContinueMinY && y <= clickToContinueMaxY)
+                interactiveHovered = true;
+        } else if (state == DLG_OPTION) {
+            switch (bodyLineCount) {
+                case 0: break;
+                case 1: {
+                    if (x >= option0MinX && x <= option0MaxX &&
+                            y >= option0MinY && y <= option0MaxY)
+                        option0Hovered = true;
+                } break;
+                case 2: {
+                    if (x >= option0MinX && x <= option0MaxX &&
+                            y >= option0MinY && y <= option0MaxY)
+                        option0Hovered = true;
+                    if (x >= option1MinX && x <= option1MaxX &&
+                            y >= option1MinY && y <= option1MaxY)
+                        option1Hovered = true;
+                } break;
+                case 3: {
+                    if (x >= option0MinX && x <= option0MaxX &&
+                            y >= option0MinY && y <= option0MaxY)
+                        option0Hovered = true;
+                    if (x >= option1MinX && x <= option1MaxX &&
+                            y >= option1MinY && y <= option1MaxY)
+                        option1Hovered = true;
+                    if (x >= option2MinX && x <= option2MaxX &&
+                            y >= option2MinY && y <= option2MaxY)
+                        option2Hovered = true;
+                } break;
+                case 4: {
+                    if (x >= option0MinX && x <= option0MaxX &&
+                            y >= option0MinY && y <= option0MaxY)
+                        option0Hovered = true;
+                    if (x >= option1MinX && x <= option1MaxX &&
+                            y >= option1MinY && y <= option1MaxY)
+                        option1Hovered = true;
+                    if (x >= option2MinX && x <= option2MaxX &&
+                            y >= option2MinY && y <= option2MaxY)
+                        option2Hovered = true;
+                    if (x >= option3MinX && x <= option3MaxX &&
+                            y >= option3MinY && y <= option3MaxY)
+                        option3Hovered = true;
+                }
+            }
+        }
     }
 
     public static boolean HandleClick(int x, int y) {
@@ -144,8 +225,7 @@ public final class DialogueRenderer {
 
         /* Only one interactable possible at the moment */
         if (state == DLG_CHAR || state == DLG_PLAYER) {
-            if (x >= clickToContinueMinX && x <= clickToContinueMaxX &&
-                y >= clickToContinueMinY && y <= clickToContinueMaxY) {
+            if (interactiveHovered) {
                 ScriptState s = Player.GetDialogueScriptState();
                 if (s.state == ExecutionState.SUSPENDED) {
                     Data.scriptRunner.resumeSuspendedScript(s, Data.playerVars);
@@ -154,23 +234,60 @@ public final class DialogueRenderer {
                 }
                 return true;
             }
+        } else if (state == DLG_OPTION) {
+            if (option0Hovered) {
+                selectedOption = 0;
+                ResumeScript();
+                return true;
+            } else if (option1Hovered) {
+                selectedOption = 1;
+                ResumeScript();
+                return true;
+            } else if (option2Hovered) {
+                selectedOption = 2;
+                ResumeScript();
+                return true;
+            } else if (option3Hovered) {
+                selectedOption = 3;
+                ResumeScript();
+                return true;
+            }
         }
         return false;
     }
 
+    private static void ResumeScript() {
+        assert(init);
+
+        ScriptState s = Player.GetDialogueScriptState();
+        if (s.state == ExecutionState.SUSPENDED) {
+            Data.scriptRunner.resumeSuspendedScript(s, Data.playerVars);
+        } else if (s.state == ExecutionState.FINISHED) {
+            Player.SetDialogueScriptState(null);
+        }
+    }
+
     private static void DrawDlgChar() {
         assert(init);
+
+        if (state != DLG_CHAR) {
+            LogSession(LogLevel.WARNING, ErrStrUnexpectedState(DLG_CHAR,
+                    state));
+            return;
+        }
 
         int argb0 = interactiveHovered ? interactiveHoverARGB : interactiveARGB;
 
         Renderer.DrawBitmap1(speakerPortrait, portraitXNpc, portraitY);
         TextRenderer.DrawLineCenter(fontAtlas, charDisplayName, centerXNpc,
                 headerY, headerARGB);
-        int w = TextRenderer.DrawLineCenter(fontAtlas, CONTINUE_STR, centerXNpc,
-                footerY, argb0);
+        long bounds = TextRenderer.DrawLineCenter(fontAtlas, CONTINUE_STR,
+                centerXNpc, footerY, argb0);
 
-        clickToContinueMinX = centerXNpc - (w / 2);
-        clickToContinueMaxX = clickToContinueMinX + w;
+        clickToContinueMinX = TextRenderer.TLX(bounds);
+        clickToContinueMaxX = TextRenderer.BRX(bounds);
+        clickToContinueMinY = TextRenderer.TLY(bounds);
+        clickToContinueMaxY = TextRenderer.BRY(bounds);
 
         switch (bodyLineCount) {
             case 0: {
@@ -209,19 +326,26 @@ public final class DialogueRenderer {
     private static void DrawDlgPlayer() {
         assert(init);
 
+        if (state != DLG_PLAYER) {
+            LogSession(LogLevel.WARNING, ErrStrUnexpectedState(DLG_PLAYER,
+                    state));
+            return;
+        }
+
         int argb0 = interactiveHovered ? interactiveHoverARGB : interactiveARGB;
 
         Renderer.DrawBitmap1(playerPortrait, portraitXPlayer, portraitY);
         TextRenderer.DrawLineCenter(fontAtlas, playerDisplayName, centerXPlayer,
                 headerY, headerARGB);
 
-        /* Probably should calculate the values for the click box once,
-        * and cache. */
-        int w = TextRenderer.DrawLineCenter(fontAtlas, CONTINUE_STR,
+        long bounds = TextRenderer.DrawLineCenter(fontAtlas, CONTINUE_STR,
                 centerXPlayer, footerY, argb0);
 
-        clickToContinueMinX = centerXPlayer - (w / 2);
-        clickToContinueMaxX = clickToContinueMinX + w;
+        clickToContinueMinX = TextRenderer.TLX(bounds);
+        clickToContinueMaxX = TextRenderer.BRX(bounds);
+        clickToContinueMinY = TextRenderer.TLY(bounds);
+        clickToContinueMaxY = TextRenderer.BRY(bounds);
+
         switch (bodyLineCount) {
             case 0: {
                 TextRenderer.DrawLineCenter(fontAtlas, MISSING_STR,
@@ -256,6 +380,117 @@ public final class DialogueRenderer {
         }
     }
 
+    private static void DrawDlgOption() {
+        assert(init);
+
+        if (state != DLG_OPTION) {
+            LogSession(LogLevel.WARNING, ErrStrUnexpectedState(DLG_OPTION,
+                    state));
+            return;
+        }
+
+        int argb0 = option0Hovered ? interactiveHoverARGB : interactiveARGB;
+        int argb1 = option1Hovered ? interactiveHoverARGB : interactiveARGB;
+        int argb2 = option2Hovered ? interactiveHoverARGB : interactiveARGB;
+        int argb3 = option3Hovered ? interactiveHoverARGB : interactiveARGB;
+
+        TextRenderer.DrawLineCenter(fontAtlas, SELECT_OPTION_STR, centerX,
+                headerY, headerARGB);
+
+        switch (bodyLineCount) {
+            case 0: {
+                TextRenderer.DrawLineCenter(fontAtlas, MISSING_STR,
+                        centerXPlayer, op1Y, bodyARGB);
+            }
+            break;
+            case 1: {
+                long bounds = TextRenderer.DrawLineCenter(fontAtlas, bodyLines[0],
+                        centerX, option10Y, argb0);
+
+                option0MinX = TextRenderer.TLX(bounds);
+                option0MaxX = TextRenderer.BRX(bounds);
+                option0MinY = TextRenderer.TLY(bounds);
+                option0MaxY = TextRenderer.BRY(bounds);
+            }
+            break;
+            case 2: {
+                long bounds0 = TextRenderer.DrawLineCenter(fontAtlas,
+                        bodyLines[0], centerX, option20Y, argb0);
+                long bounds1 = TextRenderer.DrawLineCenter(fontAtlas,
+                        bodyLines[1], centerX, option21Y, argb1);
+
+                option0MinX = TextRenderer.TLX(bounds0);
+                option0MaxX = TextRenderer.BRX(bounds0);
+                option0MinY = TextRenderer.TLY(bounds0);
+                option0MaxY = TextRenderer.BRY(bounds0);
+
+                option1MinX = TextRenderer.TLX(bounds1);
+                option1MaxX = TextRenderer.BRX(bounds1);
+                option1MinY = TextRenderer.TLY(bounds1);
+                option1MaxY = TextRenderer.BRY(bounds1);
+            }
+            break;
+            case 3: {
+                long bounds0 = TextRenderer.DrawLineCenter(fontAtlas,
+                        bodyLines[0], centerX, option30Y, argb0);
+                long bounds1 = TextRenderer.DrawLineCenter(fontAtlas,
+                        bodyLines[1], centerX, option31Y, argb1);
+                long bounds2 = TextRenderer.DrawLineCenter(fontAtlas,
+                        bodyLines[2], centerX, option32Y, argb2);
+
+                option0MinX = TextRenderer.TLX(bounds0);
+                option0MaxX = TextRenderer.BRX(bounds0);
+                option0MinY = TextRenderer.TLY(bounds0);
+                option0MaxY = TextRenderer.BRY(bounds0);
+
+                option1MinX = TextRenderer.TLX(bounds1);
+                option1MaxX = TextRenderer.BRX(bounds1);
+                option1MinY = TextRenderer.TLY(bounds1);
+                option1MaxY = TextRenderer.BRY(bounds1);
+
+                option2MinX = TextRenderer.TLX(bounds2);
+                option2MaxX = TextRenderer.BRX(bounds2);
+                option2MinY = TextRenderer.TLY(bounds2);
+                option2MaxY = TextRenderer.BRY(bounds2);
+            } break;
+            case 4: {
+                long bounds0 = TextRenderer.DrawLineCenter(fontAtlas,
+                        bodyLines[0], centerX, option40Y, argb0);
+                long bounds1 = TextRenderer.DrawLineCenter(fontAtlas,
+                        bodyLines[1], centerX, option41Y, argb1);
+                long bounds2 = TextRenderer.DrawLineCenter(fontAtlas,
+                        bodyLines[2], centerX, option42Y, argb2);
+                long bounds3 = TextRenderer.DrawLineCenter(fontAtlas,
+                        bodyLines[3], centerX, option43Y, argb3);
+
+                option0MinX = TextRenderer.TLX(bounds0);
+                option0MaxX = TextRenderer.BRX(bounds0);
+                option0MinY = TextRenderer.TLY(bounds0);
+                option0MaxY = TextRenderer.BRY(bounds0);
+
+                option1MinX = TextRenderer.TLX(bounds1);
+                option1MaxX = TextRenderer.BRX(bounds1);
+                option1MinY = TextRenderer.TLY(bounds1);
+                option1MaxY = TextRenderer.BRY(bounds1);
+
+                option2MinX = TextRenderer.TLX(bounds2);
+                option2MaxX = TextRenderer.BRX(bounds2);
+                option2MinY = TextRenderer.TLY(bounds2);
+                option2MaxY = TextRenderer.BRY(bounds2);
+
+                option3MinX = TextRenderer.TLX(bounds3);
+                option3MaxX = TextRenderer.BRX(bounds3);
+                option3MinY = TextRenderer.TLY(bounds3);
+                option3MaxY = TextRenderer.BRY(bounds3);
+            }
+            break;
+            default: {
+                TextRenderer.DrawLineCenter(fontAtlas, TOO_MANY_LINES_STR,
+                        centerXPlayer, op1Y, bodyARGB);
+            }
+        }
+    }
+
     public static void Deactivate() {
         assert(init);
 
@@ -266,12 +501,14 @@ public final class DialogueRenderer {
         state = INACTIVE;
         ClearBodyLines();
         bodyText = MISSING_STR;
+        selectedOption = -1;
     }
 
     public static boolean IsActive() {
         assert(init);
 
-        return state == DLG_CHAR || state == DLG_PLAYER; }
+        return state == DLG_CHAR || state == DLG_PLAYER ||
+                state == DLG_OPTION; }
 
     public static void SetStateDlgChar(Char c, String s) {
         assert(init);
@@ -314,6 +551,15 @@ public final class DialogueRenderer {
         ParseBodyLines();
     }
 
+    public static void SetStateDlgOption(String s) {
+        assert(init);
+
+        state = DLG_OPTION;
+
+        bodyText = s != null ? s : MISSING_STR;
+        ParseBodyLines();
+    }
+
     private static void ParseBodyLines() {
         assert(init);
 
@@ -347,6 +593,17 @@ public final class DialogueRenderer {
         bodyLineCount = 0;
     }
 
+    public static void ClearSelectedOption() {
+        assert(init);
+
+        selectedOption = -1;
+    }
+    public static int GetSelectedOption() {
+        assert(init);
+
+        return selectedOption;
+    }
+
     public static final String CLASS = DialogueRenderer.class.getSimpleName();
     private static final String ERR_STR_SPEAKER_NULL = CLASS + " tried to set" +
             " speaker to null.\n";
@@ -356,4 +613,8 @@ public final class DialogueRenderer {
             " failed to initialize because the font atlas was null.\n";
     private static final String ERR_STR_CHAR_DISPLAY_NAME_NULL = CLASS +
             " tried to set char display name to null";
+    private static String ErrStrUnexpectedState(int expected, int actual) {
+        return String.format("%s tried to draw dialogue for state [%d], but " +
+                "the state was [%d].\n", CLASS, expected, actual);
+    }
 }
