@@ -210,6 +210,8 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         Data.scriptRunner.registerCommand("endlg", new EnDlgCommand());
         Data.scriptRunner.registerCommand("dlgp", new DlgPlayerCommand());
         Data.scriptRunner.registerCommand("dlgo", new DlgOptionCommand());
+        Data.scriptRunner.registerCommand("geto", new GetOptionCommand());
+        Data.scriptRunner.registerCommand("eq", new EqCommand());
         /*
         Data.scriptRunner.loadScripts(new File("src/main/resources/scripts"));
          */

@@ -1,8 +1,21 @@
 [dlg,Bilbo]
+mes("starting dialogue")
 dlgc("Hi, I'm Bilbo.|And this is Hobbiton.")
 dlgp("Are you really hobbits?")
 dlgc("Yes, we are really hobbits.")
 dlgc("Do you like Hobbiton so far?")
 dlgo("Yes|Also yes|Possibly...|*Looks at feet*")
-mes("hi")
+def_int $choice = geto()
+if ($choice = 0) {
+    dlgc("Glad to hear it!")
+}
+if ($choice = 1) {
+    dlgc("That's the spirit!")
+}
+if ($choice = 2) {
+    dlgc("You'll come around.")
+}
+if ($choice = 3) {
+    dlgc("Nice feet, I suppose.")
+}
 endlg()
