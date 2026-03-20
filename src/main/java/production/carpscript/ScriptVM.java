@@ -2,6 +2,9 @@ package production.carpscript;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+
+import static whitetail.utility.ErrorHandler.LogFatalAndExit;
 
 /**
  * The script virtual machine. This is the beating heart of CarpScript.
@@ -64,8 +67,11 @@ public class ScriptVM {
      */
     private static final int MAX_INSTRUCTIONS_PER_CYCLE = 5000;
 
-    public ScriptVM() {
+    private final Set<String> varps;
+
+    public ScriptVM(Set<String> varps) {
         this.commands = new HashMap<String, CommandHandler>();
+        this.varps = varps;
     }
 
     // ── Command Registration ──────────────────────────────────────────
@@ -203,6 +209,10 @@ public class ScriptVM {
                     // (this matches RuneScript behavior — new vars start at 0).
                 {
                     String varName = instr.stringOperand();
+                    if (!varps.contains(varName)) {
+                        LogFatalAndExit("Undeclared varp: %" + varName +
+                                " in [" + state.triggerType + "," + state.triggerSubject + "]");
+                    }
                     Object value = playerVars.get(varName);
                     if (value == null) {
                         value = Integer.valueOf(0);
@@ -215,6 +225,10 @@ public class ScriptVM {
                     // Pop the stack and store the value as a player variable.
                 {
                     String varName = instr.stringOperand();
+                    if (!varps.contains(varName)) {
+                        LogFatalAndExit("Undeclared varp: %" + varName +
+                                " in [" + state.triggerType + "," + state.triggerSubject + "]");
+                    }
                     Object value = state.pop();
                     playerVars.put(varName, value);
                 }

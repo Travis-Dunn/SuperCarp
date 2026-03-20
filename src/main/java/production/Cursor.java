@@ -95,7 +95,7 @@ public final class Cursor {
 
             /* New way of doing dialogue! */
             ScriptState s = Data.scriptRunner.fireTrigger(Data.TRIGGER_DIALOGUE, c.name,
-                    Data.playerVars);
+                    Data.varps);
             if (s != null) {
                 Player.SetDialogueScriptState(s);
             }

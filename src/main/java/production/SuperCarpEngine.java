@@ -33,11 +33,16 @@ import whitetail.software_framebuffer.GL12SoftwareFramebuffer;
 import whitetail.software_framebuffer.GLSourceTexelLayout;
 import whitetail.software_framebuffer.GLTextureTexelLayout;
 import whitetail.utility.FramerateManager;
+import whitetail.utility.logging.LogLevel;
 
-import java.io.File;
+import java.io.*;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import static production.ui.BitmapRegistry.MISSING_PORTRAIT;
 import static whitetail.utility.ErrorHandler.LogFatalAndExit;
+import static whitetail.utility.logging.Logger.LogSession;
 
 public class SuperCarpEngine extends GameEngine implements EventListener {
 
@@ -204,7 +209,24 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
                 DisplayConfig.GetEmulatedW(), DisplayConfig.GetEmulatedH(),
                 4);
 
-        Data.scriptRunner = new ScriptRunner();
+        InputStream is = null;
+        Set<String> varpsSet;
+        try {
+            is = AssetStreamResolver.Open("varps", "varps");
+            if (is == null) {
+                /* TODO: please move this into a helper */
+                LogFatalAndExit("Failed to parse varps debug file");
+            }
+            varpsSet = parseVarps(is);
+        } finally {
+            try {
+                is.close();
+            } catch (IOException e) {
+                LogFatalAndExit("Failed to close stream while parsing varps");
+            }
+        }
+
+        Data.scriptRunner = new ScriptRunner(varpsSet);
         Data.scriptRunner.registerCommand("mes", new MesCommand());
         Data.scriptRunner.registerCommand("dlgc", new DlgCharCommand());
         Data.scriptRunner.registerCommand("endlg", new EnDlgCommand());
@@ -217,7 +239,9 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
          */
         Data.scriptRunner.loadScripts("login.cs2", "test.cs2");
 
-        Data.scriptRunner.fireTrigger("login", "on_login", Data.playerVars);
+        Data.varps = new HashMap<String, Object>();
+
+        Data.scriptRunner.fireTrigger("login", "on_login", Data.varps);
 
         DialogueRenderer.Init(Data.fontAtlas, Data.sp.colors[0],
                 Data.sp.colors[6], Data.sp.colors[3], Data.sp.colors[8]);
@@ -296,7 +320,7 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
             if (s.state == ExecutionState.DELAYED) {
                 s.delayTicks--;
                 if (s.delayTicks <= 0) {
-                    Data.scriptRunner.resumeDelayedScript(s, Data.playerVars);
+                    Data.scriptRunner.resumeDelayedScript(s, Data.varps);
                 }
             }
             if (s.state == ExecutionState.FINISHED) {
@@ -355,6 +379,30 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         return false;
     }
 
+    private Set<String> parseVarps(InputStream inputStream) {
+        Set<String> varps = new LinkedHashSet<String>();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+        try {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty() || line.startsWith("#")) {
+                    continue;
+                }
+                varps.add(line);
+            }
+        } catch (IOException e) {
+            LogSession(LogLevel.WARNING, FAILED_PARSE_VARPS);
+        } finally {
+            try {
+                reader.close();
+            } catch (IOException e) {
+                LogSession(LogLevel.WARNING, FAILED_CLOSE_VARPS_READER);
+            }
+        }
+        return varps;
+    }
+
     @Override
     /* all events! */
     public EventType[] getInterestedEventTypes() {
@@ -369,4 +417,8 @@ public class SuperCarpEngine extends GameEngine implements EventListener {
         return String.format("%s failed to initialize because the %s failed " +
                 "to initialize.\n", CLASS, GL12SoftwareFramebuffer.CLASS);
     }
+    private static final String FAILED_PARSE_VARPS = CLASS + " failed to " +
+            "parse varps debug file!\n";
+    private static final String FAILED_CLOSE_VARPS_READER = CLASS + " failed" +
+            " to close BufferedReader in varps debug file parse method.\n";
 }

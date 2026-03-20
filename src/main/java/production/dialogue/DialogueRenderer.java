@@ -228,7 +228,7 @@ public final class DialogueRenderer {
             if (interactiveHovered) {
                 ScriptState s = Player.GetDialogueScriptState();
                 if (s.state == ExecutionState.SUSPENDED) {
-                    Data.scriptRunner.resumeSuspendedScript(s, Data.playerVars);
+                    Data.scriptRunner.resumeSuspendedScript(s, Data.varps);
                 } else if (s.state == ExecutionState.FINISHED) {
                     Player.SetDialogueScriptState(null);
                 }
@@ -261,7 +261,7 @@ public final class DialogueRenderer {
 
         ScriptState s = Player.GetDialogueScriptState();
         if (s.state == ExecutionState.SUSPENDED) {
-            Data.scriptRunner.resumeSuspendedScript(s, Data.playerVars);
+            Data.scriptRunner.resumeSuspendedScript(s, Data.varps);
         } else if (s.state == ExecutionState.FINISHED) {
             Player.SetDialogueScriptState(null);
         }

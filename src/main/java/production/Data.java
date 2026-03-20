@@ -76,7 +76,7 @@ public final class Data {
     public static int emulatedMouseX, emulatedMouseY;
 
     public static ScriptRunner scriptRunner;
-    public static Map<String, Object> playerVars;
+    public static Map<String, Object> varps;
 
     public static final String TRIGGER_DIALOGUE = "dlg";
 }

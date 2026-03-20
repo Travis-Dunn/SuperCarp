@@ -1,6 +1,7 @@
 package production.carpscript;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * The public API for the scripting system.
@@ -52,10 +53,14 @@ public class ScriptRunner {
 
     private final ScriptVM vm;
     private final TriggerRegistry registry;
+    private final Set<String> varps;
 
-    public ScriptRunner() {
-        this.vm = new ScriptVM();
+    public ScriptRunner(Set<String> varps) {
+        assert(varps != null);
+
+        this.vm = new ScriptVM(varps);
         this.registry = new TriggerRegistry();
+        this.varps = varps;
     }
 
     // ══════════════════════════════════════════════════════════════════

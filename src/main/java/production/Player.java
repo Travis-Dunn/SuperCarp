@@ -106,7 +106,7 @@ public final class Player {
 
             if (dialogueTarget == null) return;
             ScriptState s = Data.scriptRunner.fireTrigger(Data.TRIGGER_DIALOGUE,
-                    dialogueTarget.name, Data.playerVars);
+                    dialogueTarget.name, Data.varps);
             if (s != null) {
                 Player.SetDialogueScriptState(s);
             }
